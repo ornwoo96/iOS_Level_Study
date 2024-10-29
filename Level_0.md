@@ -4,6 +4,8 @@
 
 ## 1. 컴퓨터 시스템에서 CPU, RAM, 저장 장치의 역할과 이들이 어떻게 상호 작용하는지 설명해주세요.
 
+<img src="https://github.com/user-attachments/assets/b7748bfe-fdb5-4655-b153-f15388fdff0e">
+
 ### CPU (Central Processing Unit)
 **역할 :**
 - 컴퓨터의 중앙 처리 장치. 컴퓨터의 두뇌
@@ -30,6 +32,8 @@
 
 <br>
 
+<img src="https://github.com/user-attachments/assets/a009896e-e2d9-4643-a047-71c57062d41c">
+
 ### RAM (Random Access Memory)
 **역할 :**
 - 컴퓨터의 주기억 장치
@@ -50,6 +54,8 @@
 - RAM의 내용은 전원이 꺼지면 사라짐
 
 <br>
+
+<img src="https://github.com/user-attachments/assets/dcf454c0-050e-4217-b401-ecfbce371281">
 
 
 ### 저장 장치 (HDD-하드 디스크 드라이브 / SSD-솔리드 스테이트 드라이브)
@@ -74,6 +80,10 @@
 <br>
 
 ## 1.1 CPU와 메모리 간의 데이터 교환은 어떻게 이루어지나요?
+
+
+<img src="https://github.com/user-attachments/assets/88dec934-898e-4e0c-845c-8194a5d49710">
+
 CPU와 메모리 간의 데이터 교환은 **버스(Bus)** 라는 통로를 통해 이루어집니다.
 
 <br>
@@ -116,6 +126,7 @@ CPU와 메모리 간의 데이터 교환은 **버스(Bus)** 라는 통로를 통
 <br>
 
 ## 1.2 버스(Bus)란 무엇이며, 어떤 종류가 있나요?
+
 **컴퓨터 내부에서 데이터를 전달하는 통로** 로, CPU, 메모리, 저장 장치, 입출력 장치 간의 데이터 교환을 가능하게 함
 다양한 구성 요소가 데이터를 주고 받는 통신 경로를 제공
 주소, 데이터, 제어 신호를 포함한 여러 정보를 전송할 수 있음
@@ -178,7 +189,11 @@ CPU와 메모리 간의 데이터 교환은 **버스(Bus)** 라는 통로를 통
 <br>
 
 
+
 ## 2. **캐시 메모리의 개념과 역할에 대해 설명해주세요.**
+
+<img src = "https://github.com/user-attachments/assets/f68cfaff-5269-419b-8a83-743325806ea1">
+
 #### 개념 :
 캐시 메모리는 CPU와 메인 메모리(RAM) 사이에 위치한 고속의 소형 메모리로, 자주 사용하는 데이터나 명령어를 임시로 저장하여 CPU의 처리속도를 높이는 역할을 함. 캐시는 CPU가 자주 접근하는 데이터를 빠르게 제공하여, CPU가 메인 메모리의 느린 접근 속도로 인해 발생하는 지연 시간을 줄이는 데 중요한 역할을 함
 - 고속 메모리 :
@@ -264,9 +279,13 @@ CPU와 메모리 간의 데이터 교환은 **버스(Bus)** 라는 통로를 통
 
 
 ## 3. CPU 아키텍처의 종류(예: ARM, x86)와 각 특징에 대해 설명해주세요.
+
 CPU 아키텍처는 CPU가 데이터를 처리하고 명령어를 실행하는 방식과 구조를 정의합니다.
 
 <br>
+
+
+<img src="https://github.com/user-attachments/assets/70fa0118-4d9c-4978-b46c-ccd66ebc7ed5">
 
 ### x86 아키텍처
 **x86** 아키텍처는 **인텔** 이 개발한 아키텍처로, 주로 데스크탑과 서버에 사용됩니다.
@@ -291,6 +310,10 @@ CPU 아키텍처는 CPU가 데이터를 처리하고 명령어를 실행하는 �
 - AMD Ryzen 시리즈
 
 <br>
+
+
+<img src="https://github.com/user-attachments/assets/622b4173-8755-4fcf-bc35-c3005d8cf3a9">
+
 
 ### ARM 아키텍처
 **ARM** 아키텍처는 **Advanced RISC Machine** 의 약자로, 모바일 기기와 같은 저전력 환경을 위한 **간단한 명령어 집합 컴퓨터(RISC, Reduced Instruction Set Computing)** 구조를 따릅니다. ARM은 간단한 명령어를 빠르게 처리할 수 있어 전력 효율이 높습니다.
@@ -352,6 +375,25 @@ CPU 아키텍처는 CPU가 데이터를 처리하고 명령어를 실행하는 �
 <br>
 
 ## 4.1 SoC(System on a Chip)의 개념은 무엇인가요?
+
+<img src="https://github.com/user-attachments/assets/348c5ce2-450f-43c7-93a5-7506ba239342">
+
+
+**SoC(System on a Chip)**는 하나의 칩에 CPU, GPU, 메모리, 뉴럴 엔진, 입출력 장치 등 다양한 시스템 구성 요소를 통합한 반도체를 말합니다.
+
+### SoC의 주요 개념
+- 통합 설계 :
+  - SoC는 CPU, GPU, 메모리 컨트롤러, AI 연산용 뉴럴 엔진, 이미지 신호 프로세서(ISP)와 같은 다양한 장치를 단일 칩에 포함하여, 전체 시스템의 성능과 효율성을 높입니다.
+- 크기 및 전력 효율 :
+  -  여러 기능을 하나에 칩에 통합함으로써 부품 크기와 전력 소모를 줄일 수 있어, 스마트폰, 태블릿과 같은 모바일 기기에 특히 적합
+- 다양한 기능 :
+  - SoC는 단일 칩에서 컴퓨팅, 그래픽 처리, 신호 처리 등 다양한 작업을 수행하여 별도의 칩이 필요 없는 완전한 컴퓨팅 솔루션을 제공
+
+<br>
+
+### SoC의 예시
+애플의 A 시리즈 칩 (iPhone, Apple TV)과 M 1,2,3,4 시리즈 칩(Mac, iPad)은 SoC의 대표적인 예로 CPU, GPU, 뉴럴 엔진, 메모리 등이 단일 칩에 통합되어 있어 강력한 성능과 효율성을 갖추고 있습니다. (현재 작성자도 M3 Pro Chip 사용중..😎)
+
 
 
 <br>
