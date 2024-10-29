@@ -312,7 +312,7 @@ CPU 아키텍처는 CPU가 데이터를 처리하고 명령어를 실행하는 �
 <br>
 
 
-<img src="https://github.com/user-attachments/assets/622b4173-8755-4fcf-bc35-c3005d8cf3a9">
+<img src="https://github.com/user-attachments/assets/cf945b92-a279-4cb0-8a68-c34da1b9b829">
 
 
 ### ARM 아키텍처
