@@ -846,14 +846,93 @@ iOS에서는 ARC의 특성을 활용해 참조 타입의 종류를 다르게 사
 - 강한 참조(Strong Reference) :
   - 기본적인 참조 방식으로, 참조하는 객체의 카운트를 증가
   - 두 객체가 서로 강한 참조를 가지면 순환 참조 문제가 발생할 수 있음
+
+```swift
+class Person {
+    var pet: Pet?  // 기본적으로 강한 참조
+    deinit { print("Person is being deinitialized") }
+}
+
+class Pet {
+    var owner: Person?  // 기본적으로 강한 참조
+    deinit { print("Pet is being deinitialized") }
+}
+
+// 사용 예시
+var person: Person? = Person()
+var pet: Pet? = Pet()
+
+person?.pet = pet  // Person이 Pet을 강하게 참조
+pet?.owner = person // Pet이 Person을 강하게 참조
+
+person = nil       // 순환 참조로 인해 deinit 호출되지 않음
+pet = nil          // 순환 참조로 인해 deinit 호출되지 않음
+
+```
+
+<br>
+
 - 약한 참조(Weak Reference) :
   - 참조는 하되 참조 카운트를 증가시키지 않는 방식
   - weak 키워드로 선언하며, 참조 대상 객체가 메모리에서 해제되면 nil이 됨
   - 주로 delegate 패턴에서 사용
+ 
+```swift
+class Person {
+    var pet: Pet?
+    deinit { print("Person is being deinitialized") }
+}
+
+class Pet {
+    weak var owner: Person?  // 약한 참조
+    deinit { print("Pet is being deinitialized") }
+}
+
+// 사용 예시
+var person: Person? = Person()
+var pet: Pet? = Pet()
+
+person?.pet = pet         // Person이 Pet을 강하게 참조
+pet?.owner = person       // Pet이 Person을 약하게 참조
+
+person = nil              // Person이 해제되고, 약한 참조로 순환 참조가 발생하지 않음
+// 출력: "Person is being deinitialized"
+pet = nil                 // Pet도 해제됨
+// 출력: "Pet is being deinitialized"
+```
+
+<br>
+
 - 비소유 참조(Unmanaged Reference) :
   - unowned 키워드를 사용하여 참조 카운트를 증가시키지 않지만, 참조 대상이 해제되더라도 nil이 됨
   - 참조 대상이 해제되기 전에만 사용해야 함
   - 주로 강한 순환 참조를 방지하는 데 사용됨
+
+
+```swift
+class Customer {
+    var creditCard: CreditCard?
+    deinit { print("Customer is being deinitialized") }
+}
+
+class CreditCard {
+    unowned let customer: Customer  // 비소유 참조
+    init(customer: Customer) {
+        self.customer = customer
+    }
+    deinit { print("CreditCard is being deinitialized") }
+}
+
+// 사용 예시
+var customer: Customer? = Customer()
+customer?.creditCard = CreditCard(customer: customer!)
+
+customer = nil  // CreditCard도 해제됨
+// 출력: "Customer is being deinitialized"
+// 출력: "CreditCard is being deinitialized"
+
+```
+
 
 <br>
 
@@ -899,7 +978,10 @@ iOS의 메모리 관리 기법인 ARC는 객체의 참조 카운트를 기반으
 <br>
 
 ## 7.1 자동 참조 카운팅(ARC)은 어떻게 동작하나요?
-
+- ARC는 iOS와 macOS에서 메모리를 자동으로 관리하는 시스템
+- 객체가 생성될 때마다 참조 카운트가 증가
+- 더 이상 참조되지 않으면 참조 카운트가 0으로 줄어들고, 메모리에서 자동으로 해제됨
+- ARC는 컴파일러 수준에서 자동으로 관리되므로, 개발자가 명시적으로 메모리를 할당하거나 해제할 필요가 없음
 
 <br>
 <br>
