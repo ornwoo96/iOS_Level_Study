@@ -1438,7 +1438,232 @@ calculateSum() // 함수 호출 시 스택에 메모리가 쌓이고, 종료되�
 <br>
 <br>
 
-## 10. **네트워크 프로토콜 스택과 iOS에서의 네트워크 통신 방식에 대해 설명해주세요.**
+## 10. 네트워크 프로토콜 스택과 iOS에서의 네트워크 통신 방식에 대해 설명해주세요.
+
+<img src="https://github.com/user-attachments/assets/8046dcbe-342f-43ac-87d9-33f5cb9ad021">
+
+### 네트워크 프로토콜 스택
+네트워크 프로토콜 스택은 인터넷 통신을 처리하기 위해 프로토콜을 계층별로 구성한 체계입니다. 일반적으로 OSI 7계층 모델 또는 TCP/IP 4계층 모델로 설명되며, iOS는 주로 TCP/IP 모델을 기반으로 네트워크 통신을 처리합니다.
+
+### OSI 7계층 모델
+#### 1.	물리 계층 (Physical Layer) - 1계층
+- 역할:
+  - 데이터를 전기 신호나 광신호로 변환하여 물리적으로 전송합니다.
+- 장비:
+  - 케이블, 허브, 리피터, 전송 매체
+- 기능:
+  - 비트 전송, 물리적 연결 설정 및 유지
+- 예:
+  - 네트워크 케이블(Ethernet), 신호 전송 방식
+ 
+<br>
+
+#### 2. 데이터 링크 계층 (Data Link Layer) - 2계층
+- 역할:
+  - 데이터 프레임을 생성하고, 오류 검출 및 수정 기능을 통해 신뢰성 있는 데이터 전송을 보장합니다.
+- 장비:
+  - 스위치, 브리지
+- 기능:
+  - 프레임 생성 및 전송, MAC 주소 기반 데이터 전송
+- 예:
+  - 이더넷(Ethernet), MAC 주소
+
+<br>
+
+#### 3.	네트워크 계층 (Network Layer) - 3계층
+- 역할:
+  - 데이터 패킷을 목적지까지 경로를 지정하고 라우팅하여 전송합니다.
+-	장비:
+  -	라우터
+- 기능:
+  - 라우팅, 논리적 주소(IP 주소) 할당 및 변환
+- 예:
+  - IP(Internet Protocol), ICMP
+
+<br>
+
+#### 4. 전송 계층 (Transport Layer) - 4계층
+- 역할:
+  - 송신자와 수신자 간의 데이터 전송을 관리하며, 데이터의 흐름과 오류 제어를 담당합니다.
+- 프로토콜:
+  - TCP(Transmission Control Protocol), UDP(User Datagram Protocol)
+- 기능:
+  - 포트 번호를 사용하여 애플리케이션에 연결, 데이터 분할 및 재조립, 흐름 및 오류 제어
+-	예:
+  -	TCP, UDP
+
+<br>
+
+ 
+#### 5. 세션 계층 (Session Layer) - 5계층
+- 역할:
+  - 송신자와 수신자 간의 세션을 설정, 유지, 종료합니다.
+- 기능:
+  - 세션 복구, 대화 제어
+-	예:
+  -	RPC(Remote Procedure Call), NetBIOS
+
+<br>
+
+#### 6.	표현 계층 (Presentation Layer) - 6계층
+-	역할:
+  -	데이터의 형식 변환 및 암호화, 압축 등을 통해 표현 형식을 변환하여 상위 계층이 데이터 형식에 구애받지 않고 통신하도록 합니다.
+- 기능:
+  - 데이터 변환(인코딩 및 디코딩), 암호화, 압축
+-	예:
+  -	JPEG, GIF, TLS, SSL
+
+<br>
+
+#### 7.	응용 계층 (Application Layer) - 7계층
+-	역할:
+  -	사용자와 네트워크 간의 직접적인 상호 작용을 제공합니다.
+  -	웹 브라우저, 이메일 클라이언트 등 애플리케이션이 사용자 요청을 네트워크로 전송하도록 합니다.
+- 기능:
+  - 사용자 인터페이스 제공, 프로토콜 실행
+-	예:
+  -	HTTP, FTP, SMTP, DNS
+
+
+<br>
+
+### TCP/IP 4계층 모델
+
+
+#### 1. 링크 계층 (Link Layer):
+- 역할:
+  - 물리적 네트워크 연결을 관리하고, 데이터를 물리적 장치로 전송합니다.
+  - 이 계층은 네트워크 인터페이스(예: 이더넷, 와이파이)를 포함합니다.
+- 프로토콜:
+  - Ethernet, Wi-Fi, ARP 등
+
+<br>
+
+#### 인터넷 계층 (Internet Layer):
+- 역할:
+  - 데이터를 목적지 주소(IP 주소)에 따라 올바르게 라우팅하며, 패킷을 분할하고 전달합니다.
+- 프로토콜:
+  -  IP(Internet Protocol), ICMP, ARP
+
+<br>
+
+#### 3.	전송 계층 (Transport Layer):
+- 역할:
+  - 송수신 간의 데이터 전송을 관리하며, TCP와 UDP 같은 프로토콜을 사용해 데이터 전송의 신뢰성을 보장하거나 속도를 우선시할 수 있습니다.
+- 프로토콜:
+  - TCP(Transmission Control Protocol), UDP(User Datagram Protocol)
+
+<br>
+
+#### 4. 응용 계층 (Application Layer):
+- 역할:
+  - 응용 프로그램이 데이터를 주고받을 수 있도록 지원하며, HTTP, FTP 등과 같은 고수준의 프로토콜을 사용해 직접 데이터를 송수신합니다.
+- 프로토콜:
+  - HTTP, HTTPS, FTP, SMTP, DNS
+
+
+<br>
+
+### TCP와 UDP의 차이점
+#### TCP (Transmission Control Protocol):
+- 연결형 프로토콜로, 데이터의 신뢰성과 순서를 보장합니다.
+- 전송 전 3-way Handshake로 연결을 설정한 후 데이터를 전송하며, 데이터가 손실되면 재전송합니다.
+
+#### UDP (User Datagram Protocol):
+- 비연결형 프로토콜로, 속도가 빠르지만 신뢰성을 보장하지 않습니다.
+- 스트리밍, VoIP와 같이 데이터의 손실보다는 전송 속도가 중요한 경우에 사용됩니다.
+
+<br>
+
+### iOS에서의 네트워크 통신 방식
+iOS는 네트워크 프로토콜 스택의 TCP/IP 계층을 기반으로 다양한 네트워크 통신 프레임워크와 API를 제공합니다. 이를 통해 개발자는 HTTP 요청, 실시간 데이터 스트리밍, 웹 소켓 등을 쉽게 구현할 수 있습니다.
+
+<br>
+
+#### URLSession
+- 역할:
+  - iOS에서 네트워크 요청을 처리하는 기본 프레임워크로, HTTP/HTTPS 통신, 파일 다운로드 및 업로드, 백그라운드 전송 등을 지원합니다.
+- 특징:
+  - 요청을 비동기로 처리하여, UI의 응답성을 유지하면서 데이터를 송수신할 수 있습니다.
+  - 데이터 요청, 다운로드 및 업로드 작업을 지원하며, 백그라운드 전송도 가능합니다.
+  - HTTP/HTTPS 프로토콜을 이용하여 REST API를 호출하거나 파일 다운로드 등과 같은 기능을 제공합니다.
+- 사용 예시:
+```swift
+let url = URL(string: "https://jsonplaceholder.typicode.com/todos/1")!
+let task = URLSession.shared.dataTask(with: url) { data, response, error in
+    if let data = data {
+        print(String(data: data, encoding: .utf8)!)
+    }
+}
+task.resume()
+```
+
+<br>
+
+### WebSocket
+- 역할:
+  - 클라이언트와 서버 간의 양방향 통신을 가능하게 하는 프로토콜로, 실시간 데이터 통신에 적합합니다.
+- 특징:
+  -	일반 HTTP 요청과 달리 지속적인 연결을 유지하여, 실시간 채팅, 주식 가격 갱신 등과 같이 지속적인 데이터 송수신이 필요한 경우에 적합합니다.
+	-	iOS 13 이후 URLSession에서 기본적으로 WebSocket 지원을 제공합니다.
+- 사용 예시:
+```swift
+if let url = URL(string: "wss://example.com/socket") {
+    let webSocketTask = URLSession.shared.webSocketTask(with: url)
+    webSocketTask.resume()
+}
+```
+
+<br>
+
+### Network 프레임워크
+-	역할:
+  -	네트워크 연결을 설정하고 관리할 수 있는 저수준 네트워크 API로, iOS 12부터 도입되었습니다.
+- 특징:
+  - TCP, UDP 같은 네트워크 프로토콜을 직접 제어할 수 있으며, 연결 상태나 데이터 송수신을 세부적으로 관리할 수 있습니다.
+  - Peer-to-Peer 연결 및 실시간 연결에 최적화되어 있어 게임, IoT, 실시간 데이터 통신에 적합합니다.
+- 사용 예시:
+
+```swift
+import Network
+
+let connection = NWConnection(host: "example.com", port: 80, using: .tcp)
+connection.start(queue: .main)
+```
+
+<br>
+
+### MultipeerConnectivity 프레임워크
+- 역할:
+  - 로컬 네트워크 내에서 장치 간의 데이터 교환 및 파일 공유를 가능하게 하는 프레임워크입니다
+- 특징:
+  -	Bluetooth, Wi-Fi, 인프라 네트워크를 사용하여 Peer-to-Peer 연결을 지원합니다.
+	-	가까운 기기 간의 채팅, 파일 공유, 멀티플레이어 게임 등에 적합합니다.
+-	사용 예시:
+```swift
+import MultipeerConnectivity
+
+let peerID = MCPeerID(displayName: UIDevice.current.name)
+let session = MCSession(peer: peerID)
+```
+
+<br>
+
+### iOS의 네트워크 관리 방식
+- ARC를 통한 메모리 관리:
+  - iOS는 URLSession 및 네트워크 객체를 ARC(Automatic Reference Counting)를 통해 관리하여 메모리 누수를 방지합니다.
+- 비동기 처리:
+  - 대부분의 네트워크 작업은 비동기로 처리되어, 메인 스레드의 부담을 줄이고 UI의 응답성을 유지합니다.
+- 보안:
+  - iOS는 **앱 전송 보안(ATS, App Transport Security)** 를 통해 HTTPS 통신을 기본 요구사항으로 설정하여, 네트워크 통신에서 데이터를 안전하게 보호합니다.
+
+<br>
+
+### 요약
+- 네트워크 프로토콜 스택은 TCP/IP 4계층으로 구성되며, iOS는 이 스택을 기반으로 네트워크 통신을 처리합니다.
+- iOS는 URLSession을 통해 HTTP/HTTPS 통신을 간편하게 지원
+- WebSocket을 통해 실시간 양방향 통신을, Network 프레임워크로 저수준 네트워크 제어를 제공합니다.
+- iOS의 네트워크 관리 방식은 ARC와 비동기 처리, ATS와 같은 보안 메커니즘을 통해 안정적이고 효율적인 네트워크 통신을 가능하게 합니다.
 
 <br>
 <br>
