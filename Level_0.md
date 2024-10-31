@@ -1033,11 +1033,31 @@ ARC와 GC 모두 자동 메모리 관리 방식을 제공하지만, ARC는 참�
 #### tmp :
 - 임시 파일을 저장하는 폴더로, 앱이 종료되면 삭제될 수 있음
 
+<br>
+
+### 앱 그룹과 URL Scheme, Universal Links 외 앱 데이터 공유 방법
+
+#### UIDocumentInteractionController
+- UIDocumentInteractionController를 사용하여 다른 앱으로 파일을 전송할 수 있습니다.
+- 이 방법은 앱에서 특정 파일을 공유할 때, 사용자가 해당 파일을 열 수 있는 다른 앱을 선택하도록 합니다.
+- 예를 들어, PDF 파일을 이메일 앱이나 파일 뷰어 앱으로 보낼 때 사용할 수 있습니다.
+
+<br>
+
+#### UIPasteboard
+- UIPasteboard를 통해 간단한 데이터를 복사하고 붙여넣기 형식으로 앱 간에 전송할 수 있습니다.
+- 사용자가 데이터를 복사하여 다른 앱에 붙여넣거나, 특정 데이터를 복사하여 여러 앱이 접근하도록 설정할 수 있습니다.
+
+<br>
+
+### 요약
+iOS의 샌드박스는 각 앱을 독립된 환경에서 실행하여 보안을 유지하고, 시스템과 다른 앱에 영향을 주지 않도록 보호합니다. 앱 간 데이터 공유는 기본적으로 차단되지만, App Groups, UIDocumentInteractionController, URL Scheme와 Universal Links, UIPasteboard와 같은 공식적인 방법을 통해 안전하게 데이터를 공유할 수 있습니다.
 
 <br>
 <br>
 
 ## 8.1 URL 스킴(URL Scheme)을 이용한 앱 간 통신은 어떻게 이루어지나요?
+
 
 
 
