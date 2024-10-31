@@ -2489,9 +2489,14 @@ func fetchUserData() {
 <br>
 
 ## 17. REST API에서 HTTP 메서드들의 차이점을 설명해주세요.
+REST API에서 사용하는 HTTP 메서드는 클라이언트가 서버에 요청하는 작업의 목적을 나타내기 위해 사용됩니다. 대표적인 HTTP 메서드로 GET, POST, PUT, DELETE가 있으며, 각각의 역할은 다릅니다.
 
+<br>
 
-    - `GET`과 `POST`의 차이점은 무엇인가요?
+### HTTP 메소드 특징 비교 테이블
+
+<img src="https://github.com/user-attachments/assets/87b51c9b-b634-4ef5-8a33-798a801b48ac">
+
 
 
 <br>
