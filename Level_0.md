@@ -1041,13 +1041,110 @@ ARC와 GC 모두 자동 메모리 관리 방식을 제공하지만, ARC는 참�
 
 
 
+
 <br>
 <br>
+
 
 ## 8.2 앱 그룹(App Group)을 활용하여 데이터 공유를 하는 방법은 무엇인가요?
 
+<img src="https://github.com/user-attachments/assets/22a1d76f-9735-4354-a953-e2694bcb3ea2">
 
-  
+[AppGroupConfigure](https://developer.apple.com/documentation/xcode/configuring-app-groups)
+
+
+App Groups는 동일한 개발자가 만든 여러 앱 간의 데이터 공유를 가능하게 합니다.
+
+### 설정 방법 및 구성
+
+#### Apple Developer Center에서 App Group 설정 :
+1. 개발자가 Apple Developer Center에서 App Group ID를 생성
+2. Xcode에서 해당 App Group을 프로젝트에 추가
+
+- 이렇게 해야 App Group을 통한 공유 컨테이너에 접근할 수 있습니다.
+
+<br>
+
+
+#### 앱 타겟 설정 :
+1. 각 앱의 Xcode 프로젝트에서 App Group 설정을 추가
+2. 해당 App Group을 타겟의 Signing & Capabilities에 추가
+
+- App Group ID가 일치하는 모든 앱이 같은 그룹 컨테이너에 접근할 수 있습니다.
+
+<br>
+
+#### 샌드박스 환경 고려
+iOS 샌드박스 환경에서 App Groups은 앱이 자체적으로 접근 가능한 제한된 영역을 확장 여러 앱이 공유하는 컨테이너로 제한적으로 접근할 수 있도록 허용합니다.
+
+<br>
+
+### App Groups에서 공유 가능한 데이터 유형
+#### UserDefaults: 
+- UserDefaults를 사용하여 App Groups에 저장된 데이터를 여러 앱에서 공유할 수 있음
+
+```swift
+if let sharedDefaults = UserDefaults(suiteName: "group.com.example.appgroup") {
+    sharedDefaults.set("exampleValue", forKey: "exampleKey")
+}
+```
+이 코드에서는 UserDefaults의 suiteName으로 App Group을 지정하여, 여러 앱에서 접근 가능한 UserDefaults를 만듭니다.
+
+<br>
+
+#### 파일 및 디렉토리 데이터: 
+- 파일과 같은 데이터는 App Group 컨테이너의 파일 경로를 통해 접근할 수 있습니다.
+```swift
+
+if let sharedContainerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.example.appgroup") {
+    let fileURL = sharedContainerURL.appendingPathComponent("sharedFile.txt")
+    // 파일 쓰기 예시
+    try? "Shared Data".write(to: fileURL, atomically: true, encoding: .utf8)
+}
+
+```
+이 코드는 App Group 공유 컨테이너 내에 sharedFile.txt 파일을 저장하여 다른 앱에서도 접근할 수 있게 합니다.
+
+<br>
+
+### App Groups 활용 예시
+- 로그인 세션 및 사용자 설정 공유 :
+  - 여러 앱에서 동일한 로그인 상태나 사용자 설정을 유지하려는 경우, 하나의 앱에서 로그인 정보를 설정하고, 다른 앱에서 이를 확인할 수 있습니다.
+- 건강 관련 데이터 앱 :
+  - 건강 앱이나 피트니스 관련 앱에서 사용자 데이터를 공유하고, 한 앱에서 기록된 데이터를 다른 앱에서도 접근할 수 있게 만듭니다.
+- 위젯(Widget) :
+  - iOS 위젯은 App Group을 사용하여 본 앱과 데이터를 공유합니다.
+  - 예를 들어, 날씨 앱이 위젯을 통해 현재 날씨를 보여주기 위해 데이터를 공유하는 방식입니다.
+
+
+<br>
+
+### 데이터 동기화 및 업데이트 처리
+- 데이터 동기화:
+  - App Group을 사용할 때 데이터가 즉각적으로 동기화되지 않을 수 있으므로, UserDefaults에 데이터 업데이트 후 synchronize() 메서드를 호출하여 데이터를 바로 반영할 수 있습니다. 그러나 이 메서드는 자동 동기화 속도를 높이기 위한 선택 사항이며, 실제로는 대부분의 상황에서 불필요한 경우가 많습니다.
+- 앱 실행 중 데이터 변경 감지:
+  - 앱 실행 중 다른 앱에 의해 데이터가 변경될 가능성이 있을 때, NotificationCenter를 통해 데이터 변경을 알림으로써 앱 간 데이터 변경을 실시간으로 감지할 수 있습니다.
+
+<br>
+
+### 보안 및 접근 권한 관리
+- 보안 고려:
+  - App Group의 데이터는 앱 간에 공유되지만, 여전히 샌드박스 환경 내에서 보안이 보장됩니다.
+  - 그러나, App Group ID가 다른 앱 간에는 접근이 불가능하므로 다른 개발자가 접근할 수 없습니다.
+- 앱 업데이트 시 주의사항:
+  - App Group을 사용하는 앱을 업데이트할 때는, App Group 설정이 삭제되거나 변경되지 않도록 주의해야 합니다.
+  - App Group 설정을 변경하면 기존의 공유 데이터가 삭제될 수 있습니다.
+
+
+<br>
+
+
+### 요약 
+- App Groups은 UserDefaults와 파일 데이터를 공유하기 위해 사용되며, 설정을 위해 Apple Developer Center와 Xcode 설정이 필요합니다.
+- 여러 앱 간에 로그인 정보, 설정, 위젯 데이터를 공유하는 데 사용됩니다.
+- 보안 유지와 함께 즉각적인 데이터 동기화를 위해 NotificationCenter와 synchronize() 메서드로 업데이트를 관리할 수 있습니다.
+
+
 <br>
 <br>
 
