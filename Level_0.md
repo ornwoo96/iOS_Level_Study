@@ -2191,7 +2191,8 @@ UDP는
 - VoIP
 - 온라인 게임
 - 멀티캐스트 및 브로드캐스트 통신
-간단한 요청-응답 서비스와 같이 데이터의 지연이 최소화되어야 하며, 약간의 데이터 손실이 허용될 수 있는 상황에서 사용하기에 적합합니다. 이러한 상황에서는 신뢰성보다는 속도와 실시간성이 더 중요한 요소가 되기 때문에 UDP가 적절한 선택이 됩니다.
+  
+와 같이 간단한 요청-응답 서비스와 같이 데이터의 지연이 최소화되어야 하며, 약간의 데이터 손실이 허용될 수 있는 상황에서 사용하기에 적합합니다. 이러한 상황에서는 신뢰성보다는 속도와 실시간성이 더 중요한 요소가 되기 때문에 UDP가 적절한 선택이 됩니다.
 
 <br>
 
@@ -2207,12 +2208,201 @@ UDP는
 <br>
 
 ## 15. 소켓 통신에 대해 설명해주세요.
+소켓 통신은 네트워크 상에서 두 장치가 데이터를 주고받기 위해 사용하는 양방향 통신 방식입니다. 소켓은 네트워크 연결을 추상화한 인터페이스로, 두 장치 간의 연결을 설정하고 데이터를 전송하는 역할을 합니다. 소켓 통신은 주로 클라이언트-서버 모델로 이루어지며, 네트워크 프로그램과 인터넷 서비스의 기반이 됩니다.
+
+<br>
+
+### 소켓(Socket)의 개념
+소켓은 네트워크 통신의 **종단점(Endpoint)** 을 나타내며, IP 주소와 포트 번호로 구성됩니다. 두 장치 간에 소켓이 열리면 연결이 형성되고, 데이터를 주고받는 통신이 가능해집니다.
+
+- IP 주소:
+	- 장치의 네트워크 주소로, 데이터를 전송할 대상을 식별합니다.
+- 포트 번호:
+	- 장치 내의 특정 프로세스를 식별하는 번호로, 여러 프로그램이 네트워크를 공유할 수 있게 해줍니다.
+
+
+<br>
+
+
+### 소켓 통신의 종류
+#### 1. TCP 소켓 (연결 지향형)
+- 특징:
+	- TCP 소켓은 연결 지향형 통신으로, 데이터 전송 전에 3-Way Handshake 과정을 통해 송신자와 수신자 간의 연결을 설정합니다.
+- 장점:
+	- 신뢰성 있는 데이터 전송이 가능하며, 데이터의 순서가 보장됩니다. 패킷 손실 시 재전송을 통해 손실된 데이터를 복구합니다.
+- 사용 예:
+	- 웹 브라우징, 이메일, 파일 전송 등 신뢰성이 중요한 애플리케이션에서 사용됩니다.
+
+<br>
+
+#### 2. UDP 소켓 (비연결 지향형)
+- 특징:
+	- UDP 소켓은 비연결 지향형 통신으로, 연결을 설정하지 않고 데이터를 전송합니다.
+- 장점:
+	- 연결 설정 과정이 없고, 데이터 전송 속도가 빠르지만, 데이터 전송의 신뢰성이 보장되지 않습니다.
+- 사용 예:
+	- 비디오 스트리밍, 온라인 게임, VoIP 등 빠른 데이터 전송이 중요한 애플리케이션에서 사용됩니다.
+
+<br>
+
+#### 소켓 통신의 동작 방식
+
+1. 서버 소켓 생성:
+- 서버는 클라이언트의 요청을 받을 준비를 위해 소켓을 생성하고 특정 IP 주소와 포트 번호를 소켓에 바인딩합니다.
+
+<br>
+
+2. 서버 대기 및 클라이언트 연결 요청:
+- 서버는 클라이언트 요청을 대기(listen)하며, 클라이언트가 서버로 연결 요청을 보낼 때까지 기다립니다.
+
+<br>
+
+3. 클라이언트 소켓 생성 및 연결 요청:
+- 클라이언트는 소켓을 생성한 후, 서버의 IP 주소와 포트 번호를 사용하여 연결 요청(connect)을 보냅니다.
+
+<br>
+
+4. 서버와 클라이언트 연결:
+- 서버는 클라이언트의 요청을 수락(accept)하고, 클라이언트와 연결을 설정합니다.
+- 연결이 설정되면 데이터 송수신이 가능해집니다.
+
+<br>
+
+5. 데이터 송수신:
+- 서버와 클라이언트는 소켓을 통해 데이터를 송수신(send 및 receive)합니다.
+- TCP 소켓의 경우 데이터가 신뢰성 있게 전송되며, UDP 소켓의 경우 데이터 손실 가능성을 감수하고 전송됩니다.
+
+<br>
+
+6. 연결 종료:
+- 데이터 송수신이 완료되면, 클라이언트와 서버는 소켓을 닫아(close) 연결을 종료합니다.
+
+<br>
+
+### 소켓 통신의 예시 (TCP 소켓 통신)
+
+#### 서버 코드 python
+```python
+import socket
+
+# 서버 소켓 생성
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind(('localhost', 8080)) # IP 주소와 포트 바인딩
+server_socket.listen(1) # 클라이언트 연결 대기
+
+print("Server is waiting for a connection...")
+conn, addr = server_socket.accept() # 연결 수락
+print(f"Connected by {addr}")
+
+# 클라이언트로부터 데이터 수신 및 응답
+data = conn.recv(1024)
+print("Received from client:", data.decode())
+conn.sendall("Hello from server!".encode())
+
+# 연결 종료
+conn.close()
+```
+
+<br>
+#### 클라이언트 코드 swift
+
+```swift
+import Foundation
+
+class TCPClient {
+    var inputStream: InputStream?
+    var outputStream: OutputStream?
+
+    func setupNetworkConnection() {
+        // 서버의 IP 주소와 포트 번호 설정
+        var readStream: Unmanaged<CFReadStream>?
+        var writeStream: Unmanaged<CFWriteStream>?
+        
+        // 소켓을 'localhost'와 8080 포트로 연결 설정
+        CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, "localhost" as CFString, 8080, &readStream, &writeStream)
+        
+        inputStream = readStream?.takeRetainedValue()
+        outputStream = writeStream?.takeRetainedValue()
+        
+        inputStream?.delegate = self
+        outputStream?.delegate = self
+        
+        inputStream?.schedule(in: .current, forMode: .default)
+        outputStream?.schedule(in: .current, forMode: .default)
+        
+        inputStream?.open()
+        outputStream?.open()
+    }
+
+    func send(message: String) {
+        guard let outputStream = outputStream else { return }
+        let data = message.data(using: .utf8)!
+        
+        data.withUnsafeBytes { (buffer: UnsafeRawBufferPointer) in
+            if let pointer = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) {
+                outputStream.write(pointer, maxLength: data.count)
+            }
+        }
+    }
+    
+    func receive() {
+        guard let inputStream = inputStream else { return }
+        
+        let bufferSize = 1024
+        var buffer = [UInt8](repeating: 0, count: bufferSize)
+        
+        let bytesRead = inputStream.read(&buffer, maxLength: bufferSize)
+        if bytesRead >= 0, let output = String(bytes: buffer, encoding: .utf8) {
+            print("Received from server: \(output)")
+        }
+    }
+}
+
+extension TCPClient: StreamDelegate {
+    func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
+        switch eventCode {
+        case .hasBytesAvailable:
+            print("Data received")
+            receive()
+        case .endEncountered:
+            print("Connection closed by server")
+            close()
+        case .errorOccurred:
+            print("Connection error")
+        default:
+            break
+        }
+    }
+
+    func close() {
+        inputStream?.close()
+        outputStream?.close()
+        
+        inputStream?.remove(from: .current, forMode: .default)
+        outputStream?.remove(from: .current, forMode: .default)
+        
+        inputStream = nil
+        outputStream = nil
+    }
+}
+
+// 사용 예시
+let client = TCPClient()
+client.setupNetworkConnection()
+
+// 메시지 전송
+client.send(message: "Hello from client!")
+```
+
+
 
 <br>
 <br>
 
-## 16. **REST API와 iOS에서의 네트워크 요청 및 응답 처리 방법에 대해 설명해주세요.**
-    - iOS에서 `URLSession`을 사용하여 네트워크 요청을 보내는 방법은 무엇인가요?
+## 16. REST API와 iOS에서의 네트워크 요청 및 응답 처리 방법에 대해 설명해주세요.
+
+
+## 16.1 iOS에서 `URLSession`을 사용하여 네트워크 요청을 보내는 방법은 무엇인가요?
 
 <br>
 <br>
