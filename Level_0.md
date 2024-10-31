@@ -1668,8 +1668,226 @@ let session = MCSession(peer: peerID)
 <br>
 <br>
 
-## 11. **HTTP와 HTTPS의 차이점, 그리고 iOS에서의 보안 통신 방법에 대해 설명해주세요.**
-    - SSL/TLS의 동작 원리는 무엇인가요?
+## 11. HTTP와 HTTPS의 차이점, 그리고 iOS에서의 보안 통신 방법에 대해 설명해주세요.
+### HTTP와 HTTPS의 차이점
+<img src="https://github.com/user-attachments/assets/a2f5238f-f201-473a-9d23-a4aed05ad067">
+- HTTP는 암호화 없이 데이터를 평문으로 전송
+- HTTPS는 SSL/TLS 인증서를 사용하여 데이터를 암호화하여 전송함으로써 보안성과 무결성을 보장
+
+<br>
+
+### iOS에서의 주요 보안 통신 방법
+HTTPS 통신, ATS(App Transport Security), SSL 핀닝, 인증서 검증, 키체인(Keychain) 등이 주요한 보안 통신 방법입니다.
+
+<br>
+
+#### 1. HTTPS (Hypertext Transfer Protocol Secure)
+
+- 역할 :
+	- iOS에서는 네트워크 통신에 기본적으로 HTTPS를 권장합니다.
+	- HTTPS는 SSL/TLS 암호화 프로토콜을 사용해 통신 데이터의 암호화, 무결성, 인증을 보장합니다.
+- 특징 :
+	- 데이터가 암호화되어 중간에서 도청되거나 변조될 가능성이 줄어듭니다.
+- 사용자가 신뢰할 수 있는 인증서를 통해 서버의 신원을 확인할 수 있습니다.
+
+<br>
+
+#### 2. App Transport Security (ATS)
+- 역할:
+	- iOS 9 이후 도입된 **App Transport Security(ATS)** 는 앱 내 모든 네트워크 요청이 HTTPS를 사용하도록 요구하는 보안 정책입니다.
+- 특징:
+	- ATS는 모든 HTTP 요청을 차단하고, HTTPS를 통해 TLS 1.2 이상을 사용하도록 강제하여 보안을 강화합니다.
+	- ATS 설정을 통해 특정 도메인에 대해 HTTP를 예외적으로 허용하거나, ATS를 완전히 비활성화할 수도 있지만, 이는 보안에 취약할 수 있습니다.
+
+- ATS 예외 설정:
+```swift
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSExceptionDomains</key>
+    <dict>
+        <key>example.com</key>
+        <dict>
+            <key>NSIncludesSubdomains</key>
+            <true/>
+            <key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+            <true/>
+        </dict>
+    </dict>
+</dict>
+```
+
+<br>
+
+
+#### 3. SSL 핀닝 (SSL Pinning)
+- 역할:
+	- SSL 핀닝은 앱이 특정 서버와의 연결 시 서버의 SSL 인증서를 미리 저장하고, 통신 시 이를 비교하여 신뢰성을 확인하는 방식입니다.
+- 특징:
+	- 중간자 공격(Man-in-the-Middle Attack)을 방지할 수 있습니다.
+	- iOS에서는 URLSessionDelegate를 사용해 서버 인증서를 비교할 수 있습니다.
+
+- SSL 핀닝 예시:
+```swift
+func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
+                completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    if let serverTrust = challenge.protectionSpace.serverTrust {
+        let credential = URLCredential(trust: serverTrust)
+        completionHandler(.useCredential, credential)
+    } else {
+        completionHandler(.cancelAuthenticationChallenge, nil)
+    }
+}
+```
+
+<br>
+
+#### 4. 인증서 검증
+- 역할:
+	- iOS에서는 HTTPS를 사용할 경우 자동으로 서버의 SSL 인증서를 검증합니다.
+ 	- 이를 통해 사용자는 인증서를 통해 서버의 신뢰성을 확인할 수 있습니다.
+- 특징:
+	- 기본적으로 URLSession은 HTTPS를 통해 서버의 인증서를 검증하여 유효한 경우에만 연결을 허용합니다.
+ 	- 인증서 검증을 강화하거나 특정 조건을 확인하려면 URLSessionDelegate의 didReceive challenge 메서드를 통해 추가 검증을 수행할 수 있습니다.
+ 
+<br>
+
+#### 5. 키체인 (Keychain)
+- 역할:
+	- 키체인은 iOS에서 민감한 데이터를 안전하게 저장하는 공간입니다. 예를 들어, 로그인 정보, API 토큰 등 암호화가 필요한 정보들을 키체인에 저장하여 외부로부터 보호할 수 있습니다.
+- 특징:
+  	- 키체인에 저장된 데이터는 암호화되며, 앱 간 공유 설정을 통해 여러 앱에서 안전하게 접근할 수 있습니다.
+	- 키체인은 시스템 보안에 의해 보호되므로, 앱이 백그라운드로 전환되거나 장치가 잠기면 보안이 유지됩니다.
+
+키체인 사용 예시:
+```swift
+import Security
+
+func saveToKeychain(key: String, data: Data) {
+    let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrAccount as String: key,
+        kSecValueData as String: data
+    ]
+    SecItemAdd(query as CFDictionary, nil)
+}
+
+func readFromKeychain(key: String) -> Data? {
+    let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrAccount as String: key,
+        kSecReturnData as String: true,
+        kSecMatchLimit as String: kSecMatchLimitOne
+    ]
+    var item: CFTypeRef?
+    SecItemCopyMatching(query as CFDictionary, &item)
+    return item as? Data
+}
+```
+
+<br>
+
+#### 6. OAuth와 토큰 기반 인증
+- 역할:
+	- iOS 앱에서는 OAuth2 인증을 통해 보안 통신에서 사용자의 접근 권한을 관리할 수 있습니다.
+- 특징:
+	- OAuth는 액세스 토큰을 사용하여, 서버와의 통신에 있어 민감한 정보를 직접 요청하지 않고 안전하게 접근할 수 있게 합니다.
+	- OAuth로 인증을 수행하면 API 통신에 대한 인증 정보를 외부에 노출하지 않고 처리할 수 있습니다.
+
+- 예시:
+OAuth 인증의 과정은 인증 요청 → 액세스 토큰 수신 → 토큰을 이용한 요청의 3단계로 이루어집니다.
+
+**1. 액세스 토큰 요청**
+먼저, 클라이언트 앱은 서버에 인증 요청을 보내며, 인증이 성공하면 액세스 토큰을 반환받습니다. 이 토큰은 이후 요청에 사용됩니다.
+
+```swift
+import Foundation
+
+func requestAccessToken(clientID: String, clientSecret: String, authorizationCode: String, redirectURI: String) {
+    // 토큰 요청 URL
+    let url = URL(string: "https://authorization-server.com/oauth/token")!
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    
+    // 요청에 필요한 파라미터 설정
+    let parameters = [
+        "grant_type": "authorization_code",
+        "client_id": clientID,
+        "client_secret": clientSecret,
+        "code": authorizationCode,
+        "redirect_uri": redirectURI
+    ]
+    
+    request.httpBody = parameters
+        .map { "\($0.key)=\($0.value)" }
+        .joined(separator: "&")
+        .data(using: .utf8)
+    
+    request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+    // URLSession으로 액세스 토큰 요청
+    let task = URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data, error == nil else {
+            print("Error: \(String(describing: error))")
+            return
+        }
+        if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+            let accessToken = json["access_token"] as? String
+            print("Access Token: \(String(describing: accessToken))")
+            // 이후 토큰을 저장하고 사용할 수 있음
+        }
+    }
+    task.resume()
+}
+```
+
+<br>
+
+**2. 토큰을 이용한 API 요청**
+액세스 토큰을 얻으면, 이를 HTTP 헤더에 포함해 서버의 보호된 리소스에 접근할 수 있습니다.
+```swift
+func fetchProtectedResource(withAccessToken accessToken: String) {
+    let url = URL(string: "https://api.example.com/protected/resource")!
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+    
+    // Authorization 헤더에 액세스 토큰 추가
+    request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+    
+    let task = URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data, error == nil else {
+            print("Error: \(String(describing: error))")
+            return
+        }
+        // 보호된 리소스에 접근하여 응답 데이터 처리
+        if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+            print("Protected Resource Data: \(json)")
+        }
+    }
+    task.resume()
+}
+```
+
+<br>
+
+<br>
+
+#### 7. 기타 보안 강화 방법
+- Network Extension:
+	- iOS에서는 VPN을 설정하여 네트워크 보안을 강화할 수 있습니다.
+- 백엔드와의 HTTPS 통신 제한:
+	- iOS에서 신뢰할 수 있는 서버와의 통신만 허용하는 정책을 추가하여, 외부 서버에 대한 무단 접근을 방지할 수 있습니다.
+
+<br>
+
+### 요약 
+iOS에서의 보안 통신은 기본적으로 HTTPS를 권장하며, ATS(App Transport Security)를 통해 HTTPS 사용을 강제하여 보안을 강화합니다. 추가적으로 SSL 핀닝, 인증서 검증을 통해 중간자 공격을 방지하고, 키체인을 통해 민감한 데이터를 안전하게 저장할 수 있습니다. 이 외에도 OAuth 인증을 통해 사용자 권한 관리를 안전하게 수행하며, 모든 방법이 협력하여 앱 내의 네트워크 통신을 보다 안전하게 유지합니다.
+
+<br>
+<br>
+
+## 11.1 SSL/TLS의 동작 원리는 무엇인가요?
+
+
 <br>
 <br>
 
