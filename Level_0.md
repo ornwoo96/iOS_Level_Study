@@ -2304,6 +2304,7 @@ conn.close()
 ```
 
 <br>
+
 #### 클라이언트 코드 swift
 
 ```swift
@@ -2400,20 +2401,106 @@ client.send(message: "Hello from client!")
 <br>
 
 ## 16. REST API와 iOS에서의 네트워크 요청 및 응답 처리 방법에 대해 설명해주세요.
+- REST API는 Representational State Transfer의 약자로, 웹 상에서 자원을 관리하고 요청을 처리하는 아키텍처 스타일입니다.
+- REST API는 HTTP 프로토콜을 사용하며, 클라이언트와 서버 간의 데이터를 요청하고 응답하는 구조로 설계되어 있습니다.
+- iOS에서 REST API를 활용하면 서버와 데이터를 주고받을 수 있으며, 이를 통해 네트워크 요청 및 응답을 처리할 수 있습니다.
 
 
-## 16.1 iOS에서 `URLSession`을 사용하여 네트워크 요청을 보내는 방법은 무엇인가요?
+<br>
+
+### iOS에서의 네트워크 요청 및 응답 처리 방법
+iOS에서는 주로 URLSession을 사용하여 네트워크 요청과 응답을 처리합니다. URLSession은 비동기적으로 HTTP 요청을 수행할 수 있는 API이며, REST API와의 통신을 간편하게 구현할 수 있습니다.
+
+#### URLSession을 사용한 GET 요청 예제
+```swift
+import Foundation
+
+func fetchUserData() {
+    // 1. 요청할 URL 생성
+    guard let url = URL(string: "https://api.example.com/users") else { return }
+    
+    // 2. URLSession 데이터 태스크 생성
+    let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        // 3. 에러 처리
+        if let error = error {
+            print("Error: \(error.localizedDescription)")
+            return
+        }
+        
+        // 4. HTTP 상태 코드 확인
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+            // 5. 응답 데이터 처리
+            if let data = data {
+                do {
+                    // JSON 데이터 파싱
+                    let json = try JSONSerialization.jsonObject(with: data, options: [])
+                    print("Response JSON: \(json)")
+                } catch {
+                    print("Error parsing JSON: \(error.localizedDescription)")
+                }
+            }
+        } else {
+            print("Failed to fetch data")
+        }
+    }
+    
+    // 6. 태스크 실행
+    task.resume()
+}
+```
+
+<br>
+
+### 네트워크 응답 처리 및 JSON 데이터 파싱
+
+iOS에서는 서버에서 받은 JSON 데이터를 Swift 구조체로 변환할 때 Codable 프로토콜을 사용할 수 있습니다. Codable을 활용하면 JSON 데이터를 간편하게 Swift 객체로 디코딩할 수 있습니다.
+
+```swift
+struct User: Codable {
+    let name: String
+    let email: String
+}
+
+func fetchUserData() {
+    guard let url = URL(string: "https://api.example.com/users") else { return }
+    
+    let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        if let data = data {
+            do {
+                let users = try JSONDecoder().decode([User].self, from: data)
+                print("Users: \(users)")
+            } catch {
+                print("Error decoding JSON: \(error.localizedDescription)")
+            }
+        }
+    }
+    task.resume()
+}
+```
+
+<br>
+
+### 요약 
+- REST API는 클라이언트와 서버 간의 자원을 관리하고 요청을 처리하는 HTTP 기반의 API 아키텍처입니다.
+- iOS의 URLSession은 네트워크 요청과 응답을 비동기적으로 처리할 수 있는 API로, REST API와의 통신을 간편하게 구현할 수 있습니다.
+- GET과 POST 요청을 통해 데이터를 조회하고 생성할 수 있으며, Codable을 사용하여 JSON 데이터를 Swift 객체로 쉽게 변환할 수 있습니다.
 
 <br>
 <br>
 
-## 17. **REST API에서 HTTP 메서드들의 차이점을 설명해주세요.**
+## 17. REST API에서 HTTP 메서드들의 차이점을 설명해주세요.
+
+
     - `GET`과 `POST`의 차이점은 무엇인가요?
+
 
 <br>
 <br>
 
 ## 18. **HTTP 상태 코드에 대해서 설명해주세요.**
+
+<img src="https://github.com/user-attachments/assets/eadf2ace-2998-43d6-a7ba-060742979b75">
+
 
 <br>
 <br>
