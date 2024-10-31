@@ -1058,9 +1058,131 @@ iOS의 샌드박스는 각 앱을 독립된 환경에서 실행하여 보안을 
 
 ## 8.1 URL 스킴(URL Scheme)을 이용한 앱 간 통신은 어떻게 이루어지나요?
 
+<img src="https://github.com/user-attachments/assets/4964e935-2334-46f9-864d-15f0745324ee">
+
+### URL 스킴(URL Scheme)
+#### 개념
+- URL 스킴은 앱을 열기 위해 사용하는 맞춤형 URL 프로토콜입니다.
+- iOS에서는 특정 URL 스킴이 설정된 경우, 해당 URL을 통해 앱을 호출하고, 특정 화면으로 이동하거나 기능을 수행하도록 설정할 수 있습니다.
+- 예) myapp://profile?userID=1234라는 URL을 호출하면 myapp이라는 스킴을 가진 앱이 실행되며, profile 화면이 열리고, userID=1234라는 파라미터가 전달될 수 있습니다.
+
+<br>
 
 
+#### 설정 방법
+1. Xcode에서 URL 스킴 등록: 프로젝트의 Info.plist 파일에서 URL Types에 맞춤형 스킴을 추가합니다.
 
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLName</key>
+        <string>com.example.myapp</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>myapp</string>
+        </array>
+    </dict>
+</array>
+
+```
+
+<br>
+
+2. 앱 내에서 URL 처리: 앱이 열릴 때 전달된 URL을 감지하고 처리할 수 있도록 AppDelegate의 application(_:open:options:) 메서드를 구현합니다.
+
+```swift
+func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+    // URL 스킴을 확인하고 적절히 처리
+    if url.scheme == "myapp" {
+        // URL path 및 query items를 통해 화면 전환 및 데이터 전달 처리
+        return true
+    }
+    return false
+}
+
+```
+
+<br>
+
+#### URL 스킴의 사용 예
+- 앱 간의 간단한 데이터 전달 :
+  - 다른 앱에서 특정 기능이나 화면을 열도록 요청할 때 사용됩니다.
+- 앱의 특정 화면으로 바로 이동 :
+  - 예를 들어, 특정 상품 상세 페이지나 설정 화면으로 바로 이동할 때 유용합니다.
+
+<br>
+
+### Universal Links
+
+#### 개념
+- Universal Links는 일반적인 HTTPS 링크를 통해 앱을 열도록 설정하는 방식
+- 사용자가 Safari나 다른 앱에서 특정 링크를 누르면, 해당 URL이 설정된 앱이 설치되어 있는 경우 앱이 열리고, 앱이 설치되어 있지 않은 경우 웹사이트로 연결
+- Universal Links는 URL 스킴과 달리, 사용자가 인지하지 못한 상태로 앱을 열 수 있으며, 보안과 유연성 면에서 URL 스킴보다 높은 수준의 사용자 경험을 제공
+
+<br>
+
+#### 설정 방법
+1. Associated Domain 설정:
+- Xcode 프로젝트에서 Signing & Capabilities > Associated Domains에서 applinks:example.com 형식으로 앱의 도메인을 추가합니다.
+
+<br>
+
+2. 애플 사이트 연관 파일 생성:
+- 웹 서버에 apple-app-site-association 파일을 생성하고, 앱과 연관된 도메인을 설정합니다.
+- 예시 파일 (https://example.com/apple-app-site-association):
+
+```swift
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "<Team ID>.<Bundle Identifier>",
+        "paths": [ "/profile/*", "/product/*" ]
+      }
+    ]
+  }
+}
+```
+
+<br>
+
+3. 앱 내에서 URL 처리:
+- Universal Link가 앱에서 열리면, SceneDelegate의 scene(_:continue:) 메서드가 호출됩니다.
+
+```swift
+func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+    if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+       let url = userActivity.webpageURL {
+        // URL 경로 및 파라미터를 처리
+    }
+}
+```
+
+<br>
+
+#### Universal Links의 사용 예
+- 웹과 앱의 통합된 경험 제공:
+  - 사용자가 웹에서 링크를 클릭할 때, 앱이 열리도록 하여 원활한 사용자 경험을 제공할 수 있습니다.
+- 앱이 설치되지 않은 경우 웹으로 연결:
+  - Universal Links는 앱 설치 여부에 따라 앱 또는 웹으로 유연하게 연결됩니다.
+- 보안이 강화된 통신:
+  - HTTPS 기반 링크만 허용되어, 외부에서 URL을 무작위로 호출하여 앱을 열지 못하도록 보안이 강화됩니다.
+
+<br>
+
+#### URL 스킴과 Universal Links의 차이점 요약
+
+<img src="https://github.com/user-attachments/assets/18021cca-f7f7-4c9b-82df-d7cd7c7a388b">
+
+<br>
+
+#### 요약 
+- URL 스킴:
+  - 앱 간 간단한 데이터 전달 및 특정 기능을 호출하는 데 사용되며, 주로 앱 내부에서 특정 화면이나 기능으로 이동할 때 유용합니다.
+- Universal Links:
+  - 웹과 앱을 통합하는 사용자 경험을 제공하며, 앱이 설치되어 있지 않은 경우 웹 사이트로 유연하게 연결됩니다. 보안이 강화되어 있으며 HTTPS 기반 링크만 사용 가능합니다.
 
 <br>
 <br>
