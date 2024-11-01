@@ -3240,10 +3240,116 @@ print(isPrime(number)) // 출력: true
 
 ## 24. 자주 사용되는 정렬 알고리즘(예: 퀵 정렬, 병합 정렬)의 동작 원리와 시간 복잡도를 설명해주세요.
 
+### 퀵 정렬 
+퀵 정렬은 분할 정복(Divide and Conquer) 방식을 사용하여 리스트를 정렬합니다.
 
+#### 동작 원리
+1. 배열에서 하나의 원소를 **피벗(pivot)**으로 선택합니다.
+2. 피벗을 기준으로 작은 값은 왼쪽, 큰 값은 오른쪽으로 나눕니다.
+3. 왼쪽과 오른쪽 부분 배열에 대해 재귀적으로 퀵 정렬을 수행합니다.
+4. 재귀가 끝나면 전체 배열이 정렬됩니다.
 
+#### 시간 복잡도
+- 평균 시간 복잡도: O(n log n) – 각 단계에서 배열을 반씩 나누기 때문에 log n 단계를 거치며, 각 단계에서 최대 n번 비교합니다.
+- 최악 시간 복잡도: O(n^2) – 이미 정렬된 배열이나 피벗이 항상 최댓값 또는 최솟값으로 선택되면 성능이 떨어집니다.
+- 공간 복잡도: O(log n) – 재귀 호출로 인해 추가적인 공간이 필요합니다.
 
+#### 특징
+- 불안정 정렬 : 동일한 값의 상대적인 위치가 바뀔 수 있습니다.
+- 제자리 정렬 : 추가 메모리 사용이 거의 없습니다.
 
+```swift
+func quickSort(_ array: [Int]) -> [Int] {
+    guard let first = array.first, array.count > 1 else { return array }
+ 
+    let pivot = first
+    let left = array.filter { $0 < pivot }
+    let right = array.filter { $0 > pivot }
+    
+    return quickSort(left) + [pivot] + quickSort(right)
+}
+```
+
+<br>
+
+### 병합 정렬
+병합 정렬도 분할 정복 방식을 사용하여 리스트를 정렬합니다.
+
+#### 동작 원리
+1. 배열을 절반으로 잘라, 두 배열로 나눔
+
+(배열의 갯수가 7같이 홀수일 경우, 3개&4개로 나눔)
+
+2. 배열의 갯수가 1개 이하일 때까지 위 작업을 재귀함수로 반복함
+3. 재귀 함수는 나눠진 두 배열을 합병 정렬을 이용해 정렬하고 리턴함
+
+#### 시간 복잡도 
+- 평균 및 최악 시간 복잡도: O(n log n) – 매 단계에서 배열을 반으로 나누고, 각 단계에서 병합하는 데 O(n)의 시간이 소요됩니다.
+- 공간 복잡도: O(n) – 추가 배열을 사용하여 정렬하기 때문에 추가 메모리 공간이 필요합니다.
+
+#### 특징
+- 안정 정렬: 동일한 값의 상대적인 위치가 유지됩니다.
+- 비제자리 정렬: 추가적인 메모리 공간이 필요합니다.
+
+#### 코드 예제
+
+```swift
+func mergeSort(_ array: [Int]) -> [Int] {
+    guard array.count > 1 else { return array }
+    
+    let middleIndex = array.count / 2
+    let leftArray = mergeSort(Array(array[0..<middleIndex]))
+    let rightArray = mergeSort(Array(array[middleIndex..<array.count]))
+    
+    return merge(leftArray, rightArray)
+}
+
+func merge(_ left: [Int], _ right: [Int]) -> [Int] {
+    var leftIndex = 0
+    var rightIndex = 0
+    var orderedArray: [Int] = []
+    
+    while leftIndex < left.count && rightIndex < right.count {
+        if left[leftIndex] < right[rightIndex] {
+            orderedArray.append(left[leftIndex])
+            leftIndex += 1
+        } else if left[leftIndex] > right[rightIndex] {
+            orderedArray.append(right[rightIndex])
+            rightIndex += 1
+        } else {
+            orderedArray.append(left[leftIndex])
+            leftIndex += 1
+            orderedArray.append(right[rightIndex])
+            rightIndex += 1
+        }
+    }
+    
+    while leftIndex < left.count {
+        orderedArray.append(left[leftIndex])
+        leftIndex += 1
+    }
+    
+    while rightIndex < right.count {
+        orderedArray.append(right[rightIndex])
+        rightIndex += 1
+    }
+    
+    return orderedArray
+}
+
+// 사용 예시
+let array = [10, 7, 8, 9, 1, 5]
+let sortedArray = mergeSort(array)
+
+print(sortedArray)  // 출력: [1, 5, 7, 8, 9, 10]
+```
+
+<br>
+
+### 요약 비교
+<img src="https://github.com/user-attachments/assets/31ab7180-37a4-44fe-8a50-afb654bc253c">
+
+퀵 정렬과 병합 정렬은 시간 복잡도가 비슷하지만, 퀵 정렬은 메모리 효율이 좋고 병합 정렬은 안정성을 보장합니다. iOS 개발에서 데이터를 효율적으로 정렬하고 처리하기 위해 상황에 맞는 정렬 알고리즘을 선택하는 것이 중요합니다.
 
 <br>
 <br>
