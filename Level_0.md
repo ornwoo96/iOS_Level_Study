@@ -2875,65 +2875,465 @@ override func didReceiveMemoryWarning() {
 <br>
 
 ## 23. 알고리즘의 시간 복잡도와 공간 복잡도의 개념, 그리고 빅오 표기법에 대해 설명해주세요.
-    - O(n)과 O(log n)의 차이는 무엇인가요?
-   
+<img src="https://github.com/user-attachments/assets/d5c082bd-9d4b-46ad-9c8e-23ce3a63d99a">
+
+알고리즘을 평가할 때는 **시간 복잡도(Time Complexity)** 와 **공간 복잡도(Space Complexity)** 가 중요합니다. 이 두 가지는 알고리즘의 효율성을 평가하는 지표로, 입력 크기가 증가할 때 알고리즘이 얼마나 빠르게 실행되는지와 얼마나 많은 메모리를 사용하는지를 나타냅니다.
+
+<br>
+
+### 시간 복잡도(Time Complexity)
+시간 복잡도는 알고리즘이 실행되는 데 걸리는 시간을 나타냅니다. 주로 입력 크기(n)가 증가할 때, 알고리즘의 연산 횟수가 어떻게 증가하는지를 측정하여 표현합니다.
+
+- 예를 들어, 정렬 알고리즘에서 입력 배열의 길이 n이 늘어나면 데이터를 비교하고 정렬하는 연산이 늘어나므로, 시간 복잡도가 증가합니다.
+
+
+<br>
+
+### 공간 복잡도(Space Complexity)
+공간 복잡도는 알고리즘이 실행될 때 사용하는 메모리 양을 의미합니다. 입력 크기 n이 증가할 때, 추가적으로 얼마나 많은 메모리가 필요한지를 나타냅니다.
+
+- 예를 들어, 재귀 알고리즘에서는 재귀 호출 스택이 추가적인 메모리를 필요로 합니다. 정렬이나 검색 알고리즘에서 추가 배열을 사용하면 공간 복잡도가 증가합니다.
+
+
+<br>
+
+### 빅오 표기법(Big-O Notation)
+**빅오 표기법(Big-O Notation)** 은 시간 및 공간 복잡도를 표기하는 방법으로, 알고리즘의 성능을 **최악의 경우를 기준으로 표현** 합니다. 입력 크기 n이 무한히 커질 때 성능이 어떻게 변하는지에 중점을 둡니다. 빅오 표기법은 주요 연산에 따라 여러 종류가 있습니다.
+
+<br>
+
+### 빅오 표기법의 종류
+
+### O(1) 
+Constant Time (상수) 
+
+- 입력 데이터 크기에 상관없이 언제나 일정한 시간이 걸리는 알고리즘
+- 예를 들어, 배열에서 특정 인덱스의 값을 조회하는 경우입니다.
+
+```swift
+let array = [1, 2, 3, 4, 5]
+let value = array[2] // O(1)
+print(value) // 출력: 3
+```
+이 코드는 특정 인덱스(2)의 값을 조회하는데, 배열 크기와 상관없이 항상 일정한 시간이 걸립니다.
+
+<img src="https://github.com/user-attachments/assets/88568fa7-f643-40ee-99e3-0b9184623fb9">
+
+- 데이터가 증가함에도 성능에는 변함없이 일정함을 나타내고 있다.
+
+<br>
+
+### O(n)
+Linear Time (선형)
+
+- 입력 데이터의 크기에 비례해서 처리 시간이 걸리는 알고리즘이다.
+- n이 1번 늘어날 때마다 처리시간이 1 증가하여 선형적으로 증가한다.
+- (n 크기만큼 처리시간이 증가)
+
+```swift
+let elements = [1, 2, 3, 4, 5]
+for element in elements {
+    print(element) // O(n)
+}
+```
+
+<img src="https://github.com/user-attachments/assets/18f22375-6935-4854-b857-38bcfa97a882">
+
+- 데이터와 시간이 같은 비율로 증가함을 볼 수 있다.
+
+<br>
+
+
+### O(n^2)
+Quadratic Time (이차 시간)
+
+- 입력 데이터 n만큼 반복하는데, 그 안에서 n만큼 또 반복할 때의 표기 방법이다.
+- 데이터가 적을 때는 문제 없지만 많아질수록 수직상승한다.
+
+```swift
+func bubbleSort(_ array: [Int]) -> [Int] {
+    var arr = array
+    for i in 0..<arr.count {
+        for j in 0..<(arr.count - i - 1) {
+            if arr[j] > arr[j + 1] {
+                arr.swapAt(j, j + 1)
+            }
+        }
+    }
+    return arr // O(n^2)
+}
+
+let arrayToSort = [5, 1, 4, 2, 8]
+let sortedBubbleArray = bubbleSort(arrayToSort)
+
+print(sortedBubbleArray) // 출력: [1, 2, 4, 5, 8]
+```
+
+<img src="https://github.com/user-attachments/assets/f5ed100c-07f3-4e85-b8d1-f8f8f6f9c8cf">
+
+- n만큼 반복하면서 그 안에서도 n만큼 반복하니까, 처리횟수가 n을 가로와 세로 길이로 가지는 면적만큼 늘어나게 된다.
+- n이 증가할 때마다 가로와 세로 한 줄이 증가하므로 데이터가 커질수록 처리시간이 부담된다.
+
+
+<img src="https://github.com/user-attachments/assets/241a12a5-928c-44e8-ac66-d1b76bb409b9">
+
+- 처음은 미미하지만 어느 순간부터 수직상승을 하는 것을 볼 수 있다
+
+<br>
+
+### O(nm)
+
+Quadratic Time (이차 시간)
+
+- 바로 위 O(n^2)와 비슷하지만 다르다. n만큼 2번 반복하는 것이 아니라 n을 m만큼 반복한다.
+- n > m 또는 n < m 이런 상황이 발생할 수 있다.
+- 그래프는 위와 동일
+
+#### 문제 설명: 
+
+- 두 개의 리스트가 주어졌을 때, 모든 가능한 쌍을 비교하여 조건을 만족하는 쌍을 찾는 문제입니다.
+- 예를 들어, 두 리스트에서 각각 숫자를 뽑아 그 합이 특정 값이 되는 모든 쌍을 찾는 경우입니다.
+
+```swift
+func findPairs(list1: [Int], list2: [Int], target: Int) -> [(Int, Int)] {
+    var pairs = [(Int, Int)]()
+    
+    for num1 in list1 { // O(n)
+        for num2 in list2 { // O(m)
+            if num1 + num2 == target {
+                pairs.append((num1, num2))
+            }
+        }
+    }
+    
+    return pairs
+}
+
+let list1 = [1, 2, 3]
+let list2 = [4, 5, 6]
+let targetSum = 7
+
+let result = findPairs(list1: list1, list2: list2, target: targetSum)
+
+print(result) // 출력: [(1, 6), (2, 5), (3, 4)]
+```
+
+<br>
+
+### O(n^3)
+Polynomial / Cubic Time
+
+- 입력 크기 n이 증가하면 실행 시간이 매우 빠르게 증가합니다.
+- 3중 반복문을 사용하는 경우가 대표적이며, 모든 가능한 3개의 요소 조합을 확인해야 하는 문제에서 나타납니다.
+
+#### 예시: 배열 내 세 수의 합이 특정 값이 되는 조합 찾기
+
+- 다음은 배열에서 세 개의 숫자를 골라 합이 특정 값과 같은지 확인하는 3중 반복문 예제입니다.
+
+```swift
+func findTriplets(array: [Int], target: Int) -> [(Int, Int, Int)] {
+    var triplets = [(Int, Int, Int)]()
+    let n = array.count
+    
+    for i in 0..<n { // 첫 번째 반복문
+        for j in i+1..<n { // 두 번째 반복문
+            for k in j+1..<n { // 세 번째 반복문
+                if array[i] + array[j] + array[k] == target {
+                    triplets.append((array[i], array[j], array[k]))
+                }
+            }
+        }
+    }
+    
+    return triplets
+}
+
+let array = [1, 2, 3, 4, 5]
+let targetSum = 9
+
+let result = findTriplets(array: array, target: targetSum)
+print(result) // 출력: [(1, 3, 5), (2, 3, 4)]
+```
+
+<img src="https://github.com/user-attachments/assets/d3eca7f3-e134-4b99-aec2-9351b4efe3fb">
+
+- O(n)일 때는 직선 (1차원)
+- O(n^2)일 때는 면적 (2차원)
+- O(n^3)일 때는 큐빅 (3차원)
+
+<img src="https://github.com/user-attachments/assets/b9ce48e9-da78-4011-8434-b8f77fe1ac25">
+
+
+<br>
+
+### O(2^n)
+Exponential Time
+
+- 피보나치(Fibonacci) 수열로 비유할 수 있다.
+- 각 항이 이전 두 항의 합으로 만들어진다는 규칙
+
+		• F(0) = 0
+		• F(1) = 1
+		• F(2) = F(1) + F(0) = 1 + 0 = 1
+		• F(3) = F(2) + F(1) = 1 + 1 = 2
+		• F(4) = F(3) + F(2) = 2 + 1 = 3
+		• F(5) = F(4) + F(3) = 3 + 2 = 5
+		• F(6) = F(5) + F(4) = 5 + 3 = 8
+		• F(7) = F(6) + F(5) = 8 + 5 = 13
+
+```swift
+func fibonacci(_ n: Int) -> Int {
+    if n <= 1 {
+        return n
+    } else {
+        return fibonacci(n - 1) + fibonacci(n - 2) // O(2^n)
+    }
+}
+
+let result = fibonacci(5) // n값이 증가하면 연산 시간이 급격히 증가
+print(result) // 출력: 5
+```
+
+#### 설명
+1. 재귀 호출: fibonacci 함수는 n이 0이나 1이 될 때까지 계속해서 fibonacci(n - 1)과 fibonacci(n - 2)를 재귀 호출합니다.
+2. 중복 계산: 각 호출에서 fibonacci(n-1)과 fibonacci(n-2)를 다시 계산하므로, 중복되는 연산이 많아지게 되어 지수 시간이 소요됩니다.
+3. 시간 복잡도: 이 함수의 시간 복잡도는 O(2ⁿ)입니다. n이 증가할수록 중복 계산이 지수적으로 증가하여 매우 비효율적입니다.
+
+<img src="https://github.com/user-attachments/assets/088a1b81-9237-401b-9897-cc750a5ea3df">
+
+<br>
+
+### O(m^n) 
+Exponential Time
+
+- m개씩 n번 늘어나는 알고리즘이다. 이것은 바로 위 O(2^n)에서 2대신에 m을 넣어서 표현하면 된다.
+
+### O(m^n) 시간 복잡도의 특징
+- 지수적으로 증가하기 때문에, n이 작을 때는 괜찮지만 n이 커질수록 매우 빠르게 실행 시간이 길어집니다.
+- 보통 재귀 또는 백트래킹을 통해 모든 가능한 조합이나 모든 가능한 경로를 탐색할 때 나타납니다.
+- 대표적인 예는 모든 가능한 문자열 조합 생성이나 퍼즐 문제 해결에서 볼 수 있습니다.
+- 위 피보나치 수열 그래프와 동일 
+
+#### 예시: 가능한 문자열 조합 생성
+예를 들어, 알파벳 문자 ['a', 'b', 'c']가 있을 때, 길이가 n인 모든 가능한 문자열 조합을 생성하는 경우를 생각해보겠습니다. 여기서 m은 선택 가능한 문자 수(3)이며, n은 문자열의 길이입니다. 모든 가능한 문자열 조합을 생성하려면 O(m^n) 시간 복잡도가 발생합니다.
+
+```swift
+func generateCombinations(characters: [Character], length: Int) -> [String] {
+    var result = [String]()
+    
+    func backtrack(current: String, remainingLength: Int) {
+        if remainingLength == 0 {
+            result.append(current)
+            return
+        }
+        
+        for char in characters {
+            backtrack(current: current + String(char), remainingLength: remainingLength - 1)
+        }
+    }
+    
+    backtrack(current: "", remainingLength: length)
+    return result
+}
+
+let characters: [Character] = ["a", "b", "c"]
+let combinations = generateCombinations(characters: characters, length: 3)
+print(combinations)
+```
+
+#### 설명
+1. 백트래킹: 이 알고리즘은 backtrack 함수를 통해 모든 가능한 조합을 탐색합니다.
+2. 재귀 호출: 문자열의 길이가 n이고, 선택할 수 있는 문자가 m개일 때, 각 자리마다 m개의 선택지를 가지므로 O(m^n)의 시간 복잡도를 가집니다.
+3. 예상 출력: 만약 characters에 "a", "b", "c"가 있고, 길이가 3인 조합을 생성하려고 하면, "aaa", "aab", "aac", ..., "ccc"와 같이 총 3^3 = 27개의 조합이 생성됩니다.
+
+
+<br>
+
+### O(log n)
+Exponential Time
+
+- m개씩 n번 늘어나는 알고리즘이다. 이것은 바로 위 O(2^n)에서 2대신에 m을 넣어서 표현하면 된다.
+- 이 경우, 데이터가 두 배로 늘어나더라도 연산 횟수는 그리 많이 늘어나지 않습니다.
+- 대표적으로 이진 검색(Binary Search) 알고리즘이 이에 해당합니다.
+
+#### 이진 검색
+이진 검색은 정렬된 배열에서 특정 값을 찾을 때 사용합니다. 배열의 중간 요소와 비교해가면서 절반씩 범위를 줄여가며 검색하는 방식으로, 시간 복잡도가 **O(log n)**입니다.
+
+```swift
+func binarySearch(array: [Int], target: Int) -> Bool {
+    var low = 0
+    var high = array.count - 1
+    
+    while low <= high {
+        let mid = (low + high) / 2
+        if array[mid] == target {
+            return true
+        } else if array[mid] < target {
+            low = mid + 1
+        } else {
+            high = mid - 1
+        }
+    }
+    return false
+}
+
+let sortedArray = [1, 3, 5, 7, 9, 11, 13, 15]
+let targetValue = 7
+
+print(binarySearch(array: sortedArray, target: targetValue)) // 출력: true
+```
+
+#### 동작 설명:
+- 첫 번째 비교: 배열의 중간 값과 비교하여, 찾는 값이 중간 값보다 크거나 작다면 배열을 절반으로 나누어 탐색 범위를 줄입니다.
+- 반복: 이 과정을 반복해가며 계속 범위를 절반으로 줄여나갑니다.
+- 종료 조건: 찾는 값을 발견하거나 탐색 범위가 더 이상 없을 때 반복이 종료됩니다.
+
+
+<img src="https://github.com/user-attachments/assets/eeeb52fc-1983-4068-9771-9773a03fd26b">
+
+- 데이터가 증가해도 크게 성능이 차이나지 않는다.
+
+<br>
+
+### O(sqrt(n)) == O(√n)
+Square Root (제곱근)
+
+- 이 복잡도는 입력이 커질수록 상대적으로 느리게 증가하는 편으로, 큰 데이터셋에서도 비교적 효율적인 성능을 보입니다.
+- 대표적인 예로는 소수 판별 알고리즘이 있습니다.
+- 어떤 수가 소수인지 확인할 때, 그 수의 제곱근까지만 나눠 떨어지는지 검사하면 되므로, 연산의 수가  O(\sqrt{n}) 만큼 필요합니다.
+
+
+#### 예제: 소수 판별
+아래 코드는 입력된 숫자가 소수인지 판별하는 Swift 코드입니다. 여기서  n 의 제곱근까지만 나눠지는지 검사하므로 시간 복잡도는  O(\sqrt{n}) 입니다.
+
+```swift
+func isPrime(_ n: Int) -> Bool {
+    if n <= 1 { return false }
+    if n <= 3 { return true }
+    
+    var divisor = 2
+    while divisor * divisor <= n {
+        if n % divisor == 0 {
+            return false
+        }
+        divisor += 1
+    }
+    return true
+}
+
+let number = 29
+print(isPrime(number)) // 출력: true
+```
+
+#### 동작 설명
+1. 기본 조건 검사:  n 이 1 이하일 경우 소수가 아니므로 false를 반환합니다.
+2. 반복 검사: divisor가  \sqrt{n}  이하인 동안  n 을 나눌 수 있는지 검사합니다.
+3. 종료 조건:  \sqrt{n} 까지의 검사에서 나눠떨어지지 않으면  n 은 소수입니다.
+
+<img src="https://github.com/user-attachments/assets/25c05806-46ff-4601-aa6c-b978ea7aabcd">
+
+- 입력이 클수록 비교적 효율적인 수행 시간을 가집니다.
+- 일반적으로  O(\sqrt{n})  시간 복잡도를 가지는 알고리즘은 부분적인 검사나 범위를 줄여가는 방식에서 사용됩니다.
+
 <br>
 <br>
 
 ## 24. 자주 사용되는 정렬 알고리즘(예: 퀵 정렬, 병합 정렬)의 동작 원리와 시간 복잡도를 설명해주세요.
 
-<br>
-<br>
 
-## 25. **이진 탐색의 원리와 시간 복잡도에 대해 설명해주세요.**
 
-<br>
-<br>
 
-## 26. **동적 프로그래밍(Dynamic Programming)의 개념을 설명해주세요.**
+
 
 <br>
 <br>
 
-## 27. **자료구조의 종류와 iOS 개발에서 자주 사용되는 자료구조에 대해 설명해주세요.**
+## 25. 이진 탐색의 원리와 시간 복잡도에 대해 설명해주세요.
+
+
+
+
 
 <br>
 <br>
 
-## 28. **배열, 연결 리스트, 스택, 큐의 특징과 iOS에서의 구현 방법을 설명해주세요.**
+## 26. 동적 프로그래밍(Dynamic Programming)의 개념을 설명해주세요.
+
+
+
 
 <br>
 <br>
 
-## 29. **해시 테이블의 개념과 충돌 해결 방법을 설명해주세요.**
+## 27. 자료구조의 종류와 iOS 개발에서 자주 사용되는 자료구조에 대해 설명해주세요.
+
+
+
 
 <br>
 <br>
 
-## 30. **암호화와 보안의 기본 개념, 그리고 iOS 앱 보안을 위한 방안에 대해 설명해주세요.**
+## 28. 배열, 연결 리스트, 스택, 큐의 특징과 iOS에서의 구현 방법을 설명해주세요.
+
+
+
+
 
 <br>
 <br>
 
-## 31. **가상 메모리(Virtual Memory)의 개념과 동작 원리에 대해 설명해주세요.**
+## 29. 해시 테이블의 개념과 충돌 해결 방법을 설명해주세요.
+
+
+
+
+
+<br>
+<br>
+
+## 30. 암호화와 보안의 기본 개념, 그리고 iOS 앱 보안을 위한 방안에 대해 설명해주세요.
+
+
+
+
+
+<br>
+<br>
+
+## 31. 가상 메모리(Virtual Memory)의 개념과 동작 원리에 대해 설명해주세요.
+
+
+
+
 
 <br>
 <br>
 
 
-## 32. **데이터베이스의 종류와 iOS에서 주로 사용되는 데이터베이스에 대해 설명해주세요.**
+## 32. 데이터베이스의 종류와 iOS에서 주로 사용되는 데이터베이스에 대해 설명해주세요.
+
+
+
+
 
 <br>
 <br>
 
 
-## 33. **싱글톤 패턴(Singleton Pattern)이란 무엇이며, 어떤 경우에 사용하나요?**
+## 33. 싱글톤 패턴(Singleton Pattern)이란 무엇이며, 어떤 경우에 사용하나요?
+
+
+
+
 
 <br>
 <br>
 
 
-## 34. **Swift에서 싱글톤 패턴을 구현할 때 멀티스레드에 대해서 어떻게 고려해야 하나요?**
+## 34. Swift에서 싱글톤 패턴을 구현할 때 멀티스레드에 대해서 어떻게 고려해야 하나요?
+
+
+
 
 
 <br>
