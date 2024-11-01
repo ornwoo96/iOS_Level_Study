@@ -3355,8 +3355,9 @@ print(sortedArray)  // 출력: [1, 5, 7, 8, 9, 10]
 <br>
 
 ## 25. 이진 탐색의 원리와 시간 복잡도에 대해 설명해주세요.
+-> 중복 질문이기 때문에 내가 헷갈린 이진 탐색과 퀵 정렬에 대해 차이점 요약 하겠음
 
-
+<img src="https://github.com/user-attachments/assets/0a1661e8-a0ec-46de-a829-5572e26b1ee9">
 
 
 
