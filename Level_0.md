@@ -3382,6 +3382,8 @@ print(sortedArray)  // 출력: [1, 5, 7, 8, 9, 10]
 <br>
 
 ## 26. 동적 프로그래밍(Dynamic Programming)의 개념을 설명해주세요. == **DP**
+[동적 프로그래밍](https://babbab2.tistory.com/100)
+
 **동적 프로그래밍(Dynamic Programming, DP)** 은 문제를 작은 부분 문제로 나누고, 이 부분 문제들의 결과를 저장하여(메모이제이션) 동일한 계산을 반복하지 않고 문제를 해결하는 최적화 기법입니다. 일반적으로 **중복되는 하위 문제(sub-problems)** 를 해결해야 하는 최적화 문제에서 사용됩니다.
 
 <br>
@@ -3462,15 +3464,218 @@ print(fib(10))  // 출력: 55
 <br>
 
 ## 27. 자료구조의 종류와 iOS 개발에서 자주 사용되는 자료구조에 대해 설명해주세요.
+자료구조는 데이터를 효율적으로 저장하고 관리하기 위해 사용됩니다. 각 자료구조는 특정 작업에 최적화되어 있으며, 다양한 상황에 따라 선택됩니다. iOS 개발에서 자주 사용되는 자료구조와 그 특징을 살펴보겠습니다.
+
+### Array (배열)
+- 연손된 메모리 공간에 데이터가 순서대로 저장됩니다.
+- iOS에서의 사용:
+	- Swift의 Array는 매우 유연하고 자주 사용됩니다. 예를 들어, 뷰의 리스트, 여러 데이터를 한 번에 저장할 때 사용됩니다.
+
+```swift
+let numbers = [1, 2, 3, 4]
+print(numbers[2]) // 3 출력
+```
+
+<br>
+
+### Dictionary (딕셔너리)
+- 키-값 쌍으로 데이터를 저장하며, 키를 통해 값에 빠르게 접근할 수 있습니다.
+- iOS에서의 사용:
+	- Swift의 Dictionary는 JSON 데이터나 API 응답에서 받은 데이터를 파싱할 때 자주 사용됩니다.
+
+```swift
+var user = ["name": "Alice", "age": "30"]
+print(user["name"] ?? "No name") // Alice 출력
+```
+
+<br>
+
+### Set (집합)
+- 중복되지 않는 고유한 요소를 저장하는 자료구조입니다.
+- iOS에서의 사용:
+	- 중복 없는 데이터가 필요할 때 사용됩니다. 예를 들어, 태그나 카테고리 목록에서 중복을 피하고 싶을 때 유용합니다.
+
+```swift
+var uniqueNumbers: Set = [1, 2, 3, 3, 4]
+print(uniqueNumbers) // {1, 2, 3, 4} 출력
+```
+
+<br>
 
 
+### Stack (스택)
+- LIFO(Last In, First Out) 구조로, 가장 최근에 추가된 데이터가 먼저 삭제됩니다.
+- iOS에서의 사용:
+	- 네비게이션 구조처럼 뒤로 가기, 앞으로 가기 기능을 구현할 때 사용됩니다.
 
+```swift
+var stack: [Int] = []
+stack.append(10) // push
+stack.append(20)
+print(stack.popLast() ?? 0) // 20 출력 (pop)
+```
+
+
+<br>
+
+
+### Queue (큐)
+- FIFO(First In, First Out) 구조로, 가장 먼저 추가된 데이터가 먼저 삭제됩니다.
+- iOS에서의 사용:
+	- 데이터가 순차적으로 처리되어야 하는 작업(예: API 요청 처리)에 사용됩니다.
+
+```swift
+var queue: [Int] = []
+queue.append(10) // enqueue
+queue.append(20)
+print(queue.removeFirst()) // 10 출력 (dequeue)
+```
+
+<br>
+
+### Linked List (연결 리스트)
+- 노드(Node)라는 개별 요소들이 포인터로 연결된 구조입니다.
+- 각 노드는 데이터와 다음 노드의 주소(참조)를 포함합니다.
+- 크기가 가변적이며, 메모리의 어디에든 노드를 저장할 수 있습니다.
+
+#### 장점:
+- 배열과 달리 동적 메모리 할당이 가능하여 데이터 삽입, 삭제가 효율적입니다.
+
+#### 단점:
+- 특정 인덱스에 접근할 때 연속적인 메모리가 아니므로 순차 접근해야 하므로 시간이 많이 소요됩니다.
+
+```swift
+class Node<T> {
+    var value: T
+    var next: Node?
+    
+    init(value: T) {
+        self.value = value
+    }
+}
+
+class LinkedList<T> {
+    var head: Node<T>?
+
+    // 노드 추가
+    func append(value: T) {
+        let newNode = Node(value: value)
+        if head == nil {
+            head = newNode
+        } else {
+            var current = head
+            while current?.next != nil {
+                current = current?.next
+            }
+            current?.next = newNode
+        }
+    }
+}
+
+let list = LinkedList<Int>()
+list.append(value: 1)
+list.append(value: 2)
+list.append(value: 3)
+```
+
+<br>
+
+
+### Hash Table (해쉬 테이블)
+- 키-값 쌍으로 데이터를 저장하며, 해시 함수를 사용해 키에 대한 고유한 인덱스를 생성합니다.
+- 데이터를 빠르게 검색, 삽입, 삭제할 수 있습니다.
+
+#### 장점:
+- 평균적으로 **O(1)**의 시간 복잡도로 데이터 접근이 가능합니다.
+
+#### 단점:
+- 해시 충돌이 발생할 수 있으며, 이를 해결하기 위해 별도의 충돌 해결 기법이 필요합니다.
+
+```swift
+var hashTable = [String: Int]()
+hashTable["apple"] = 10
+hashTable["banana"] = 20
+
+if let value = hashTable["apple"] {
+    print("Value for 'apple': \(value)")  // 출력: Value for 'apple': 10
+}
+```
+
+<br>
+
+### Tree (트리)
+- 계층적인 구조를 가지며, 루트(root) 노드에서 시작해 여러 개의 자식 노드로 뻗어 나가는 구조입니다.
+- **이진 트리(Binary Tree)** 가 일반적이며, 각 노드가 최대 두 개의 자식을 가질 수 있습니다.
+
+#### 장점:
+- 계층적 구조 데이터를 표현하기에 적합합니다.
+
+#### 단점:
+- 복잡한 구조일 경우 탐색이 어려울 수 있으며, 균형을 유지하지 않으면 성능이 저하될 수 있습니다.
+
+```swift
+class TreeNode<T> {
+    var value: T
+    var left: TreeNode?
+    var right: TreeNode?
+
+    init(value: T) {
+        self.value = value
+    }
+}
+
+let root = TreeNode(value: 10)
+root.left = TreeNode(value: 5)
+root.right = TreeNode(value: 15)
+print(root.value)        // 10
+print(root.left?.value)  // 5
+print(root.right?.value) // 15
+```
+
+<br>
+
+
+### Graph (그래프)
+- 정점(Vertex)와 정점들을 잇는 간선(Edge)으로 구성된 구조로, 네트워크와 같이 정점 간의 관계를 표현할 때 유용합니다.
+- **유방향 그래프(Directed Graph)**와 **무방향 그래프(Undirected Graph)**가 있으며, 가중치를 포함하는 가중치 그래프도 있습니다.
+
+
+#### 장점:
+- 복잡한 관계를 표현할 수 있으며, 경로 찾기, 네트워크 분석 등에 유용합니다.
+
+#### 단점:
+- 그래프의 크기가 커질수록 복잡성이 증가하며, 저장 공간이 많이 필요할 수 있습니다.
+
+```swift
+class Graph {
+    var adjList: [String: [String]] = [:]
+    
+    // 정점 추가
+    func addVertex(_ vertex: String) {
+        adjList[vertex] = []
+    }
+    
+    // 간선 추가
+    func addEdge(_ from: String, _ to: String) {
+        adjList[from]?.append(to)
+    }
+}
+
+let graph = Graph()
+graph.addVertex("A")
+graph.addVertex("B")
+graph.addVertex("C")
+graph.addEdge("A", "B")
+graph.addEdge("A", "C")
+graph.addEdge("B", "C")
+print(graph.adjList)  // 출력: ["A": ["B", "C"], "B": ["C"], "C": []]
+```
 
 <br>
 <br>
 
 ## 28. 배열, 연결 리스트, 스택, 큐의 특징과 iOS에서의 구현 방법을 설명해주세요.
-
+### 위와 중복 이하 생략
 
 
 
@@ -3479,19 +3684,152 @@ print(fib(10))  // 출력: 55
 <br>
 
 ## 29. 해시 테이블의 개념과 충돌 해결 방법을 설명해주세요.
+**해시 테이블(Hash Table)** 은 키-값 쌍을 저장하고, 키를 사용하여 값을 효율적으로 찾을 수 있는 자료구조입니다. 해시 테이블은 **해시 함수(Hash Function)** 를 사용해 데이터를 고유한 해시 값으로 변환하고, 이를 인덱스로 사용해 데이터를 저장합니다. 이 방식으로 빠른 조회, 삽입, 삭제가 가능하며 평균적으로 **O(1)** 의 시간 복잡도를 가집니다.
 
+### 해시 테이블의 개념
+1. 해시 함수(Hash Function): 주어진 키를 일정한 길이의 해시 값으로 변환합니다.
+2. 해시 값(Hash Value): 키가 변환된 고유 숫자 값으로, 해시 테이블에서의 인덱스 역할을 합니다.
+3. 해시 충돌(Hash Collision): 서로 다른 두 개 이상의 키가 같은 해시 값을 가질 때 발생하는 문제입니다. 해시 테이블은 이러한 충돌을 해결하기 위한 방법이 필요합니다.
 
+### 해시 충돌 해결 방법
+해시 충돌은 여러 가지 방법으로 해결할 수 있습니다. 대표적인 충돌 해결 방법에는 
 
+- **체이닝(Chaining)**
+- **개방 주소법(Open Addressing)**
 
+이 있습니다.
+
+<br>
+
+### 체이닝(Chaining)
+- 개념: 충돌이 발생하면 해시 값이 같은 데이터들을 연결 리스트로 연결하는 방식입니다.
+- 구현 방법: 해시 테이블의 각 인덱스에 연결 리스트를 두어, 충돌 시 해당 인덱스에 연결 리스트 형태로 데이터를 추가합니다.
+- 장점: 해시 테이블이 가득 차도 데이터 추가가 가능하며, 각 인덱스에 여러 개의 데이터를 저장할 수 있습니다.
+- 단점: 저장된 데이터가 많아지면 탐색 속도가 느려질 수 있습니다.
+
+```swift
+class HashTable {
+    private var table: [[(String, Int)]] // 체이닝을 위한 2차원 배열
+
+    init(size: Int) {
+        table = Array(repeating: [], count: size)
+    }
+
+    private func hash(_ key: String) -> Int {
+        return abs(key.hashValue) % table.count
+    }
+
+    func insert(key: String, value: Int) {
+        let index = hash(key)
+        table[index].append((key, value)) // 충돌 시 체이닝 방식으로 추가
+    }
+
+    func get(key: String) -> Int? {
+        let index = hash(key)
+        for (k, v) in table[index] {
+            if k == key { return v }
+        }
+        return nil
+    }
+}
+```
+
+<br>
+
+### 개방 주소법(Open Addressing)
+- 개념: 충돌이 발생하면 다른 빈 공간을 찾아 데이터를 저장하는 방식입니다. 이때 해시 테이블에서 충돌이 발생하면 빈 공간을 찾기 위해 인덱스를 재조정합니다.
+- 주요 방법:
+	- 선형 탐사(Linear Probing): 충돌이 발생하면 다음 인덱스로 이동하며 빈 공간을 찾습니다.
+	- 제곱 탐사(Quadratic Probing): 충돌이 발생할 때 제곱된 값만큼 인덱스를 이동하며 빈 공간을 찾습니다.
+	- 이중 해싱(Double Hashing): 충돌이 발생할 때, 다른 해시 함수를 사용하여 새로운 인덱스를 계산하고, 이를 빈 공간으로 활용합니다.
+- 장점: 해시 테이블 내의 모든 데이터가 독립적이며, 추가적인 데이터 구조가 필요 없습니다.
+- 단점: 테이블의 빈 공간이 줄어들수록 빈 공간을 찾는 시간이 길어질 수 있습니다.
+
+#### 선형 탐사
+```swift
+class OpenAddressingHashTable {
+    private var table: [(key: String, value: Int)?]
+    private let size: Int
+
+    init(size: Int) {
+        self.size = size
+        table = Array(repeating: nil, count: size)
+    }
+
+    private func hash(_ key: String) -> Int {
+        return abs(key.hashValue) % size
+    }
+
+    func insert(key: String, value: Int) {
+        var index = hash(key)
+        while table[index] != nil { // 충돌 발생 시 다음 인덱스로 이동
+            index = (index + 1) % size
+        }
+        table[index] = (key, value)
+    }
+
+    func get(key: String) -> Int? {
+        var index = hash(key)
+        while let item = table[index] {
+            if item.key == key { return item.value }
+            index = (index + 1) % size
+        }
+        return nil
+    }
+}
+```
 
 <br>
 <br>
 
 ## 30. 암호화와 보안의 기본 개념, 그리고 iOS 앱 보안을 위한 방안에 대해 설명해주세요.
+암호화와 보안의 기본 개념을 이해하는 것은 iOS 앱의 데이터 보호와 사용자 프라이버시를 보장하는 데 매우 중요합니다. 아래는 암호화의 기본 개념과 iOS 앱 보안을 강화하기 위한 주요 방법입니다.
 
+### 암호화의 기본 개념
+- 암호화(Encryption):
+	- 데이터를 변환하여 권한이 없는 사용자가 접근할 수 없도록 보호하는 과정입니다.
+ 	- 암호화된 데이터는 키를 사용해 복호화(Decryption)해야만 원래의 데이터를 읽을 수 있습니다.
+- 대칭 키 암호화:
+	- 하나의 키로 암호화와 복호화를 모두 수행합니다.
+ 	- 빠른 성능을 제공하지만, 키가 유출되면 보안에 취약해질 수 있습니다. 예: AES
+- 비대칭 키 암호화:
+	- **두 개의 키(공개 키와 개인 키)**를 사용합니다.
+ 	- 공개 키로 암호화하면 개인 키로만 복호화할 수 있어 키의 관리가 수월합니다. 예: RSA
+- 해싱(Hashing):
+	- 데이터의 무결성을 확인하기 위해, 데이터를 고정된 길이의 해시 값으로 변환하는 과정입니다.
+ 	- 해시는 원본으로 복구할 수 없으며, 주로 비밀번호 저장 등에 사용됩니다. 예: SHA-256
 
+<br>
 
+### iOS 앱 보안을 위한 주요 방안
 
+#### 1) 데이터 암호화
+- 키체인(Keychain): 암호, 토큰, 인증 정보와 같은 민감한 데이터를 안전하게 저장할 수 있는 iOS의 보안 스토리지입니다. 키체인은 암호화된 저장소로, 다른 앱에서 접근할 수 없으므로 민감한 정보 저장에 적합합니다.
+- 파일 암호화: iOS의 데이터 보호 기능을 사용해 앱의 파일 시스템에 저장되는 데이터를 암호화할 수 있습니다. 예를 들어 NSFileProtectionComplete 옵션을 사용하면, 사용자의 기기가 잠겨 있을 때는 파일에 접근할 수 없습니다.
+
+<br>
+
+#### 2) 네트워크 보안
+- HTTPS/TLS: 데이터 전송 시 HTTPS와 TLS(Transport Layer Security)를 사용해 데이터가 안전하게 암호화된 상태로 전송되도록 합니다.
+- 앱 전송 보안(ATS): iOS는 **App Transport Security (ATS)**를 통해 기본적으로 HTTPS 연결만 허용합니다. 이는 HTTP 통신이 가능할 경우 예외 설정이 필요하지만, 가능하면 ATS를 유지하는 것이 좋습니다.
+- SSL 핀닝: 중간자 공격을 방지하기 위해 앱이 서버 인증서를 미리 저장하고, 서버의 인증서와 매칭시켜 전송의 신뢰성을 확인합니다.
+
+<br>
+
+#### 3) 사용자 인증
+- 생체 인증: Touch ID와 Face ID를 통해 앱의 사용자 인증을 강화할 수 있습니다. 예를 들어, 앱 로그인이나 민감한 데이터 접근 시 사용자의 생체 인증을 요청하여 보안을 강화할 수 있습니다.
+- OAuth: OAuth는 제3자 인증을 통해 사용자 비밀번호를 공유하지 않고 안전하게 로그인할 수 있는 방식을 제공합니다. 예를 들어, Apple 로그인이나 Google 로그인을 구현할 수 있습니다.
+
+#### 4) 코드 보안
+- 데이터의 민감한 정보 보관 지양: 데이터의 민감한 정보는 암호화된 형태로 저장해야 하며, 하드코딩으로 앱에 직접 포함되지 않도록 합니다.
+- 코드 난독화: 앱 코드를 난독화하여 소스 코드를 분석하고 역공학을 통해 해킹하는 것을 어렵게 합니다. Swift에는 기본적으로 코드 난독화 기능이 포함되지 않았지만, 난독화 도구를 사용할 수 있습니다.
+- 정기적인 업데이트: iOS 업데이트 및 보안 패치에 따라 앱을 최신 버전으로 유지하고, 최신 보안 취약점에 대비합니다.
+
+<br>
+
+#### 5) 데이터 무결성 및 접근 제어
+- App Sandbox: iOS는 앱마다 **독립된 실행 환경(Sandbox)** 을 제공하여 다른 앱과 데이터를 공유하지 못하도록 제한합니다.
+- Access Control: 사용자가 앱이 필요로 하는 민감한 정보(위치, 사진, 마이크 등)에 접근할 때는 권한을 요청하고 최소한의 권한만 요구해야 합니다.
 
 <br>
 <br>
