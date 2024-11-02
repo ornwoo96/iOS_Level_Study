@@ -3898,29 +3898,294 @@ iOS에서도 가상 메모리를 사용하여 프로세스를 격리하고 메�
 
 
 ## 32. 데이터베이스의 종류와 iOS에서 주로 사용되는 데이터베이스에 대해 설명해주세요.
+데이터베이스는 데이터를 저장하고 관리하는 시스템으로, 구조와 사용 목적에 따라 다양한 종류로 나뉩니다. iOS에서는 주로 경량화된 데이터베이스와 로컬 데이터 관리를 위한 데이터베이스가 사용됩니다.
+
+### 데이터베이스의 주요 종류
+#### 관계형 데이터베이스 (Relational Database)
+- 구조: 데이터를 테이블 형태로 관리하며, SQL(Structured Query Language)을 사용해 데이터를 조작합니다.
+- 특징: 데이터 간의 관계를 명확히 정의하고, 정해진 스키마에 따라 데이터를 저장합니다.
+- 예시: MySQL, PostgreSQL, Oracle
+
+<br>
+
+#### NoSQL 데이터베이스
+- 구조: 고정된 스키마가 없으며, 비정형 데이터를 관리하는 데 최적화되어 있습니다.
+- 종류:
+	- 문서 지향 데이터베이스: JSON 같은 문서 형식으로 데이터 저장 (예: MongoDB)
+	- 키-값 저장소: 키를 사용해 값을 저장하는 단순한 구조 (예: Redis)
+	- 그래프 데이터베이스: 데이터의 관계를 그래프로 표현 (예: Neo4j)
+- 특징: 빠른 확장성, 비정형 데이터 관리에 적합
+
+<br>
+
+ 
+#### 임베디드 데이터베이스
+- 구조: 애플리케이션에 내장되어 가볍고 단순한 데이터베이스 시스템
+- 특징: 로컬 데이터 저장에 최적화되어 있으며, 주로 모바일과 IoT 기기에서 사용됩니다.
+- 예시: SQLite, Realm
+
+<br>
+
+ 
+#### 클라우드 데이터베이스
+- 구조: 클라우드 환경에서 제공되는 데이터베이스 서비스
+- 특징: 확장성, 고가용성, 유지보수가 용이하며 서버리스 환경에서도 작동합니다.
+- 예시: Firebase Firestore, Amazon RDS, Google Bigtable
 
 
+<br>
 
+### iOS에서 주로 사용되는 데이터베이스
 
+#### SQLite
+•	설명: SQLite는 경량화된 관계형 데이터베이스로, 파일 기반 데이터베이스입니다. SQL을 지원하며, 대부분의 iOS 앱에서 내장 데이터베이스로 사용할 수 있습니다.
+	•	특징:
+	•	SQL을 사용해 데이터를 조작할 수 있어 기존의 SQL 지식이 있다면 쉽게 사용할 수 있습니다.
+	•	단일 파일에 데이터를 저장하며, 스키마를 지정하여 테이블 형태로 데이터를 관리합니다.
+	•	사용 예시: 
+
+```swift
+import SQLite3
+
+var db: OpaquePointer?
+
+if sqlite3_open(filePath, &db) == SQLITE_OK {
+    print("Successfully opened connection to database")
+} else {
+    print("Unable to open database")
+}
+```
+
+<br>
+
+#### Core Data
+- 설명: iOS의 기본 데이터 관리 프레임워크로, 데이터 모델링과 객체 관계를 정의하여 데이터를 저장하고 관리합니다. 내부적으로 SQLite를 사용할 수 있지만, SQL 문법 대신 객체 지향적으로 데이터를 다룹니다.
+- 특징:
+	- 데이터 영속성, 데이터 모델링, 관계 관리, 데이터 변화 추적 등 고급 기능을 제공
+	- 앱의 데이터 구조를 시각적으로 모델링하고 데이터 변화를 추적할 수 있는 기능을 제공하여 대규모 데이터 관리에 적합
+- 사용 예시:
+
+```swift
+let appDelegate = UIApplication.shared.delegate as! AppDelegate
+let context = appDelegate.persistentContainer.viewContext
+
+let entity = NSEntityDescription.entity(forEntityName: "User", in: context)!
+let user = NSManagedObject(entity: entity, insertInto: context)
+user.setValue("John", forKey: "name")
+
+try? context.save()
+```
+
+<br>
+
+#### Realm
+- 설명: 모바일 환경에 최적화된 오픈소스 데이터베이스로, 성능이 빠르고 사용이 간편합니다. 객체 지향적 데이터베이스로, 객체를 직렬화하지 않고 그대로 저장할 수 있어 코드가 간결해집니다.
+- 특징:
+	- SQLite보다 간단한 문법을 제공하며, 데이터 모델을 Swift 객체로 정의할 수 있습니다.
+	- JSON 데이터의 직렬화가 필요 없고, 메모리에서 읽고 쓰는 방식으로 속도가 빠릅니다.
+	- 실시간 데이터 동기화 기능을 지원하여 오프라인 지원이 필요할 때도 사용됩니다.
+
+```swift
+import RealmSwift
+
+class User: Object {
+    @Persisted var name = ""
+    @Persisted var age = 0
+}
+
+let realm = try! Realm()
+let user = User()
+user.name = "Alice"
+user.age = 25
+
+try! realm.write {
+    realm.add(user)
+}
+```
+
+<br>
+
+#### Firebase Firestore
+- 설명: 클라우드 기반 NoSQL 데이터베이스로, 실시간 동기화와 데이터를 구조화하여 저장할 수 있습니다.
+- 특징:
+	- 비정형 데이터를 관리하기 쉽고, 실시간 동기화 기능을 통해 여러 기기 간 데이터 업데이트가 가능합니다.
+ 	- 클라우드 기반이기 때문에 서버리스 환경에서 쉽게 사용할 수 있으며, 사용자 인증 기능과도 통합됩니다.
+
+```swift
+import Firebase
+
+let db = Firestore.firestore()
+db.collection("users").document("user123").setData([
+    "name": "Alice",
+    "age": 25
+]) { error in
+    if let error = error {
+        print("Error adding document: \(error)")
+    } else {
+        print("Document added successfully")
+    }
+}
+```
+
+<br>
+
+### 요약 
+<img width="704" alt="스크린샷 2024-11-03 오전 12 24 17" src="https://github.com/user-attachments/assets/c36daf09-59c8-4748-be6e-30c5bf890963">
 
 <br>
 <br>
 
 
 ## 33. 싱글톤 패턴(Singleton Pattern)이란 무엇이며, 어떤 경우에 사용하나요?
+**싱글톤 패턴(Singleton Pattern)** 은 어플리케이션에서 단 하나의 인스턴스만 존재하도록 보장하는 디자인 패턴입니다. 이 패턴을 사용하면, 전역적으로 접근 가능한 단일 인스턴스를 제공하여 여러 객체에서 동일한 자원이나 설정을 공유할 수 있습니다.
 
 
+### 싱글톤 패턴의 특징
+- 유일한 인스턴스: 클래스의 인스턴스가 단 하나만 존재하게 보장합니다.
+- 전역 접근: 다른 객체들이 싱글톤 인스턴스를 전역적으로 접근할 수 있도록 합니다.
+- 생성 제한: 클래스 내부에서 인스턴스를 관리하여 외부에서 직접 객체를 생성할 수 없도록 제한합니다.
+
+<br>
+
+### Swift에서의 싱글톤 패턴 구현 예시
+Swift에서 싱글톤 패턴은 static let을 사용해 구현할 수 있습니다.
+```swift
+class MySingleton {
+    static let shared = MySingleton()
+    
+    private init() {
+        // private initializer로 외부에서 인스턴스 생성 방지
+    }
+    
+    func doSomething() {
+        print("싱글톤 패턴 메서드 호출")
+    }
+}
+
+// 사용 예시
+MySingleton.shared.doSomething()  // "싱글톤 패턴 메서드 호출" 출력
+```
+
+- static let shared를 통해 MySingleton.shared로 유일한 인스턴스에 접근할 수 있습니다.
+- private init()은 외부에서 직접 인스턴스를 생성하지 못하도록 방지하여, 클래스 내부에서만 인스턴스를 생성할 수 있게 합니다.
+
+<br>
 
 
+### 싱글톤 패턴을 사용하는 경우
+1. 공유 자원 관리: 데이터베이스 연결, 네트워크 연결, 파일 시스템 접근 등 공유 자원에 대한 접근을 관리해야 할 때 사용됩니다. 예를 들어, 네트워크 요청을 관리하는 클래스는 모든 요청을 단일 인스턴스에서 처리하도록 싱글톤 패턴을 사용합니다.
+2. 글로벌 상태 유지: 사용자 설정, 애플리케이션 설정, 앱 전체에서 유지해야 하는 상태 정보 등을 저장할 때 유용합니다. 예를 들어, 사용자 로그인 상태나 설정을 저장하는 클래스는 앱 내에서 전역적으로 접근할 수 있도록 싱글톤으로 구현됩니다.
+3. 중앙 이벤트 관리: 로그 관리, 이벤트 처리 등 앱의 중심에서 관리해야 할 기능을 수행할 때 사용됩니다. 예를 들어, 로깅 시스템을 싱글톤으로 구현하여 앱 전반의 로그를 한 곳에서 기록하고 관리할 수 있습니다.
+
+<br>
+
+### 싱글톤 패턴의 장단점
+#### 장점: 
+- 전역적으로 접근 가능하며, 동일한 인스턴스를 사용하기 때문에 메모리 절약이 가능합니다.
+- 인스턴스가 하나이므로 동기화 작업이 간편하고, 리소스 공유와 관리를 용이하게 합니다.
+
+#### 단점:
+- 의존성이 높아질 수 있으므로, 코드가 복잡해질 경우 관리가 어려워질 수 있습니다.
+- 멀티스레딩 환경에서 신중하게 구현하지 않으면 인스턴스가 여러 개 생성될 수 있는 위험이 있습니다.
+
+<br>
+
+### 요약
+싱글톤 패턴은 앱 내에서 공유 자원이나 글로벌 상태를 관리하는 데 유용하며, 단일 인스턴스를 통해 일관된 접근 방식을 제공합니다. iOS 개발에서 데이터베이스 접근, 네트워크 관리, 사용자 설정 관리 등에서 자주 사용되는 디자인 패턴입니다.
 
 <br>
 <br>
 
 
 ## 34. Swift에서 싱글톤 패턴을 구현할 때 멀티스레드에 대해서 어떻게 고려해야 하나요?
+Swift에서 싱글톤 패턴을 구현할 때 멀티스레드 환경에서 인스턴스가 여러 개 생성되는 것을 방지하려면 특별한 고려가 필요합니다. 다중 스레드 환경에서는 동시에 여러 스레드가 인스턴스를 생성하려는 경쟁 상태(race condition)가 발생할 수 있기 때문입니다.
+
+<br>
+
+Swift의 static let을 사용하면, Swift의 컴파일러가 dispatch_once를 통해 초기화를 보장하여 멀티스레드 안전성을 제공합니다. 따라서 대부분의 경우 Swift에서는 static let으로 싱글톤을 선언하는 것만으로도 멀티스레드 안전성을 확보할 수 있습니다.
+
+### Swift에서 싱글톤의 멀티스레드 안전 구현
+
+#### 1. static let을 통한 기본 구현 (권장)
+
+Swift에서 static let을 사용하면, **lazy initialization(지연 초기화)**와 **thread safety(멀티스레드 안전성)**가 기본적으로 보장됩니다. Swift 컴파일러는 이 방식에서 초기화를 단 한 번만 수행하고, 초기화가 완료된 후에는 스레드 간에 동일한 인스턴스를 사용하게 합니다.
+
+```swift
+class MySingleton {
+    static let shared = MySingleton()  // 스레드 안전이 보장되는 단일 인스턴스
+
+    private init() {}  // 외부에서 인스턴스 생성 방지
+}
+
+// 사용
+MySingleton.shared
+```
 
 
+<br>
 
+#### 2. lazy와 dispatch_once를 사용한 맞춤형 구현 (Swift 3 이전)
+Swift 3 이전 버전이나 dispatch_once가 없는 환경에서는 **GCD의 dispatch_once**를 사용해 초기화를 보장할 수 있었습니다. 하지만 Swift 3 이후 dispatch_once는 Swift에서 사용되지 않으므로, Swift 5에서는 기본적으로 static let 방식을 사용하는 것이 좋습니다.
+
+### 추가적인 멀티스레드 안전 고려 사항
+1. 싱글톤 객체에서의 상태 관리:
+- 싱글톤 인스턴스에서 상태를 관리하는 경우라면, 읽기와 쓰기 작업에서 데이터의 일관성을 유지하기 위해 추가적인 동기화가 필요할 수 있습니다.
+- 예를 들어, NSLock이나 GCD의 DispatchQueue를 사용해 thread-safe한 방식으로 상태를 관리할 수 있습니다.
+
+```swift
+class ThreadSafeSingleton {
+    static let shared = ThreadSafeSingleton()
+
+    private var value: Int = 0
+    private let queue = DispatchQueue(label: "com.singleton.queue") // 동기화 큐
+
+    private init() {}
+
+    func setValue(_ newValue: Int) {
+        queue.sync { // 쓰기 작업을 동기화
+            value = newValue
+        }
+    }
+
+    func getValue() -> Int {
+        return queue.sync { value } // 읽기 작업도 동기화
+    }
+}
+```
+
+2. 상태 변경 작업을 GCD 큐에서 수행: 값을 수정하는 작업을 GCD의 직렬 큐에서 수행하여 동시 접근으로 인해 발생할 수 있는 문제를 방지할 수 있습니다.
+3. Actor: Swift 5.5에서는 Actor로 멀티스레드에서의 안전성을 제공할 수 있습니다. Actor는 상태를 안전하게 관리할 수 있으며, 특히 비동기 코드에서의 thread safety를 보장합니다. 다만, Actor는 Swift 5.5 이상에서 사용할 수 있습니다.
+
+#### swift 5.5 이상 예제 코드
+```swift
+actor SingletonActor {
+    static let shared = SingletonActor()
+    private init() {}
+
+    private var value: Int = 0
+
+    func setValue(_ newValue: Int) {
+        value = newValue
+    }
+
+    func getValue() -> Int {
+        return value
+    }
+}
+
+Task {
+    await SingletonActor.shared.setValue(10)
+    let currentValue = await SingletonActor.shared.getValue()
+    print(currentValue)
+}
+```
+
+<br>
+
+### 요약
+- static let: Swift에서 싱글톤 패턴을 구현할 때 static let을 사용하면 기본적으로 멀티스레드 안전성이 보장됩니다.
+- 동기화 처리: 싱글톤 내에서 상태를 변경할 필요가 있다면 DispatchQueue 또는 NSLock으로 동기화 처리를 고려해야 합니다.
+- Actor: Swift 5.5 이상에서는 Actor를 사용하여 상태 관리가 필요한 싱글톤에서의 멀티스레드 안전성을 제공할 수 있습니다.
 
 
 <br>
