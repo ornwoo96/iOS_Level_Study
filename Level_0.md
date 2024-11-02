@@ -3294,29 +3294,43 @@ func quickSort(_ array: [Int]) -> [Int] {
 #### 코드 예제
 
 ```swift
+// 병합 정렬 함수 정의
 func mergeSort(_ array: [Int]) -> [Int] {
+    // 배열의 크기가 1 이하인 경우 이미 정렬된 상태이므로 배열을 그대로 반환
     guard array.count > 1 else { return array }
     
+    // 배열을 반으로 나누는 중간 인덱스를 찾음
     let middleIndex = array.count / 2
+    
+    // 왼쪽 절반을 재귀적으로 병합 정렬
     let leftArray = mergeSort(Array(array[0..<middleIndex]))
+    
+    // 오른쪽 절반을 재귀적으로 병합 정렬
     let rightArray = mergeSort(Array(array[middleIndex..<array.count]))
     
+    // 정렬된 두 배열을 병합하여 반환
     return merge(leftArray, rightArray)
 }
 
+// 두 개의 정렬된 배열을 병합하는 함수
 func merge(_ left: [Int], _ right: [Int]) -> [Int] {
+    // 왼쪽, 오른쪽 배열의 인덱스와 결과 배열 초기화
     var leftIndex = 0
     var rightIndex = 0
     var orderedArray: [Int] = []
     
+    // 왼쪽, 오른쪽 배열의 요소를 비교하면서 작은 값부터 결과 배열에 추가
     while leftIndex < left.count && rightIndex < right.count {
         if left[leftIndex] < right[rightIndex] {
+            // 왼쪽 배열의 요소가 작으면 결과 배열에 추가하고 왼쪽 인덱스를 증가
             orderedArray.append(left[leftIndex])
             leftIndex += 1
         } else if left[leftIndex] > right[rightIndex] {
+            // 오른쪽 배열의 요소가 작으면 결과 배열에 추가하고 오른쪽 인덱스를 증가
             orderedArray.append(right[rightIndex])
             rightIndex += 1
         } else {
+            // 두 요소가 같으면 둘 다 결과 배열에 추가하고 인덱스를 각각 증가
             orderedArray.append(left[leftIndex])
             leftIndex += 1
             orderedArray.append(right[rightIndex])
@@ -3324,16 +3338,19 @@ func merge(_ left: [Int], _ right: [Int]) -> [Int] {
         }
     }
     
+    // 왼쪽 배열에 남은 요소가 있으면 결과 배열에 추가
     while leftIndex < left.count {
         orderedArray.append(left[leftIndex])
         leftIndex += 1
     }
     
+    // 오른쪽 배열에 남은 요소가 있으면 결과 배열에 추가
     while rightIndex < right.count {
         orderedArray.append(right[rightIndex])
         rightIndex += 1
     }
     
+    // 정렬된 결과 배열 반환
     return orderedArray
 }
 
@@ -3365,6 +3382,7 @@ print(sortedArray)  // 출력: [1, 5, 7, 8, 9, 10]
 <br>
 
 ## 26. 동적 프로그래밍(Dynamic Programming)의 개념을 설명해주세요.
+**동적 프로그래밍(Dynamic Programming, DP)** 은 문제를 작은 부분 문제로 나누고, 이 부분 문제들의 결과를 저장하여(메모이제이션) 동일한 계산을 반복하지 않고 문제를 해결하는 최적화 기법입니다. 일반적으로 **중복되는 하위 문제(sub-problems)** 를 해결해야 하는 최적화 문제에서 사용됩니다.
 
 
 
