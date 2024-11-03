@@ -299,11 +299,250 @@ user.printProfile()  // 출력: User profile: iOS Developer
 
 ## 2. **iOS 앱의 생명주기(App Life Cycle)에 대해 설명해주세요.**
 
+<img src="https://github.com/user-attachments/assets/d91aef0c-593e-4c1b-92bb-b4c16da8a34d">
+
+### Not Running
+- 앱이 메모리에 로드되지 않은 상태로, 앱이 처음 실행되거나 사용자가 강제로 종료했을 때 이 상태가 됩니다.
+- 가능한 작업 :
+    - 이 상태에서는 앱이 실행되지 않으므로 코드가 실행되지 않습니다.
+    - 사용자가 앱을 처음 실행할 때 필요한 초기 설정과 리소스를 로드할 준비를 합니다.
+
+<br>
+
+### Inactive
+- 앱이 포그라운드에 있지만 이벤트를 처리하지 않는 상태입니다.
+- 화면이 잠기거나, 전화 수신 등으로 인해 일시적으로 이벤트 처리가 중단될 수 있습니다.
+- 가능한 작업:
+    - 진행 중인 작업을 일시적으로 멈추거나, UI 업데이트를 중단할 수 있습니다.
+    - 게임의 경우, 일시정지(pause) 상태로 만들어 사용자 활동이 재개될 때까지 대기합니다.
+    - 애니메이션 또는 타이머를 중단하여 불필요한 리소스 소비를 막습니다.
+ 
+<br>
+
+### Active
+- 앱이 포그라운드에 있으며 사용자와 상호작용하는 상태로, 앱의 모든 기능이 활성화됩니다.
+- 가능한 작업:
+    - 앱의 주요 기능을 수행하며, UI와 상호작용, 네트워크 요청 등 다양한 작업을 수행합니다.
+    - 게임의 경우, 일시정지 상태에서 벗어나 재생 상태로 전환할 수 있습니다.
+    - 실시간으로 사용자 입력에 대응하고, 화면 업데이트를 수행합니다.
+    - 필요 시 데이터를 주기적으로 업데이트하고, 백엔드와 통신을 지속적으로 유지합니다.
+
+<br>
+
+### Background
+- 앱이 백그라운드에서 실행 중이며, 제한된 작업을 수행할 수 있는 상태입니다.
+- 백그라운드 상태에 있는 앱은 제한된 시간 동안 작업을 수행할 수 있으며, 주로 데이터 저장이나 종료 준비 작업을 수행합니다.
+- 가능한 작업:
+    - 앱이 종료될 경우를 대비해 중요한 데이터를 저장합니다. 예를 들어, 사용자 작업 상태, 위치 정보 등을 로컬 저장소나 서버에 저장할 수 있습니다.
+    - 네트워크 요청을 완료하거나 다운로드 작업을 계속 수행할 수 있습니다.
+    - 백그라운드 모드가 활성화된 경우(예: 위치 업데이트, 음악 재생), 관련 작업을 계속할 수 있습니다.
+    - Background Task를 등록하여 작업이 완료될 때까지 수행할 수 있도록 합니다.
+ 
+<br>
 
 
-    - 앱의 각 상태(`Not Running`, `Inactive`, `Active`, `Background`, `Suspended`)에서 가능한 작업은 무엇인가요?
-    - 상태 변화에 따라 호출되는 `AppDelegate` 또는 `SceneDelegate` 메서드는 무엇인가요?
-    - 백그라운드에서 작업을 완료하기 위한 방법은 어떤 것이 있나요?
+### 상태 변화에 따라 호출되는 `AppDelegate` 또는 `SceneDelegate` 메서드는 무엇인가요?
+<img src="https://github.com/user-attachments/assets/fe445043-c958-4894-b82f-4e29f742049e">
+
+
+<br>
+
+### 백그라운드에서 작업을 완료하기 위한 방법은 어떤 것이 있나요?
+
+#### 1. Background Fetch
+- 개념:
+    - 앱이 백그라운드에서 주기적으로 데이터를 업데이트할 수 있도록 iOS가 호출해주는 기능입니다.
+- 사용 방법:
+    - setMinimumBackgroundFetchInterval을 설정하여 앱이 특정 시간마다 백그라운드에서 데이터를 가져올 수 있도록 요청합니다.
+    - application(_:performFetchWithCompletionHandler:) 메서드를 구현하여 데이터를 업데이트하고 작업이 완료되면 completionHandler를 호출합니다.
+- 제한 사항:
+    - iOS 시스템이 백그라운드 실행 주기를 최적화하므로 정확한 호출 주기는 보장되지 않습니다. 주로 뉴스 피드나 소셜 미디어 앱에서 데이터 새로고침에 사용됩니다.
+ 
+```swift
+// AppDelegate.swift
+
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    application.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
+    return true
+}
+
+func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    // 백그라운드에서 데이터를 가져오는 작업
+    fetchData { newData in
+        if newData {
+            completionHandler(.newData)  // 새 데이터가 있음을 알림
+        } else {
+            completionHandler(.noData)   // 새 데이터가 없음
+        }
+    }
+}
+
+func fetchData(completion: @escaping (Bool) -> Void) {
+    // 네트워크 호출 또는 데이터 업데이트 코드
+    completion(true)  // 예시로 새 데이터가 있다고 가정
+}
+```
+
+<br>
+
+#### 2. Background Task
+- 개념: 앱이 백그라운드로 이동한 후에도 작업을 계속 수행할 수 있도록 잠시 실행 시간을 부여받는 기능입니다.
+- 사용 방법: beginBackgroundTask(withName:expirationHandler:)를 호출하여 작업을 시작합니다. 작업이 완료되면 endBackgroundTask를 호출하여 작업을 종료해야 합니다. 만약 지정된 시간 내에 작업이 끝나지 않으면 시스템이 expirationHandler를 호출하고 작업을 종료합니다.
+- 제한 사항: 일반적으로 30초 정도의 시간이 주어지며, 시간이 초과되면 작업이 강제로 종료됩니다. 주로 파일 업로드나 데이터 저장 등 빠르게 완료해야 하는 작업에 사용됩니다.
+
+```swift
+// AppDelegate.swift
+
+func applicationDidEnterBackground(_ application: UIApplication) {
+    var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    
+    backgroundTask = application.beginBackgroundTask(withName: "FinishImportantTask") {
+        application.endBackgroundTask(backgroundTask)
+        backgroundTask = .invalid
+    }
+    
+    // 백그라운드에서 실행할 작업
+    finishImportantTask {
+        application.endBackgroundTask(backgroundTask)
+        backgroundTask = .invalid
+    }
+}
+
+func finishImportantTask(completion: @escaping () -> Void) {
+    // 데이터를 저장하거나 서버로 전송하는 작업
+    completion()
+}
+```
+
+<br>
+
+#### 3. Silent Push Notifications
+- 개념: 푸시 알림을 통해 앱이 백그라운드에서 데이터를 가져오도록 하는 방식입니다. 사용자에게 알림이 표시되지 않으며, 앱만 조용히 알림을 받아 작업을 수행할 수 있습니다.
+- 사용 방법: 푸시 알림의 content-available 키를 설정하여 앱에 새 데이터를 가져오도록 합니다. 푸시 알림을 수신하면 application(_:didReceiveRemoteNotification:fetchCompletionHandler:) 메서드가 호출되어 데이터를 가져올 수 있습니다.
+- 제한 사항: 시스템 정책에 따라 백그라운드 실행 여부가 제한될 수 있으며, 지나치게 빈번하게 호출될 경우 iOS가 자동으로 제한할 수 있습니다.
+
+```swift
+// AppDelegate.swift
+
+func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    // 백그라운드에서 데이터를 가져오는 작업
+    fetchData { newData in
+        if newData {
+            completionHandler(.newData)  // 새 데이터가 있음을 알림
+        } else {
+            completionHandler(.noData)   // 새 데이터가 없음
+        }
+    }
+}
+```
+
+- 푸시 알림은 content-available: 1을 포함하도록 서버에서 설정해야 합니다.
+
+
+<br>
+
+#### 4. Background Processing (iOS 13 이상)
+- 개념: iOS 13부터 도입된 기능으로, 장기적인 백그라운드 작업(예: 데이터 동기화, 기계 학습 모델 업데이트 등)을 위한 실행 시간을 예약할 수 있습니다.
+- 사용 방법: BGTaskScheduler API를 통해 백그라운드 작업을 등록하고 예약합니다. 백그라운드 작업이 수행될 때 handle(_:completionHandler:)를 통해 작업을 처리합니다.
+- 제한 사항: iOS가 배터리와 성능을 고려해 최적화된 시간에 작업을 실행하므로, 정확한 실행 시점을 보장할 수 없습니다.
+
+```swift
+// AppDelegate.swift
+
+import BackgroundTasks
+
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.example.app.refresh", using: nil) { task in
+        self.handleAppRefresh(task: task as! BGAppRefreshTask)
+    }
+    return true
+}
+
+func handleAppRefresh(task: BGAppRefreshTask) {
+    // 백그라운드에서 작업 수행
+    fetchData { newData in
+        task.setTaskCompleted(success: newData)
+    }
+    
+    scheduleAppRefresh()  // 다음 작업 예약
+}
+
+func scheduleAppRefresh() {
+    let request = BGAppRefreshTaskRequest(identifier: "com.example.app.refresh")
+    request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60) // 15분 후 실행
+    
+    do {
+        try BGTaskScheduler.shared.submit(request)
+    } catch {
+        print("Unable to schedule app refresh: \(error)")
+    }
+}
+```
+
+<br>
+
+#### 5. Location Updates (위치 업데이트)
+- 개념: 앱이 사용자 위치 정보에 접근해야 할 때, 백그라운드에서도 위치 업데이트를 받을 수 있습니다.
+- 사용 방법: allowsBackgroundLocationUpdates를 활성화하고, 위치 권한 설정을 통해 위치 업데이트를 수신합니다. 앱이 백그라운드에서도 계속 위치 업데이트를 받도록 설정할 수 있습니다.
+- 제한 사항: 위치 관련 기능을 남용할 경우 배터리 소모가 증가할 수 있으며, 사용자의 위치 권한 설정에 따라 기능이 제한될 수 있습니다.
+
+```swift
+import CoreLocation
+
+class LocationManager: NSObject, CLLocationManagerDelegate {
+    private let locationManager = CLLocationManager()
+    
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.requestAlwaysAuthorization()  // 항상 위치 권한 요청
+        locationManager.allowsBackgroundLocationUpdates = true  // 백그라운드 위치 업데이트 허용
+        locationManager.startUpdatingLocation()
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        // 위치 업데이트를 처리
+        guard let location = locations.last else { return }
+        print("Updated location: \(location)")
+    }
+}
+```
+
+- Info.plist에 NSLocationAlwaysUsageDescription 및 NSLocationWhenInUseUsageDescription을 설정하고, UIBackgroundModes에 location 항목을 추가해야 합니다.
+
+<br>
+
+#### 6. Background Audio, VoIP, Bluetooth, etc.
+- 개념: 특정 앱 카테고리(오디오 스트리밍, VoIP, Bluetooth 연동 등)에 한해 백그라운드에서 실행이 가능하도록 지원됩니다.
+- 사용 방법: UIBackgroundModes 키를 Info.plist에 추가하여 해당 기능을 활성화합니다.
+- 제한 사항: 사용 사례가 제한적이며, 시스템에 과부하가 걸릴 경우 iOS가 자동으로 앱을 종료할 수 있습니다.
+
+- 특정 기능을 위한 백그라운드 모드를 설정하는 방법입니다. 오디오 스트리밍 앱을 위한 예시입니다.
+
+```swift
+import AVFoundation
+
+func startBackgroundAudio() {
+    let session = AVAudioSession.sharedInstance()
+    do {
+        try session.setCategory(.playback, mode: .default, options: [])
+        try session.setActive(true)
+        
+        // 오디오 재생 코드
+        playAudio()
+    } catch {
+        print("Failed to activate audio session: \(error)")
+    }
+}
+
+func playAudio() {
+    // AVAudioPlayer를 통해 오디오 재생
+}
+```
+
+- Info.plist에 UIBackgroundModes 키로 audio 항목을 추가해야 합니다.
+
+
 
 <br>
 <br>
