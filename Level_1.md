@@ -586,13 +586,207 @@ Auto Layout은 iOS 앱 개발에서 다양한 화면 크기와 해상도에 맞�
 - Auto Layout은 텍스트 길이가 다를 때에도 UI가 깨지지 않게 유연하게 대응할 수 있습니다.
 - 다국어 지원이 필요한 앱에서 각 언어별로 UI를 조정할 필요 없이, 텍스트에 따라 UI가 자연스럽게 조정됩니다.
 
+
+
 <br>
 
+### 제약 조건(Constraints)의 우선순위(Priority)는 어떻게 동작하나요?
+제약 조건(Constraints)의 우선순위(Priority)는 Auto Layout에서 여러 제약이 충돌할 때 어떤 제약이 우선적으로 적용될지를 결정하는 기준입니다. 우선순위는 1에서 1000 사이의 값으로 설정할 수 있으며, 숫자가 높을수록 우선순위가 높아집니다.
+
+<br>
+
+#### 우선순위(Priority)의 동작 방식
+1. 필수 제약 조건(Required Constraints) – 우선순위 1000:
+- 기본값으로 설정된 1000은 “필수” 제약 조건을 의미합니다.
+- 이 우선순위를 가진 제약 조건은 반드시 만족해야 하며, 그렇지 않으면 레이아웃 오류가 발생합니다.
+- 보통 레이아웃의 핵심적인 제약 조건에 사용됩니다.
+
+<br>
+
+#### 2. 선택적 제약 조건(Optional Constraints) – 우선순위 1~999:
+- 1000보다 낮은 값의 우선순위는 선택적 제약으로 간주됩니다.
+- 이러한 제약 조건은 시스템이 가능한 한 만족하려고 하지만, 필요시 무시될 수 있습니다.
+- 예를 들어, 특정 상황에서 제약을 해제하거나 더 유연한 레이아웃을 적용할 때 사용됩니다.
+
+<br>
+
+#### 3. 우선순위 비교를 통한 제약 조건 충돌 해결:
+- 여러 제약이 동일한 요소에 대해 충돌하는 경우, 우선순위가 높은 제약이 우선 적용됩니다.
+- 예를 들어, 너비가 100pt 이상이어야 하는 제약이 우선순위 750으로 설정되어 있고, 200pt 이상이어야 하는 제약이 우선순위 500으로 설정되어 있다면, 가능한 한 750 우선순위의 제약을 우선적으로 만족시키려고 시도합니다.
+
+<br>
+
+#### 4. 자동 조정:
+- 낮은 우선순위 제약은 화면 크기나 내용에 따라 더 유연하게 적용되므로, 디바이스 크기나 화면 방향이 바뀌었을 때 레이아웃이 자동으로 조정됩니다.
+
+<br>
+
+#### 예시 코드
+```swift
+let view = UIView()
+view.translatesAutoresizingMaskIntoConstraints = false
+
+// 우선순위가 높은 필수 제약 (너비 100pt 이상 필수)
+let widthConstraint = view.widthAnchor.constraint(greaterThanOrEqualToConstant: 100)
+widthConstraint.priority = .required // 우선순위 1000
+widthConstraint.isActive = true
+
+// 우선순위가 낮은 선택적 제약 (너비 200pt 이상 권장)
+let preferredWidthConstraint = view.widthAnchor.constraint(greaterThanOrEqualToConstant: 200)
+preferredWidthConstraint.priority = UILayoutPriority(750) // 우선순위 750
+preferredWidthConstraint.isActive = true
+```
+
+- 위 코드에서는 widthConstraint(100pt 이상)과 preferredWidthConstraint(200pt 이상) 두 개의 제약이 설정되어 있습니다.
+- **필수 제약 조건(우선순위 1000)** 인 widthConstraint가 우선 적용되어 너비가 최소한 100pt 이상이어야 합니다.
+- 그러나, 가능하다면 **선택적 제약 조건(우선순위 750)** 인 preferredWidthConstraint도 만족시켜 너비가 200pt 이상이 되도록 시도합니다.
 
 
-    - 제약 조건(Constraints)의 우선순위(Priority)는 어떻게 동작하나요?
-    - Intrinsic Content Size란 무엇이며, 어떻게 활용되나요?
-    - Ambiguous Layout과 Unsatisfiable Constraints는 무엇이며, 어떻게 해결하나요?
+<br>
+
+### Intrinsic Content Size란 무엇이며, 어떻게 활용되나요?
+Intrinsic Content Size는 UI 요소가 그 자체의 콘텐츠를 표시하기 위해 필요한 최소한의 크기를 의미합니다. 즉, UI 요소의 내용에 따라 자동으로 결정되는 크기입니다. 예를 들어, UILabel이나 UIButton 같은 요소들은 내부 텍스트나 이미지의 크기에 따라 고유의 최소 크기를 갖게 됩니다.
+
+<br>
+
+#### Intrinsic Content Size의 활용
+[관련 내용](https://babbab2.tistory.com/135)
+
+- 자동 크기 조정: Intrinsic Content Size를 통해 UILabel, UIButton 등 콘텐츠에 따라 크기가 자동으로 결정됩니다. 이 기능을 활용하면, 별도의 너비와 높이 제약 조건을 주지 않아도 요소가 적절한 크기를 갖게 됩니다.
+- Auto Layout에서의 활용: Intrinsic Content Size는 Auto Layout에서 중요한 역할을 합니다. Auto Layout은 UI 요소의 고유 크기를 우선적으로 고려하여 레이아웃을 설정합니다. 따라서 Intrinsic Content Size가 있는 요소는 별도의 너비나 높이 제약 조건을 설정하지 않아도, 자동으로 콘텐츠 크기에 맞춰지게 됩니다.
+- 우선순위 조정: UILayoutPriority를 활용하여 요소의 Content Hugging Priority와 Compression Resistance Priority를 설정할 수 있습니다. 이를 통해 UI 요소가 다른 요소들과의 레이아웃 충돌 시 콘텐츠 크기에 맞춰 커지거나 압축될지 여부를 조정할 수 있습니다.
+    - Content Hugging Priority: 요소가 자신의 Intrinsic Content Size를 유지하려는 우선순위입니다. 이 값이 높을수록 요소가 자신만의 크기를 유지하려고 합니다.
+    - Compression Resistance Priority: 요소가 압축되어 크기가 작아지는 것을 방지하려는 우선순위입니다. 이 값이 높을수록 요소가 작아지지 않으려 합니다.
+ 
+```swift
+let label = UILabel()
+label.text = "Hello, World!"
+label.backgroundColor = .lightGray
+
+// Auto Layout을 활성화
+label.translatesAutoresizingMaskIntoConstraints = false
+
+// Content Hugging Priority와 Compression Resistance Priority 설정
+label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
+// 다른 뷰에 제약 조건 추가
+view.addSubview(label)
+NSLayoutConstraint.activate([
+    label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+    label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+])
+```
+
+- Content Hugging Priority와 Compression Resistance Priority를 설정합니다.
+    - Content Hugging Priority: 요소가 자신의 Intrinsic Content Size(컨텐츠에 맞는 기본 크기)를 유지하려는 우선순위입니다. .defaultHigh로 설정했기 때문에, 다른 제약 조건이 있더라도 가로로 늘어나지 않고 텍스트 크기에 맞게 유지하려고 합니다.
+    - Compression Resistance Priority: 요소가 작아지지 않으려는 우선순위입니다. 이 설정으로 인해 레이블의 내용이 잘리지 않도록 크기를 유지하려 합니다.
+
+<br>
+
+#### Intrinsic Content Size를 활용할 때의 이점
+1. 레이아웃 코드 간소화: Intrinsic Content Size를 활용하면 명시적으로 너비와 높이를 지정할 필요가 없어, 코드가 간결해집니다.
+2. 유연한 레이아웃: 화면 크기나 콘텐츠 양에 따라 UI 요소의 크기가 자동으로 조정되어 유연한 사용자 인터페이스를 제공합니다.
+3. 자동 크기 조정: 콘텐츠 양에 따라 자동으로 크기가 조절되므로, 예를 들어 다양한 텍스트 길이를 가진 버튼이나 레이블에 유용하게 사용할 수 있습니다.
+
+<br>
+
+### Ambiguous Layout과 Unsatisfiable Constraints는 무엇이며, 어떻게 해결하나요?
+Ambiguous Layout과 Unsatisfiable Constraints는 iOS Auto Layout에서 발생하는 두 가지 일반적인 레이아웃 문제입니다. 각각의 개념과 해결 방법을 살펴보겠습니다.
+
+#### 1. Ambiguous Layout (모호한 레이아웃)
+#### 개념 : 
+- Ambiguous Layout(모호한 레이아웃)은 Auto Layout이 요소의 위치 또는 크기를 확정할 수 없는 상태를 의미합니다.
+- 모호한 레이아웃이 발생하면, 요소가 화면에서 위치를 잡지 못해 원하는 위치에 표시되지 않거나 예기치 않은 위치에 표시될 수 있습니다.
+
+#### 원인 : 
+- 위치나 크기에 필요한 제약 조건이 부족할 때 발생합니다.
+- 예를 들어, 뷰의 위치는 제약을 통해 설정되어 있지만 가로, 세로 크기를 결정하는 제약이 없는 경우입니다.
+- 예시 :
+
+```swift
+import UIKit
+
+class ViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let label = UILabel()
+        label.text = "Hello, Ambiguous Layout!"
+        label.backgroundColor = .lightGray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        // label을 view에 추가
+        view.addSubview(label)
+        
+        // label의 위치는 설정하지만, 너비와 높이를 설정하지 않음
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.topAnchor.constraint(equalTo: view.topAnchor, constant: 100)
+        ])
+    }
+}
+```
+
+<br>
+
+#### 해결 방법:
+- 필요한 제약 추가: 모든 UI 요소가 위치와 크기를 결정할 수 있도록 충분한 제약 조건을 추가합니다.
+- Debugging Options: Xcode의 “Debug View Hierarchy”를 사용해 Ambiguous Layout을 확인하고, 모호한 제약이 발생한 요소를 찾습니다.
+- Runtime Check: 개발 중 UIView의 hasAmbiguousLayout() 메서드를 사용하여 특정 뷰의 레이아웃이 모호한지 확인할 수 있습니다. exerciseAmbiguityInLayout()을 사용해 모호한 레이아웃의 다양한 배치 결과를 테스트해 볼 수도 있습니다.
+
+```swift
+NSLayoutConstraint.activate([
+    label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+    label.topAnchor.constraint(equalTo: view.topAnchor, constant: 100),
+    
+    // 너비와 높이를 명시적으로 설정하여 모호성을 제거
+    label.widthAnchor.constraint(equalToConstant: 200),
+    label.heightAnchor.constraint(equalToConstant: 50)
+])
+```
+
+<br>
+
+#### 2. Unsatisfiable Constraints (충족 불가능한 제약 조건)
+#### 개념 : 
+- Unsatisfiable Constraints(충족 불가능한 제약 조건)는 두 개 이상의 상충되는 제약 조건으로 인해 레이아웃을 만족시킬 수 없는 상태를 의미합니다.
+- 시스템이 제약 조건을 충족시키지 못하는 경우, 충돌하는 제약 조건을 비활성화하거나 무시하려고 시도합니다. 그러나 여전히 문제가 해결되지 않으면 콘솔에 오류가 출력됩니다.
+
+#### 원인 :
+- 서로 충돌하는 제약 조건이 설정된 경우, 예를 들어 뷰의 가로 너비를 100pt 이상으로 유지하는 제약과 50pt로 제한하는 제약이 동시에 존재하는 경우입니다.
+- 특정 제약 조건이 우선순위(Priority) 설정 문제로 충돌을 일으킬 때 발생할 수도 있습니다.
+
+#### 해결 방법:
+- Xcode 콘솔 오류 메시지 확인: Unsatisfiable Constraints가 발생하면 Xcode 콘솔에 관련 오류 메시지가 나타납니다. 이 메시지에는 충돌하는 제약 조건과 뷰의 정보가 표시되므로, 이를 확인하고 문제를 해결할 수 있습니다.
+- 제약 조건 우선순위 조정: 서로 상충되는 제약이 있을 경우, 필요에 따라 우선순위를 조정합니다.
+- 불필요한 제약 조건 제거: 충돌하는 제약 조건을 삭제하거나 우선순위를 낮춰서 해결할 수 있습니다.
+- 코드 예시 :
+
+```swift
+// 예시: 충돌하는 제약을 제거하거나 우선순위를 조정
+let view = UIView()
+view.translatesAutoresizingMaskIntoConstraints = false
+
+let widthConstraint = view.widthAnchor.constraint(equalToConstant: 100)
+widthConstraint.priority = UILayoutPriority(999) // 우선순위를 낮춰 충돌 해결
+widthConstraint.isActive = true
+
+let conflictingConstraint = view.widthAnchor.constraint(equalToConstant: 50)
+conflictingConstraint.isActive = true // 이 제약 조건이 우선 적용됨
+```
+
+<br>
+
+#### 요약
+- Ambiguous Layout: 위치와 크기를 결정하기에 충분한 제약 조건이 부족할 때 발생하며, 필요한 제약을 추가하여 해결합니다.
+- Unsatisfiable Constraints: 충돌하는 제약 조건이 있을 때 발생하며, 불필요한 제약을 삭제하거나 우선순위를 조정하여 해결합니다.
+
+<br>
+
+### 스토리보드 vs XIB 요약
+
+<img src="https://github.com/user-attachments/assets/b00023b7-471c-4f81-a18e-558c84e5f2cc">
 
 <br>
 <br>
