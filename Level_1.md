@@ -792,9 +792,355 @@ conflictingConstraint.isActive = true // 이 제약 조건이 우선 적용됨
 <br>
 
 ## 4. **Swift에서 클로저(Closure)란 무엇이며, 어떻게 사용하나요?**
-    - 클로저의 캡처(Capture) 기능은 무엇인가요?
-    - @escaping 클로저와 non-escaping 클로저의 차이점은 무엇인가요?
-    - 트레일링 클로저(Trailing Closure) 문법은 어떤 경우에 유용한가요?
+**클로저(Closure)** 는 코드에서 전달하고 사용할 수 있는 독립적인 코드 블록입니다. Swift에서 클로저는 변수나 상수로 저장하고, 다른 함수에 인자로 전달하거나 반환 값으로 사용할 수 있는 기능을 제공합니다. 클로저는 기본적으로 익명 함수(이름이 없는 함수)로, 코드에서 즉시 사용해야 하거나 나중에 호출할 코드를 캡처하고 저장할 때 유용합니다.
+
+<br>
+
+### 클로저의 특징
+1. 함수의 참조 방식과 유사: 클로저는 코드 블록을 참조하고 실행할 수 있다는 점에서 함수와 유사합니다.
+2. 변수와 상수를 캡처: 클로저는 주변의 변수와 상수를 캡처하여 저장할 수 있습니다.
+3. 간결한 문법: 클로저는 축약된 문법을 제공하며, 특히 Swift의 map, filter, reduce 같은 함수와 함께 사용될 때 유용합니다.
+
+<br>
+
+### 클로저의 기본 형태
+클로저는 { (매개변수) -> 반환 타입 in 코드 } 형태를 가지며, in 키워드를 기준으로 매개변수 및 반환 타입 선언과 코드 블록이 나뉩니다.
+
+```swift
+{ (parameters) -> ReturnType in
+    // 클로저 코드
+}
+```
+
+#### 예제 : 기본 클로저 구문
+
+```swift
+let greetingClosure = { (name: String) -> String in
+    return "Hello, \(name)!"
+}
+
+// 클로저 호출
+let result = greetingClosure("Alice")
+print(result)  // 출력: "Hello, Alice!"
+```
+
+<br>
+
+#### 클로저를 함수의 인자로 사용하기
+
+클로저는 자주 다른 함수의 인자로 사용됩니다. 예를 들어, sort 메서드는 정렬 방식을 결정하기 위해 클로저를 인자로 받습니다.
+
+```swift
+let numbers = [3, 1, 4, 1, 5, 9]
+let sortedNumbers = numbers.sorted(by: { (a: Int, b: Int) -> Bool in
+    return a < b
+})
+
+print(sortedNumbers)  // 출력: [1, 1, 3, 4, 5, 9]
+```
+
+<br>
+
+#### 클로저 축약 문법
+
+Swift는 클로저를 작성할 때 불필요한 구문을 줄이는 몇 가지 축약 문법을 제공합니다.
+
+1. 타입 추론: 클로저의 매개변수와 반환 타입을 추론할 수 있는 경우, 명시적으로 작성하지 않아도 됩니다.
+2. 단축 인수 이름: $0, $1 등의 이름을 사용하여 매개변수를 표현할 수 있습니다.
+3. 후행 클로저(Trailing Closure): 함수의 마지막 인자로 클로저가 오는 경우, 클로저를 함수 호출 소괄호 외부에 작성할 수 있습니다.
+
+#### 축약 예제
+
+```swift
+let numbers = [3, 1, 4, 1, 5, 9]
+
+// 후행 클로저 구문과 단축 인수 이름을 활용한 예제
+let sortedNumbers = numbers.sorted { $0 < $1 }
+
+print(sortedNumbers)  // 출력: [1, 1, 3, 4, 5, 9]
+```
+
+<br>
+
+#### 클로저 사용 시 주의사항
+- 강한 참조 순환: 클로저가 캡처한 객체를 강한 참조로 유지할 경우, 강한 참조 순환이 발생할 수 있습니다. 이를 방지하기 위해 [weak self] 또는 [unowned self] 키워드를 사용해 약한 참조로 캡처할 수 있습니다.
+
+```swift
+class Example {
+    var value = 0
+    lazy var increment: () -> Void = { [weak self] in
+        self?.value += 1
+    }
+}
+```
+
+<br>
+
+### 요약 
+- 클로저는 독립적인 코드 블록으로, 변수나 상수처럼 저장하고 전달할 수 있습니다.
+- Swift에서는 클로저를 활용해 간결하고 유연한 코드 작성을 할 수 있습니다.
+- 클로저는 캡처 기능을 제공하며, 강한 참조 순환 문제에 주의해야 합니다.
+
+
+<br>
+
+
+### 클로저의 캡처(Capture) 기능은 무엇인가요?
+- 클로저의 캡처 기능은 클로저가 생성된 시점의 주변 변수나 상수를 클로저 내부에서 사용할 수 있도록 저장하는 기능입니다.
+- 즉, 클로저는 자신이 선언된 환경(context) 내의 변수와 상수를 참조하거나 저장하여, 클로저가 나중에 호출되더라도 해당 변수나 상수를 사용할 수 있습니다.
+
+
+<br>
+
+#### 캡처 기능의 동작 방식
+클로저가 변수나 상수를 캡처할 때, 해당 변수나 상수는 값이 아닌 참조로 저장됩니다. 따라서 클로저 내부에서 이 변수를 수정하면, 클로저가 선언된 외부의 변수에도 영향을 미칩니다.
+
+#### 캡처 기능 예제
+```swift
+func makeIncrementer(incrementAmount: Int) -> () -> Int {
+    var total = 0  // 외부 변수 total
+    let incrementer: () -> Int = {
+        total += incrementAmount
+        return total
+    }
+    return incrementer
+}
+
+let incrementByTwo = makeIncrementer(incrementAmount: 2)
+
+print(incrementByTwo()) // 2
+print(incrementByTwo()) // 4
+print(incrementByTwo()) // 6
+```
+
+#### 예제 설명
+1. makeIncrementer 함수 내부에는 total이라는 변수가 있습니다.
+2. incrementer라는 클로저를 정의할 때, total 변수를 캡처합니다.
+3. 이 클로저를 반환하여 외부에서 incrementByTwo()를 호출하면, 클로저 내부의 total 값이 증가합니다.
+4. 클로저는 total을 참조로 캡처하고 있어, 호출할 때마다 total의 값이 업데이트됩니다.
+
+#### 추가 설명
+이 코드에서 { total += incrementAmount; return total } 부분은 클로저이며, 클로저가 total 변수를 캡처하기 때문에 total은 힙 메모리에 저장되어 클로저가 호출될 때마다 사용될 수 있게 됩니다.
+
+#### 요약하자면:
+- 클로저는 생성될 때 자신이 참조하는 외부 변수(여기서는 total)를 캡처하여 힙 메모리에 저장합니다.
+- 이로 인해 makeIncrementer 함수가 종료된 후에도, total은 클로저의 캡처된 환경으로 힙 메모리에 남아 있게 됩니다.
+- 클로저가 살아 있는 동안 total은 힙 메모리에 유지되며, 클로저가 모든 참조에서 벗어나야 ARC에 의해 메모리에서 해제됩니다.
+
+
+<br>
+
+#### 클로저 캡처의 주요 용도
+- 상태 유지: 캡처된 변수의 값을 유지하고 클로저 호출 시 이를 변경함으로써, 클로저가 일정 상태를 관리하도록 할 수 있습니다.
+- 비동기 작업: 비동기 작업에서, 클로저가 실행될 때 필요한 변수나 상수를 클로저가 선언된 시점에 캡처하여, 나중에 클로저가 호출될 때도 해당 값에 접근할 수 있습니다.
+
+<br>
+
+#### 클로저 캡처와 메모리 관리
+클로저가 참조 타입(예: 클래스 인스턴스)을 캡처할 때 **강한 참조 순환(Retain Cycle)** 이 발생할 수 있습니다. 강한 참조 순환이 발생하면 메모리에서 해제되지 않는 문제가 생기므로, 이를 방지하기 위해 약한 참조(weak)나 비소유 참조(unowned)를 사용해야 합니다.
+
+```swift
+class Example {
+    var value = 0
+    lazy var increment: () -> Void = { [weak self] in
+        self?.value += 1
+    }
+}
+```
+
+- 위 코드에서 [weak self]를 사용해 self를 약한 참조로 캡처하여 강한 참조 순환을 방지합니다.
+
+
+<br>
+
+### @escaping 클로저와 non-escaping 클로저의 차이점은 무엇인가요?
+@escaping 클로저와 non-escaping 클로저는 클로저의 생명주기와 메모리 관리 방식에 따라 나뉘며, 두 가지는 함수가 클로저를 어떻게 다루는지에 큰 차이가 있습니다.
+
+#### 1. @escaping 클로저
+@escaping 클로저는 **함수의 실행이 종료된 후에도 클로저가 저장** 되어 **나중에 호출** 될 수 있는 클로저입니다. 주로 비동기 작업에서 사용되며, 함수 외부로 클로저를 “탈출”시킨다는 의미에서 **“escaping”** 이라는 이름이 붙습니다.
+
+#### 특징
+- 함수 외부로 탈출 가능: @escaping 클로저는 함수가 종료된 후 나중에 호출될 수 있으며, 비동기 작업에서 자주 사용됩니다.
+- 캡처한 변수 참조를 힙에 저장: 클로저가 탈출하는 경우 해당 클로저가 캡처한 변수는 힙 메모리에 저장되어 함수 종료 후에도 참조됩니다.
+- self 캡처 명시 필요: 클래스 인스턴스의 메서드에서 @escaping 클로저를 사용할 경우 self 캡처를 명시해야 합니다. 이로 인해 참조 순환 문제가 발생할 수 있어 [weak self]나 [unowned self]를 사용하는 것이 좋습니다.
+
+#### 예제 : @excaping 클로저
+```swift
+func performAsyncTask(completion: @escaping () -> Void) {
+    DispatchQueue.global().async {
+        // 비동기 작업 수행
+        print("Async task started")
+        completion() // 함수 외부에서 클로저 호출
+    }
+}
+
+performAsyncTask {
+    print("Async task completed")
+}
+```
+
+#### 사용 예시: 비동기 작업에서의 @escaping 클로저
+비동기 작업에서는 클로저가 나중에 호출될 수 있으므로 탈출 클로저로 선언해야 합니다.
+
+```swift
+func performAsyncTask(completion: @escaping () -> Void) {
+    DispatchQueue.global().async {
+        // 시간이 걸리는 작업 수행
+        print("비동기 작업 시작")
+        sleep(2)  // 2초 지연
+        
+        // 작업 완료 후 클로저 호출
+        DispatchQueue.main.async {
+            completion()
+        }
+    }
+}
+
+// 사용
+performAsyncTask {
+    print("비동기 작업이 완료되었습니다.")
+}
+```
+
+- 위 코드에서는 performAsyncTask 함수가 종료된 후 completion 클로저가 비동기 작업이 완료된 시점에 호출됩니다. 이 때문에 @escaping 키워드가 필요합니다.
+
+
+#### 또 다른 예시: 클로저를 저장해 두고 나중에 사용해야 할 때
+
+```swift
+class TaskManager {
+    var completionHandlers: [() -> Void] = []
+
+    func addCompletionHandler(handler: @escaping () -> Void) {
+        completionHandlers.append(handler) // 클로저를 배열에 저장
+    }
+
+    func executeCompletionHandlers() {
+        for handler in completionHandlers {
+            handler()
+        }
+    }
+}
+
+// 사용
+let manager = TaskManager()
+manager.addCompletionHandler {
+    print("작업이 완료되었습니다 1")
+}
+
+manager.addCompletionHandler {
+    print("작업이 완료되었습니다 2")
+}
+
+manager.executeCompletionHandlers() // 나중에 저장된 클로저를 실행
+// 작업이 완료되었습니다 1
+// 작업이 완료되었습니다 2
+```
+
+- 이 예시에서 addCompletionHandler 메서드는 클로저를 배열에 저장합니다.
+- 함수가 종료된 후에도 클로저가 저장되어 나중에 호출될 수 있으므로, @escaping 키워드를 사용해야 합니다.
+
+
+<br>
+
+#### 2. Non-escaping 클로저
+Non-escaping 클로저는 함수 내부에서만 실행되고, 함수가 종료되면 사라지는 클로저입니다. 함수의 파라미터로 전달된 후 함수 내부에서 실행되며, 탈출하지 않으므로 기본적으로 클로저는 non-escaping입니다. 즉, @escaping 키워드를 명시하지 않는 한 클로저는 non-escaping으로 간주됩니다.
+
+#### 특징
+- 함수 내부에서만 실행 : non-escaping 클로저는 함수 내부에서만 호출되며, 함수가 종료되면 클로저도 사라집니다.
+- 힙 메모리에 저장되지 않음 : 함수 내부에서만 사용되므로 캡처한 변수는 스택 메모리에 저장되며, 함수가 종료되면 자동으로 해제됩니다.
+- self 캡처 불필요 : 함수 내부에서만 실행되므로, 클래스 인스턴스의 프로퍼티에 접근할 때도 self를 명시하지 않아도 됩니다.
+
+#### 예제
+```swift
+func performTask(completion: () -> Void) {
+    print("Task started")
+    completion() // 함수 내부에서 클로저 호출
+    print("Task completed")
+}
+
+performTask {
+    print("Task in progress")
+}
+```
+
+#### 사용 예시: map 메서드와 같은 동기 작업
+논 탈출 클로저는 주로 동기 작업에서 사용됩니다. 예를 들어 배열의 각 요소를 변환하는 map 메서드는 함수 호출이 종료되기 전에 클로저를 호출하고 완료합니다.
+
+```swift
+let numbers = [1, 2, 3, 4, 5]
+
+// map 함수는 클로저를 논 탈출 클로저로 사용
+let doubled = numbers.map { (number) in
+    return number * 2
+}
+
+print(doubled) // 출력: [2, 4, 6, 8, 10]
+```
+
+<br>
+
+### 주요 차이점 요약
+<img src="https://github.com/user-attachments/assets/10f042e2-159a-4ace-97ab-8e0c98eca64c">
+
+<br>
+
+### 트레일링 클로저(Trailing Closure) 문법은 어떤 경우에 유용한가요?
+트레일링 클로저(Trailing Closure) 문법은 함수의 마지막 매개변수로 클로저를 전달할 때, 소괄호 바깥에 클로저를 작성하여 코드 가독성을 높이는 문법입니다.
+
+#### 트레일링 클로저 문법이 유용한 경우
+1. 클로저가 길어질 때:
+- 클로저를 인자로 전달하는 함수 호출 시, 함수의 소괄호 내에 클로저를 작성하면 코드가 복잡해지고 가독성이 떨어질 수 있습니다.
+- 트레일링 클로저를 사용하면 소괄호 바깥에서 클로저를 작성하므로 함수 호출 구조가 깔끔해집니다.
+2. Swift 표준 라이브러리 함수 사용 시:
+- Swift의 map, filter, reduce와 같은 고차 함수에서 트레일링 클로저를 자주 사용합니다.
+- 이 함수들은 코드 가독성을 위해 클로저를 마지막 인자로 받도록 설계되어 있어, 클로저를 소괄호 바깥에 작성하기에 적합합니다.
+3. 비동기 작업에서 콜백 클로저 사용 시:
+- 네트워크 요청, 애니메이션 처리 등 비동기 작업의 결과를 처리할 때 콜백 클로저를 사용하는 경우, 트레일링 클로저 문법을 사용하면 코드가 더 직관적입니다.
+
+#### 예제 코드
+```swift
+// 일반 클로저 문법
+let numbers = [1, 2, 3, 4, 5]
+let doubledNumbers = numbers.map({ (number) in
+    return number * 2
+})
+
+// 트레일링 클로저 문법
+let doubledNumbersTrailing = numbers.map { number in
+    return number * 2
+}
+```
+
+- 위 코드에서 map 함수의 인자로 클로저가 전달되며, 트레일링 클로저 문법을 사용하면 함수 호출의 괄호를 생략하여 코드가 더 깔끔하게 보입니다.
+
+#### 비동기 작업에서의 트레일링 클로저 사용
+```swift
+func fetchData(completion: () -> Void) {
+    // 네트워크 요청 코드
+    completion()
+}
+
+// 일반 클로저 사용
+fetchData(completion: {
+    print("Data fetched!")
+})
+
+// 트레일링 클로저 사용
+fetchData {
+    print("Data fetched!")
+}
+```
+
+- 비동기 작업의 콜백 함수로 클로저를 사용할 때도 트레일링 클로저 문법이 유용합니다. completion이 함수의 마지막 인자이므로, 소괄호를 생략하고 클로저를 함수 호출 뒤에 바로 작성할 수 있습니다.
+
+<br>
+
+### 요약
+요약
+- 코드 가독성을 높이기 위해, 함수의 마지막 매개변수가 클로저일 때 트레일링 클로저 문법을 사용하면 좋습니다.
+- 주로 Swift의 고차 함수(map, filter, reduce)나 비동기 작업의 콜백 클로저에서 많이 사용됩니다.
+- 트레일링 클로저를 활용하면 코드가 간결해지고, 클로저의 구조가 더 명확하게 드러나게 됩니
 
 <br>
 <br>
