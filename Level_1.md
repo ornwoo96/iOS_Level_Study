@@ -1146,8 +1146,297 @@ fetchData {
 <br>
 
 ## 5. **iOS에서 Delegate 패턴은 무엇이며, 어떤 상황에서 사용되나요?**
-    - Delegate 패턴과 Notification, KVO의 차이점은 무엇인가요?
-    - 프로토콜을 활용한 Delegate 패턴 구현 방법을 설명해주세요.
+- Delegate 패턴은 객체 간의 커뮤니케이션을 위해 한 객체가 자신의 일부 기능을 다른 객체에 위임하는 디자인 패턴입니다.
+- iOS 개발에서는 두 객체 간의 상호작용을 캡슐화하고 코드의 결합도를 낮추기 위해 자주 사용됩니다.
+
+### Delegate 패턴의 동작 원리
+1. 프로토콜 정의: 특정 작업을 수행하기 위한 메서드들이 포함된 **프로토콜(Interface)** 을 정의합니다.
+2. Delegate 프로퍼티: 클래스 A는 Delegate 프로퍼티를 선언하고, 이를 통해 자신이 필요한 작업을 다른 객체에게 위임합니다.
+3. 프로토콜 채택: 클래스 B는 클래스 A가 제공한 프로토콜을 채택하고, 필요한 메서드를 구현하여 A의 작업을 대신 수행할 수 있습니다.
+4. 위임 객체 등록: 클래스 A는 자신의 Delegate 프로퍼티에 클래스 B를 할당하여, A에서 발생하는 작업을 B에게 전달합니다.
+
+### Delegate 패턴이 유용한 상황
+1. UIKit에서 이벤트를 전달할 때:
+- 예를 들어, UITableView와 UICollectionView는 데이터 소스와 사용자 상호작용을 처리하기 위해 UITableViewDelegate 및 UITableViewDataSource 프로토콜을 사용합니다.
+- 이를 통해 각 셀을 선택하거나 스크롤 이벤트와 같은 작업을 뷰 컨트롤러에서 처리할 수 있습니다.
+2. 비동기 작업의 완료를 알릴 때:
+- 네트워크 요청, 다운로드 완료, 비동기 작업 등이 끝났을 때 결과를 Delegate 패턴으로 호출자에게 전달할 수 있습니다.
+3. View와 Controller 간의 데이터 전달 및 이벤트 처리:
+- 커스텀 뷰가 특정 작업을 수행할 때 이를 알리기 위해 Delegate 패턴을 사용하여 뷰 컨트롤러에 이벤트를 전달할 수 있습니다.
+
+<br>
+<br>
+
+## 프로토콜을 활용한 Delegate 패턴 구현 방법을 설명해주세요.
+### Delegate 패턴 예제
+예제: ViewController에서 버튼이 눌린 상태를 알리기 위해 커스텀 MyButtonView에서 Delegate 패턴을 사용
+
+```swift
+import UIKit
+
+// 1. Delegate Protocol 정의
+protocol MyButtonViewDelegate: AnyObject {
+    func didTapButton()
+}
+
+class MyButtonView: UIView {
+    // 2. Delegate 프로퍼티 선언
+    weak var delegate: MyButtonViewDelegate?
+
+    private let button: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Tap me!", for: .normal)
+        return button
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupButton()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupButton()
+    }
+    
+    private func setupButton() {
+        addSubview(button)
+        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+    }
+    
+    @objc private func buttonTapped() {
+        // 3. Delegate 메서드 호출
+        delegate?.didTapButton()
+    }
+}
+
+// 4. ViewController에서 Delegate 프로토콜 채택 및 구현
+class ViewController: UIViewController, MyButtonViewDelegate {
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let myButtonView = MyButtonView(frame: CGRect(x: 100, y: 100, width: 200, height: 50))
+        myButtonView.delegate = self // Delegate 프로퍼티 설정
+        view.addSubview(myButtonView)
+    }
+
+    // Delegate 메서드 구현
+    func didTapButton() {
+        print("Button was tapped in MyButtonView")
+    }
+}
+```
+
+#### 예제 설명
+1. MyButtonViewDelegate 프로토콜을 정의하고 버튼이 탭될 때 호출되는 didTapButton() 메서드를 선언합니다.
+2. MyButtonView는 delegate 프로퍼티를 선언하여 버튼이 눌리면 이를 delegate에 알립니다.
+3. ViewController는 MyButtonViewDelegate를 채택하고, didTapButton() 메서드를 구현하여 버튼 탭 이벤트를 처리합니다.
+4. ViewController는 MyButtonView의 delegate로 설정되어, 버튼 탭 이벤트가 발생하면 ViewController의 didTapButton 메서드가 호출됩니다.
+
+<br>
+
+### Delegate 패턴의 장점
+- 재사용성: 클래스가 특정 작업을 외부 객체에 위임하여 코드의 재사용성을 높입니다.
+- 결합도 감소: 서로 다른 클래스가 서로에 대해 알지 못하면서도 작업을 전달하고 처리할 수 있어 코드가 유연해집니다.
+- 캡슐화: 클래스의 내부 구현을 숨기고 인터페이스를 통해 상호작용할 수 있도록 합니다.
+
+### Delegate 패턴 요약
+Delegate 패턴은 이벤트 처리와 데이터 전달을 객체 간에 효율적으로 위임할 수 있는 중요한 패턴입니다. iOS 개발에서 Delegate 패턴은 다양한 UI 컴포넌트와 상호작용할 때 유용하며, 코드의 결합도를 낮추고 캡슐화를 유지하면서 데이터와 이벤트를 전달할 수 있게 해줍니다.
+
+<br>
+
+> 캡슐화 : 객체지향 프로그래밍의 중요한 개념 중 하나로, 객체의 데이터(프로퍼티)와 기능(메서드)을 외부에서 직접 접근할 수 없도록 숨기고, 필요한 경우에만 접근할 수 있는 인터페이스(메서드)를 제공하는 것을 말합니다. 이를 통해 데이터 보호와 코드의 독립성을 유지할 수 있습니다.
+
+#### 캡슐화 예시
+#### 예제: BankAccount 클래스에서 캡슐화 구현
+```swift
+class BankAccount {
+    // private 접근 수준으로 설정하여 외부에서 balance에 접근하지 못하도록 함
+    private var balance: Double = 0.0
+    
+    // balance에 접근할 수 있는 메서드를 제공하여 읽기만 가능하게 함
+    func getBalance() -> Double {
+        return balance
+    }
+    
+    // 입금 메서드 - balance 값을 안전하게 변경할 수 있는 메서드 제공
+    func deposit(amount: Double) {
+        guard amount > 0 else {
+            print("Invalid amount")
+            return
+        }
+        balance += amount
+    }
+    
+    // 출금 메서드 - 출금 시, 잔액이 충분한지 확인 후 출금
+    func withdraw(amount: Double) {
+        guard amount > 0 && amount <= balance else {
+            print("Insufficient balance or invalid amount")
+            return
+        }
+        balance -= amount
+    }
+}
+```
+#### 예제 설명
+- balance 프로퍼티는 private 접근 제어자를 통해 외부에서 직접 접근할 수 없습니다.
+- getBalance() 메서드는 balance 값을 외부에서 읽을 수 있도록 제공하지만, 수정은 불가능합니다.
+- deposit(amount:)와 withdraw(amount:) 메서드를 통해서만 balance를 변경할 수 있으며, 이를 통해 무결성을 유지하고 오류가 발생하지 않도록 합니다.
+
+#### 사용 예
+```swift
+let myAccount = BankAccount()
+myAccount.deposit(amount: 1000)
+print(myAccount.getBalance())  // 출력: 1000.0
+
+myAccount.withdraw(amount: 500)
+print(myAccount.getBalance())  // 출력: 500.0
+
+// 외부에서 balance를 직접 접근하려 하면 오류 발생
+// myAccount.balance = 2000  // 오류: 'balance' is inaccessible due to 'private' protection level
+```
+#### 캡슐화의 장점
+1. 데이터 보호: 외부에서 직접 데이터를 수정하지 못하도록 하여, 잘못된 접근을 방지합니다.
+2. 유지보수성 향상: 객체의 내부 구현을 숨기고 인터페이스만 노출하므로, 내부 로직을 수정하더라도 외부 코드를 수정할 필요가 없습니다.
+3. 코드 독립성: 객체가 데이터와 기능을 자체적으로 관리하고 보호하므로, 코드의 결합도를 낮추고 독립성을 유지할 수 있습니다.
+
+#### iOS에서의 캡슐화 활용 예
+UIKit의 UITextField는 text 속성에 접근할 수 있는 getter와 setter 메서드를 제공하여, 특정 상태에서만 사용자 입력을 받을 수 있도록 제어할 수 있습니다. 앱이 복잡해지면, 이러한 캡슐화 방식을 통해 내부 데이터를 보호하고 외부 코드와 독립적인 구조를 유지하는 것이 중요해집니다.
+
+<br>
+
+## Delegate 패턴과 Notification, KVO의 차이점은 무엇인가요?
+Delegate 패턴, Notification, **KVO (Key-Value Observing)** 는 객체 간의 상호작용을 위한 패턴이지만, 각 방식에는 목적과 사용 방식에 차이가 있습니다.
+
+### 1. Delegate 패턴
+Delegate 패턴은 객체가 특정 작업을 다른 객체에 위임하여 1:1 관계로 상호작용을 정의하는 패턴입니다.
+
+#### 특징:
+- 1:1 관계: Delegate 패턴은 일반적으로 두 객체 간의 상호작용을 관리합니다.
+- 구현 방식: 프로토콜을 정의하고, 해당 프로토콜을 채택한 객체가 특정 작업을 수행하도록 구현합니다.
+- 직접 통신: 이벤트가 발생할 때 직접 메서드를 호출하여 처리합니다.
+#### 사용 예:
+- UITableViewDelegate나 UITextFieldDelegate와 같은 UIKit의 Delegate 패턴은 UI 컴포넌트의 특정 동작을 뷰 컨트롤러에 위임합니다.
+#### 장점:
+- 코드가 직관적이고 타입 안전성을 제공합니다.
+- 서로의 상태나 데이터를 직접 주고받을 수 있어 강력하고 유연한 상호작용이 가능합니다.
+#### 단점:
+- 1:1 관계로, 한 객체가 하나의 Delegate만 가질 수 있어 여러 객체가 동일한 작업을 수신하는 것이 어렵습니다.
+
+#### Delegate 패턴 예시
+
+```swift
+protocol MyDelegate: AnyObject {
+    func didFinishTask()
+}
+
+class Task {
+    weak var delegate: MyDelegate?
+
+    func startTask() {
+        // 작업 수행
+        delegate?.didFinishTask() // 작업 완료 후 delegate 메서드 호출
+    }
+}
+
+class ViewController: UIViewController, MyDelegate {
+    func didFinishTask() {
+        print("Task completed!")
+    }
+}
+```
+
+<br>
+
+### 2. Notification
+
+Notification은 특정 이벤트가 발생했을 때 해당 이벤트를 여러 객체에게 광범위하게 전달할 수 있는 패턴입니다.
+
+#### 특징:
+- 1:다 관계: Notification은 하나의 이벤트를 여러 객체가 수신할 수 있습니다.
+- 구현 방식: Notification Center를 통해 특정 이벤트를 등록하고, 해당 이벤트가 발생할 때 알림을 받습니다.
+- 비동기적: 이벤트가 비동기적으로 전달되어 메서드가 즉시 호출되지 않을 수 있습니다.
+#### 사용 예:
+- 앱이 백그라운드로 들어가거나 포그라운드로 돌아올 때 이를 수신하기 위해 UIApplication.didEnterBackgroundNotification 등을 사용합니다.
+#### 장점:
+- 여러 객체가 동일한 이벤트를 수신할 수 있어 이벤트에 대한 광범위한 반응이 가능합니다.
+- 이벤트 발생 시, 수신 객체와 발신 객체가 서로를 알 필요가 없으므로 결합도가 낮습니다.
+#### 단점:
+- 특정 이벤트와 관련된 모든 객체에 알림이 전달되므로 사용 시 주의가 필요합니다.
+- 코드가 흩어져 있어 유지보수가 어려울 수 있습니다.
+
+#### Notification 예시
+
+```swift
+class Task {
+    func startTask() {
+        // 작업 수행
+        NotificationCenter.default.post(name: .didFinishTask, object: nil) // Notification 전송
+    }
+}
+
+class ViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        NotificationCenter.default.addObserver(self, selector: #selector(taskCompleted), name: .didFinishTask, object: nil)
+    }
+
+    @objc func taskCompleted() {
+        print("Task completed via Notification!")
+    }
+}
+
+extension Notification.Name {
+    static let didFinishTask = Notification.Name("didFinishTask")
+}
+```
+
+<br>
+### 3. KVO (Key-Value Observing)
+KVO는 특정 객체의 프로퍼티가 변경될 때 자동으로 감지하여 알림을 받는 패턴입니다.
+
+#### 특징:
+- 1:다 관계: KVO는 하나의 프로퍼티 변경을 여러 객체가 감지할 수 있습니다.
+- 구현 방식: 특정 키 경로에 대해 관찰을 등록하고, 해당 키의 값이 변경되면 알림을 받습니다.
+- 자동 감지: 프로퍼티의 변경을 자동으로 감지하고 알림을 보내기 때문에 특정 메서드를 직접 호출할 필요가 없습니다.
+#### 사용 예:
+- 데이터가 변경될 때 이를 UI에 반영하는 상황에서 사용되며, @objc 속성과 함께 주로 사용됩니다.
+- Core Data와 같은 데이터 관리에서 사용됩니다.
+#### 장점:
+- 프로퍼티가 변경될 때마다 자동으로 감지할 수 있어 편리합니다.
+- 여러 객체가 동일한 프로퍼티 변경을 수신할 수 있습니다.
+#### 단점:
+- 오류 발생 가능성: 설정이 복잡할 수 있고, 관찰이 해제되지 않으면 메모리 누수가 발생할 수 있습니다.
+- 유지보수의 어려움: 변경 사항이 많아질 경우 코드를 추적하고 디버깅하기 어렵습니다.
+
+#### KVO 예시
+```swift
+class Task: NSObject {
+    @objc dynamic var progress: Double = 0.0
+}
+
+class ViewController: UIViewController {
+    var task = Task()
+    var observation: NSKeyValueObservation?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        observation = task.observe(\.progress, options: [.new]) { (task, change) in
+            print("Task progress: \(change.newValue ?? 0)")
+        }
+        task.progress = 0.5  // progress가 변경되면 자동으로 KVO 알림이 발생
+    }
+}
+```
+
+<br>
+
+### 요약 비교
+<img src="https://github.com/user-attachments/assets/8aafb5f9-1556-4846-b3e3-03e64b6b1ff5">
+
+- Delegate는 두 객체 간의 직접적인 상호작용이 필요한 경우에 적합하고, Notification과 KVO는 객체가 직접 연결될 필요 없이 변경 사항을 여러 곳에 알릴 때 유용합니다.
+- Notification과 KVO는 결합도가 낮아 코드가 유연하지만, 변경 사항을 감지하기 어렵고 추적이 복잡해질 수 있습니다.
 
 <br>
 <br>
