@@ -1768,8 +1768,117 @@ case .failure(let errorCode):
 <br>
 
 ## 7. **Xcode에서 디버깅 시 자주 사용하는 기능은 무엇인가요?**
-    - 중단점(Breakpoint)의 종류와 활용 방법을 설명해주세요.
-    - LLDB 콘솔에서 유용한 명령어는 어떤 것이 있나요?
+Xcode에서 디버깅할 때 자주 사용하는 기능은 코드의 오류를 찾고 문제를 해결하는 데 큰 도움을 줍니다. 여기에는 브레이크포인트, LLDB 콘솔, 변수 관찰 등 다양한 기능이 포함됩니다. 각 기능의 목적과 활용 방법은 다음과 같습니다.
+
+<br>
+
+<img src="https://github.com/user-attachments/assets/cc67d1e1-d428-4e82-bca3-42d78dfd9ec5">
+
+### 1. 브레이크포인트 (Breakpoints)
+브레이크포인트는 코드의 특정 지점에서 실행을 일시 중지하여 코드 상태를 분석할 수 있게 해주는 기능입니다.
+
+- 설정 방법: 코드 왼쪽 라인 번호 영역을 클릭하면 브레이크포인트가 설정됩니다.
+- 활용: 코드 실행 중 특정 지점에서 변수의 값을 확인하거나 로직이 제대로 실행되는지 확인할 수 있습니다.
+- 종류:
+	- 표준 브레이크포인트: 코드 라인에서 실행을 중지합니다.
+	- 조건부 브레이크포인트: 특정 조건이 만족될 때만 중지합니다.
+	- 예외 브레이크포인트: 예외 발생 시 중지하여 오류의 원인을 추적합니다.
+
+<br>
+
+<img src="https://github.com/user-attachments/assets/94fc53e4-d2ee-49dc-9b78-f85e08db5add">
+
+
+### 2. LLDB 콘솔 (Debugger Console)
+LLDB 콘솔은 코드 실행 중 현재 스택의 상태를 명령어로 조회하거나, 변수를 직접 수정하고 함수 호출을 테스트할 수 있는 기능입니다.
+
+- 활용:
+	- po(print object): 객체의 설명을 출력하여 확인합니다.
+	- p(print): 변수의 값을 확인하거나 메서드를 호출합니다.
+	- expr(expression): 특정 변수를 수정하거나 계산을 수행하여 실행 중에 값 변경을 확인합니다.
+- 예시 :
+```swift
+po someVariable  // someVariable의 값을 콘솔에 출력
+p someFunction() // 함수 호출 결과를 출력
+```
+
+<br>
+
+<img src="https://github.com/user-attachments/assets/85d69749-12b4-4c4e-987d-b33a501ca6c1">
+
+### 3. 스택 트레이스 (Stack Trace)
+스택 트레이스는 현재 호출된 함수의 순서를 추적하여, 어떤 함수들이 순차적으로 호출되었는지를 확인할 수 있습니다.
+
+- 활용: 오류 발생 시, 호출된 함수의 순서를 확인하여 오류의 원인을 추적합니다.
+- 예시: 앱이 충돌할 때 스택 트레이스를 확인하여 어떤 함수가 마지막으로 호출되었는지 확인할 수 있습니다.
+
+
+<br>
+
+<img src="https://github.com/user-attachments/assets/e6239d8b-03f4-4d02-85cc-b4c6690834a2">
+
+### 4. View Debugging (뷰 디버깅)
+View Debugging은 UI 요소가 의도한 대로 배치되지 않을 때 앱의 뷰 계층 구조를 시각적으로 디버깅할 수 있는 기능입니다.
+
+- 활용:
+	- 앱의 UI 계층을 3D로 분리하여 볼 수 있어, 누락된 뷰나 잘못된 제약 조건을 쉽게 파악할 수 있습니다.
+- 설정 방법: 디버깅 중 “Debug View Hierarchy” 버튼을 클릭합니다.
+
+
+<br>
+
+<img src="https://github.com/user-attachments/assets/2c25c1ec-0214-4c0a-b275-95757bc9d4e0">
+
+### 5. 메모리 그래프 디버거 (Memory Graph Debugger)
+메모리 그래프 디버거는 메모리에서 객체의 관계를 시각화하여, 강한 참조 순환(retain cycle) 등을 확인할 수 있는 도구입니다.
+
+- 활용: 메모리 누수, 강한 참조 순환 문제를 해결할 때 유용합니다.
+- 설정 방법: 디버깅 중 “Memory Graph Debugger” 버튼을 클릭하여 사용합니다.
+
+<br>
+
+<img src="https://github.com/user-attachments/assets/952cb495-d0eb-4f37-95b5-1b021bd7bef6">
+
+### 6. Runtime Issues (런타임 문제 탐지)
+런타임 문제 탐지는 Xcode가 자동으로 런타임 오류를 탐지하여 알려주는 기능입니다. 메모리 누수, 잘못된 메모리 접근 등의 오류를 발견할 때 유용합니다.
+
+- 활용: 실행 중 발생하는 오류를 자동으로 감지하고 경고 메시지를 통해 원인을 파악할 수 있습니다.
+- 설정 방법: Xcode의 “Diagnostics” 설정에서 활성화할 수 있습니다.
+
+<br>
+
+<img src="https://github.com/user-attachments/assets/f38c18a7-c71d-48a0-897d-1c977a48e84e">
+
+### 7. Thread Debugging (스레드 디버깅)
+멀티스레드 환경에서 스레드의 상태를 확인하여, 특정 스레드가 대기 중인지, 실행 중인지 등을 파악할 수 있는 기능입니다.
+
+- 활용: 멀티스레드 환경에서 교착 상태(deadlock)나 경쟁 조건(race condition)을 파악할 때 유용합니다.
+- 설정 방법: 디버깅 중 “Thread” 탭을 통해 스레드 상태를 확인합니다.
+
+<br>
+
+###
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/173d4941-0563-4351-a75b-6c3b3d2d2893">
+
+
+<br>
+<br>
+
+## 7.1 중단점(Breakpoint)의 종류와 활용 방법을 설명해주세요.
+
+
+
+<br>
+<br>
+
+## 7.2 LLDB 콘솔에서 유용한 명령어는 어떤 것이 있나요?
+
+
 
 <br>
 <br>
