@@ -1442,9 +1442,327 @@ class ViewController: UIViewController {
 <br>
 
 ## 6. **Swift의 기본 데이터 타입과 컬렉션(Collection) 타입에는 어떤 것들이 있나요?**
-    - 값 타입(Value Type)과 참조 타입(Reference Type)의 차이점은 무엇인가요?
-    - 구조체(Struct)와 클래스(Class)의 사용 시기는 어떻게 구분하나요?
-    - 열거형(Enum)의 원시값(Raw Value)과 연관값(Associated Value)은 무엇인가요?
+
+### 기본 데이터 타입 (Basic Data Types)
+#### 1. Int: 정수를 나타내는 타입입니다. Int는 플랫폼에 따라 32비트 또는 64비트로 작동합니다.
+
+```swift
+let age: Int = 25
+```
+<br>
+
+#### 2.	UInt: 양의 정수를 나타내는 타입입니다. 부호가 없는 32비트 또는 64비트 정수입니다.
+```swift
+let count: UInt = 100
+```
+
+<br>
+
+
+#### 3.	Float: 32비트 부동 소수점 숫자를 표현하는 타입입니다.
+```swift
+let height: Float = 5.9
+```
+
+<br>
+
+
+#### 4.	Double: 64비트 부동 소수점 숫자를 표현하는 타입입니다. Float보다 더 높은 정밀도를 가집니다.
+```swift
+let weight: Double = 70.5
+```
+
+<br>
+
+
+#### 5.	Bool: 논리값을 표현하는 타입으로, true 또는 false 값만 가질 수 있습니다.
+```swift
+let isStudent: Bool = true
+```
+
+<br>
+
+#### 6.	Character: 하나의 문자를 표현하는 타입입니다.
+```swift
+let grade: Character = "A"
+```
+
+<br>
+
+#### 7.	String: 문자열을 표현하는 타입으로, 여러 문자의 모음입니다.
+```swift
+let name: String = "John Doe"
+```
+
+<br>
+
+#### 8.	Optional: 값이 있을 수도 있고 없을 수도 있는 타입입니다. 값이 없을 경우 nil이 할당됩니다.
+```swift
+var age: Int? = nil  // Optional Int 타입
+```
+
+<br>
+
+### 컬렉션 타입 (Collection Types)
+#### 1.	Array: 동일한 타입의 값들을 순서대로 저장하는 타입입니다. 배열은 인덱스로 접근하며, 요소가 중복될 수 있습니다.
+
+```swift
+var numbers: [Int] = [1, 2, 3, 4, 5]
+numbers.append(6)
+```
+
+<br>
+
+
+#### 2.	Set: 고유한 값들을 순서 없이 저장하는 타입입니다. 요소가 중복될 수 없으며, 순서가 중요하지 않은 경우에 사용됩니다.
+
+```swift
+var uniqueNumbers: Set<Int> = [1, 2, 3, 4, 5]
+uniqueNumbers.insert(6)
+```
+
+<br>
+
+
+#### 3.	Dictionary: 키-값 쌍을 저장하는 타입입니다. 각 키는 고유해야 하며, 키를 통해 값에 접근할 수 있습니다.
+
+```swift
+var studentGrades: [String: Int] = ["Alice": 85, "Bob": 92]
+studentGrades["Charlie"] = 88
+```
+
+<br>
+
+
+#### 4.	Tuple: 서로 다른 타입의 값을 그룹으로 묶는 타입입니다. 고정된 크기를 가지며, 값의 순서와 타입이 정해져 있습니다.
+
+```swift
+let person: (name: String, age: Int) = ("Alice", 25)
+print(person.name)  // "Alice"
+```
+
+<br>
+
+### 요약
+- 기본 데이터 타입: Int, UInt, Float, Double, Bool, Character, String, Optional.
+- 컬렉션 타입: Array, Set, Dictionary, Tuple.
+
+
+<br>
+<br>
+
+## 값 타입(Value Type)과 참조 타입(Reference Type)의 차이점은 무엇인가요?
+**값 타입(Value Type)** 과 **참조 타입(Reference Type)** 의 차이는 객체가 할당되고 복사되는 방식에 있습니다. Swift에서는 구조체(struct), 열거형(enum), 튜플(tuple) 등이 값 타입이며, 클래스(class)와 클로저(closure)가 대표적인 참조 타입입니다.
+
+<br>
+
+### 1. 값 타입 (Value Type)
+값 타입은 복사 시 독립적인 복사본이 생성되는 타입입니다. 변수에 값을 할당하거나 함수에 인자로 전달할 때, 새로운 메모리 공간에 값이 복사됩니다.
+
+- 대표적인 값 타입: struct, enum, tuple, 기본 데이터 타입(Int, Double, String 등)
+- 특징 :
+    - 각 변수는 독립적인 값을 가지며, 서로 영향을 주지 않습니다.
+	- Swift의 대부분의 기본 타입과 구조체가 값 타입입니다.
+- 예시 :
+
+```swift
+struct Point {
+    var x: Int
+    var y: Int
+}
+
+var pointA = Point(x: 5, y: 5)
+var pointB = pointA  // 값 복사
+
+pointB.x = 10
+
+print(pointA.x)  // 5 (pointA는 변경되지 않음)
+print(pointB.x)  // 10
+```
+
+- 위 코드에서 pointB는 pointA의 값을 복사하여 생성되므로, pointB의 x를 변경해도 pointA의 값에 영향을 주지 않습니다.
+
+<br>
+
+### 2. 참조 타입 (Reference Type)
+참조 타입은 복사 시 동일한 메모리 주소를 공유하므로, 하나의 객체를 여러 참조 변수가 공유하게 됩니다. 변수에 할당되거나 함수에 전달될 때 새로운 복사본이 아니라, 동일한 객체를 참조하게 됩니다.
+
+- 대표적인 참조 타입: class, closure
+- 특징:
+    - 여러 변수가 하나의 인스턴스를 공유하며, 그 중 하나가 값을 변경하면 모든 참조가 영향을 받습니다.
+    - 메모리 사용이 효율적일 수 있으나, 참조 공유로 인해 의도치 않은 결과가 발생할 수 있습니다.
+- 예시 :
+```swift
+class Person {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+}
+
+var personA = Person(name: "Alice")
+var personB = personA  // 참조 복사
+
+personB.name = "Bob"
+
+print(personA.name)  // "Bob" (personA도 변경됨)
+print(personB.name)  // "Bob"
+```
+
+- 위 코드에서 personB는 personA와 동일한 인스턴스를 참조하므로, personB의 name을 변경하면 personA의 name도 변경됩니다.
+
+<br>
+
+### 요약 
+<img src="https://github.com/user-attachments/assets/9c18c79b-760f-4bce-89b1-5bb0360a14ac">
+
+- 값 타입은 각 변수나 상수가 독립적으로 데이터를 관리하기에 코드의 예측 가능성을 높여주며, 참조 타입은 객체 간의 상호작용을 쉽게 하여 메모리 효율성을 제공합니다. Swift에서는 구조체와 열거형이 기본적으로 값 타입이며, 클래스를 통해 참조 타입을 구현할 수 있습니다.
+
+<br>
+<br>
+
+## 구조체(Struct)와 클래스(Class)의 사용 시기는 어떻게 구분하나요?
+Swift에서 **구조체(Struct)** 와 **클래스(Class)** 는 각각 고유한 특성을 가지며, 상황에 따라 적절한 것을 선택해 사용하는 것이 중요합니다. Swift는 구조체 중심 언어이므로 **구조체 사용을 권장하는 경우(애플에서 직접 추천함)** 가 많습니다. 다음은 구조체와 클래스를 구분하여 사용하는 기준입니다.
+
+<br>
+
+### 구조체(Struct) 사용 시기
+1. 값 타입이 적합할 때:
+- 구조체는 값 타입이므로, 인스턴스가 복사될 때마다 독립적인 복사본이 필요할 때 유용합니다.
+- 데이터가 변경되지 않고, 복사본이 독립적으로 동작해야 할 때 사용합니다.
+2. 간단한 데이터 모델일 때:
+- 데이터 저장이 주요 역할일 때 사용합니다. 예를 들어, 좌표나 크기 같은 간단한 값을 저장하는 용도로 적합합니다.
+3. 상태를 공유할 필요가 없을 때:
+- 값 타입은 서로의 상태를 독립적으로 유지하므로, 여러 객체가 상태를 공유할 필요가 없는 경우 구조체를 사용하는 것이 적합합니다.
+4. Swift 표준 라이브러리와 일관성 유지:
+- Swift 표준 라이브러리의 기본 데이터 타입(Int, Double, Array 등)이 구조체로 구현되어 있으므로, 표준 라이브러리와 일관성을 유지하고 싶다면 구조체를 사용하는 것이 좋습니다.
+
+<br>
+
+### 클래스(Class) 사용 시기
+1. 참조 타입이 필요한 경우:
+- 클래스는 참조 타입이므로 여러 변수가 동일한 인스턴스를 참조할 수 있습니다.
+- 여러 인스턴스가 상태를 공유하거나, 동일한 객체가 변경 사항을 유지해야 할 때 적합합니다.
+2. 상속이 필요한 경우:
+- 클래스는 상속이 가능하므로, 상속을 통해 코드 재사용과 다형성을 구현해야 할 때 사용합니다.
+- 구조체는 상속을 지원하지 않기 때문에, 공통 기능을 상속 계층으로 구성해야 할 경우 클래스가 필요합니다.
+3. ARC(Automatic Reference Counting)를 통한 메모리 관리가 필요한 경우:
+- 클래스 인스턴스는 ARC로 메모리 관리를 하기 때문에, 여러 인스턴스가 메모리를 공유해야 할 때 적합합니다.
+4. iOS의 Cocoa Touch 프레임워크 사용 시:
+- UIKit의 UIViewController, UIView 등 많은 프레임워크 컴포넌트가 클래스로 설계되어 있으므로, 프레임워크와 호환성을 유지해야 할 때는 클래스를 사용합니다.
+
+#### 예시 
+```swift
+class Animal {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+    func makeSound() {
+        print("\(name) makes a sound.")
+    }
+}
+
+class Dog: Animal {
+    override func makeSound() {
+        print("\(name) barks.")
+    }
+}
+
+let myDog = Dog(name: "Buddy")
+myDog.makeSound()  // 출력: "Buddy barks."
+```
+
+<br>
+
+### 구조체와 클래스 사용 기준 요약
+
+<img src="https://github.com/user-attachments/assets/b780a754-ec64-4761-810d-0f3931745033">
+
+- 구조체는 주로 값을 저장하고 독립적으로 관리할 필요가 있는 데이터 모델에 적합합니다.
+- 클래스는 상태를 공유하거나, 상속을 통한 기능 확장이 필요한 복잡한 객체 모델에 적합합니다.
+
+<br>
+<br>
+
+## 열거형(Enum)의 원시값(Raw Value)과 연관값(Associated Value)은 무엇인가요?
+**열거형(Enum)** 에서 **원시값(Raw Value)** 과 **연관값(Associated Value)** 은 각각 열거형의 값을 표현하는 방식입니다. 열거형의 원시값은 각 열거형 케이스에 고정된 값을 할당하는 방식이고, 연관값은 각 케이스에 별도의 추가 정보를 저장하여 동적으로 활용할 수 있게 합니다.
+
+<br>
+
+### 1. 원시값 (Raw Value)
+원시값은 열거형의 각 케이스에 고정된 정수, 문자열 등 특정 타입의 값을 할당하여, 열거형이 해당 값을 나타내도록 합니다.
+
+- 사용 목적: 각 케이스에 의미 있는 고정값을 부여하여, 열거형을 통해 코드의 가독성을 높이거나 외부 시스템과 상호작용할 때 사용됩니다.
+- 타입: 모든 원시값은 동일한 데이터 타입(예: Int, String 등)이어야 합니다.
+- 자동 할당: Int형 원시값은 첫 번째 값 이후로 자동으로 순서대로 증가할 수 있습니다.
+
+#### 예시 : 정수형 원시값을 가지는 열거형
+```swift
+enum Direction: Int {
+    case north = 1
+    case south
+    case east
+    case west
+}
+
+print(Direction.north.rawValue)  // 출력: 1
+print(Direction.south.rawValue)  // 출력: 2
+```
+
+- 위 예제에서 Direction 열거형은 정수형 원시값을 가지며, south, east, west는 순서대로 2, 3, 4가 할당됩니다.
+
+<br>
+
+#### 예시 : 문자열형 원시값을 가지는 열거형
+```swift
+enum Compass: String {
+    case north = "North"
+    case south = "South"
+    case east = "East"
+    case west = "West"
+}
+
+print(Compass.north.rawValue)  // 출력: "North"
+```
+
+- 위 코드에서 Compass는 문자열형 원시값을 가지고 있으며, 각 케이스는 대응하는 문자열 값으로 나타낼 수 있습니다.
+
+<br>
+
+### 2. 연관값 (Associated Value)
+연관값은 열거형의 각 케이스에 추가적인 동적 값을 저장할 수 있도록 하는 기능입니다. 열거형 케이스마다 서로 다른 타입의 값을 가질 수 있으며, 연관값을 통해 열거형을 더 유연하게 사용할 수 있습니다.
+
+- 사용 목적: 열거형 케이스마다 다른 정보를 추가로 저장하고 처리할 수 있습니다.
+- 타입: 각 케이스가 다른 타입의 연관값을 가질 수 있으며, 값은 동적으로 설정됩니다.
+- 예시 용도: 네트워크 요청 결과에 따른 상태 코드, 추가 데이터가 필요한 이벤트 처리 등에 사용됩니다.
+
+#### 예제 : 연관값을 가지는 열거형
+```swift
+enum NetworkResult {
+    case success(data: String)
+    case failure(errorCode: Int)
+}
+
+let result1 = NetworkResult.success(data: "User data")
+let result2 = NetworkResult.failure(errorCode: 404)
+
+switch result1 {
+case .success(let data):
+    print("성공: \(data)")
+case .failure(let errorCode):
+    print("실패: 에러 코드 \(errorCode)")
+}
+```
+
+- 위 예제에서 NetworkResult 열거형은 success와 failure 케이스에 각각 연관값을 가집니다. success 케이스에는 String 타입의 데이터가 연관값으로 저장되며, failure 케이스에는 Int 타입의 에러 코드가 연관값으로 저장됩니다.
+
+<br>
+
+### 요약
+<img src="https://github.com/user-attachments/assets/4e92e894-247e-45e0-9d18-97dd0bfdcfb3">
+
+- 원시값은 열거형의 케이스에 고정된 의미를 부여할 때 유용하고, 연관값은 각 케이스에 추가 데이터를 동적으로 저장하고 처리할 때 유용합니다.
 
 <br>
 <br>
