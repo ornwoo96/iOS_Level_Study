@@ -2191,9 +2191,127 @@ SQLite는 SQL 기반 경량 데이터베이스로, 직접 SQL 쿼리를 사용�
 <br>
 
 ## 9. **Swift에서 프로토콜(Protocol)이란 무엇이며, 어떻게 활용하나요?**
-    - 프로토콜의 요구사항은 무엇인가요?
-    - 프로토콜 확장(Protocol Extension)을 사용하는 이유는 무엇인가요?
-    - 프로토콜 지향 프로그래밍(Protocol-Oriented Programming)의 장점은 무엇인가요?
+**프로토콜(Protocol)** 은 특정 기능이나 속성을 요구하는 청사진 역할을 하며, 클래스, 구조체, 열거형이 특정 역할을 수행하도록 하기 위한 약속입니다. 프로토콜을 채택하는 타입은 프로토콜이 요구하는 속성이나 메서드를 반드시 구현해야 합니다.
+
+#### 예시 :
+```swift
+protocol Drivable {
+    var maxSpeed: Int { get }
+    func drive()
+}
+
+struct Car: Drivable {
+    var maxSpeed = 150
+    func drive() {
+        print("Driving at max speed of \(maxSpeed) km/h")
+    }
+}
+```
+
+<br>
+
+### 1. 프로토콜의 요구사항
+프로토콜은 특정 타입이 준수해야 할 속성, 메서드, 이니셜라이저 등을 요구할 수 있습니다. 프로토콜 자체에는 구현이 없으며, 이를 준수하는 타입이 요구사항을 직접 구현해야 합니다.
+
+<br>
+
+#### 속성 요구사항: 
+프로퍼티를 읽기 전용({ get })으로 요구하거나 읽기와 쓰기 가능({ get set })으로 요구할 수 있습니다.
+
+```swift
+protocol Identifiable {
+    var id: String { get }
+}
+```
+
+<br>
+
+#### 메서드 요구사항: 
+메서드를 정의하되, 실제 구현은 프로토콜을 채택한 타입에서 구현합니다.
+
+```swift
+protocol Flyable {
+    func fly()
+}
+```
+
+<br>
+
+#### 이니셜라이저 요구사항: 
+특정 이니셜라이저를 요구할 수 있으며, 클래스에서 사용할 때는 required 키워드가 필요합니다.
+
+```swift
+protocol Initializable {
+    init(name: String)
+}
+```
+
+<br>
+
+### 2. 프로토콜 확장(Protocol Extension)
+**프로토콜 확장(Protocol Extension)** 은 프로토콜에 직접 메서드 구현을 추가할 수 있는 기능으로, 프로토콜을 채택한 모든 타입에 기본 구현을 제공할 수 있습니다. 이 방식은 코드의 중복을 줄이고, 프로토콜의 기능을 확장하여 더 유연하게 사용할 수 있게 합니다.
+
+<br>
+
+
+#### 이유:
+- 공통 기능을 기본 구현으로 제공하여, 프로토콜을 채택한 각 타입에서 중복 구현을 피할 수 있습니다.
+- 메서드와 속성을 확장하여 모든 채택 타입에 추가적인 기능 제공이 가능해집니다.
+- 특정 메서드를 구현하지 않아도 기본 구현을 활용할 수 있어 더 간편하게 프로토콜을 사용할 수 있습니다.
+
+#### 예시:
+
+```swift
+protocol Greetable {
+    func greet()
+}
+
+extension Greetable {
+    func greet() {
+        print("Hello!")
+    }
+}
+
+struct Person: Greetable {}
+let person = Person()
+person.greet()  // 출력: Hello!
+```
+
+<br>
+
+### 3. 프로토콜 지향 프로그래밍(Protocol-Oriented Programming)
+**프로토콜 지향 프로그래밍(Protocol-Oriented Programming, POP)** 은 타입 간 공통 기능을 프로토콜과 프로토콜 확장을 통해 제공하여, 상속이 아닌 구성과 역할 분리를 추구하는 방식입니다. Swift에서는 프로토콜을 중심으로 코드의 유연성과 재사용성을 높이고자 하는 POP 스타일을 권장합니다.
+
+<br>
+
+#### 장점:
+- 다중 상속의 문제 해결: Swift는 다중 상속을 지원하지 않으나, 다중 프로토콜 채택을 통해 여러 역할을 쉽게 결합할 수 있습니다.
+- 유연한 설계: 클래스, 구조체, 열거형 모두 프로토콜을 채택할 수 있어, 특정 기능을 여러 타입에 일관되게 적용할 수 있습니다.
+- 코드 재사용성 증가: 프로토콜 확장 덕분에 기본 구현을 제공하여, 각 타입에서 중복된 구현을 피하고 공통 기능을 재사용할 수 있습니다.
+- 의존성 낮춤: 상속 기반 설계에서 발생할 수 있는 강한 의존성을 줄이고, 역할과 책임을 명확히 분리할 수 있습니다.
+
+#### 예시:
+```swift
+protocol Drawable {
+    func draw()
+}
+
+extension Drawable {
+    func draw() {
+        print("Drawing a shape")
+    }
+}
+
+struct Circle: Drawable {}
+struct Square: Drawable {}
+
+let shapes: [Drawable] = [Circle(), Square()]
+for shape in shapes {
+    shape.draw()  // Circle과 Square 모두 "Drawing a shape" 출력
+}
+```
+
+- 이 예시에서 Circle과 Square는 공통된 기능을 기본 구현으로 제공받아 코드의 간결성과 일관성을 유지할 수 있습니다. 이처럼 프로토콜과 프로토콜 확장은 객체 간 역할을 명확히 하면서, 코드 재사용성과 유연성을 높이는 데 큰 도움이 됩니다.
 
 <br>
 <br>
