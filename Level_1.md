@@ -2751,6 +2751,38 @@ github "Alamofire/Alamofire" ~> 5.0
 <br>
 
 ## 13. **Swift의 고차 함수(Higher-Order Functions)에 대해 설명해주세요.**
+- Swift의 **고차 함수(Higher-Order Functions)**는 다른 함수를 인자로 전달받거나 반환할 수 있는 함수를 말합니다. 
+- Swift에서는 컬렉션 타입(Array, Dictionary, Set 등)에 대해 고차 함수인 map, flatMap, filter, reduce, compactMap 등을 사용하여 간결하고 효율적인 코드를 작성할 수 있습니다.
+
+<br>
+
+### 1. 고차 함수의 종류와 사용법
+
+#### map
+map은 컬렉션의 각 요소에 동일한 연산을 적용하여 새로운 배열을 반환하는 함수입니다. 배열의 각 요소를 변환하고자 할 때 주로 사용됩니다.
+
+#### 사용 예시
+```swift
+let numbers = [1, 2, 3, 4, 5]
+let squaredNumbers = numbers.map { $0 * $0 }
+print(squaredNumbers)  // 출력: [1, 4, 9, 16, 25]
+```
+
+<br>
+
+#### flatMap
+flatMap은 중첩된 컬렉션을 **하나의 컬렉션으로 평탄화(flatten)**합니다. 이중 배열에서 모든 요소를 하나의 배열로 합치거나, 중첩된 옵셔널을 제거하는 경우에 사용됩니다.
+
+#### 사용 예시
+```swift
+let nestedNumbers = [[1, 2, 3], [4, 5], [6]]
+let flatNumbers = nestedNumbers.flatMap { $0 }
+print(flatNumbers)  // 출력: [1, 2, 3, 4, 5, 6]
+```
+
+
+
+
     - `map`과 `flatMap`의 차이점은 무엇인가요?
     - `filter`, `reduce` 함수는 어떤 경우에 사용하나요?
     - `compactMap`은 어떤 역할을 하나요?
