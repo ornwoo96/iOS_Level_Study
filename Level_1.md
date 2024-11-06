@@ -2386,9 +2386,256 @@ for shape in shapes {
 <br>
 
 ## 11. **iOS 앱에서 네트워크 통신을 하는 방법에는 어떤 것들이 있나요?**
-    - `URLSession`의 기본 사용 방법을 설명해주세요.
-    - 네트워크 요청 시 에러 처리는 어떻게 하나요?
-    - 서드파티 라이브러리(예: Alamofire)를 사용하는 이유는 무엇인가요?
+iOS 앱에서 네트워크 통신을 하는 방법에는 기본 프레임워크인 URLSession과 서드파티 라이브러리인 Alamofire, Moya 같은 옵션이 있습니다. 이들을 사용하여 서버와 데이터 송수신을 할 수 있습니다.
+
+<br>
+
+### 1. URLSession을 사용한 네트워크 통신
+
+URLSession은 iOS에서 네트워크 요청을 보내고 데이터를 받아오는 작업을 담당하는 클래스입니다. HTTP, HTTPS 프로토콜을 통한 데이터 송수신, 파일 다운로드, 업로드 등의 다양한 네트워크 작업을 수행할 수 있습니다.
+
+<br>
+
+#### URLSession의 기본 사용 방법
+1. URL 설정: 요청을 보낼 URL을 설정합니다.
+2. URLSession 인스턴스 생성: URLSession의 shared 인스턴스 또는 커스텀 설정을 적용한 URLSession을 생성합니다.
+3. Data Task 생성 및 실행: 요청을 보내고 응답을 받아 처리할 dataTask를 생성하여 실행합니다.
+4. 응답 처리: 서버의 응답 데이터를 받아 처리합니다.
+
+#### 예시 코드:
+```swift
+import Foundation
+
+// 1. URL 설정
+guard let url = URL(string: "https://jsonplaceholder.typicode.com/todos/1") else { return }
+
+// 2. URLSession 인스턴스 생성
+let session = URLSession.shared
+
+// 3. Data Task 생성 및 실행
+let task = session.dataTask(with: url) { data, response, error in
+    // 4. 에러 처리
+    if let error = error {
+        print("Error occurred: \(error)")
+        return
+    }
+    
+    // 응답 데이터 처리
+    if let data = data {
+        do {
+            let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+            print("Received data:", jsonObject)
+        } catch {
+            print("JSON Parsing Error: \(error)")
+        }
+    }
+}
+
+task.resume()  // 네트워크 요청 시작
+```
+
+<br>
+
+#### 2. 네트워크 요청 시 에러 처리
+네트워크 요청은 여러 원인(네트워크 문제, 서버 오류, 클라이언트 오류 등)으로 인해 실패할 수 있습니다. 일반적으로 URLSession의 completion handler에서 에러 객체를 확인하거나 HTTP 상태 코드로 에러를 처리합니다.
+
+<br>
+
+#### 에러 처리 방법:
+1. error 객체 확인: dataTask의 completion handler에서 전달되는 error 객체가 nil이 아닌 경우 네트워크 요청 실패로 간주합니다.
+2. HTTP 응답 코드 확인: response의 상태 코드(예: 200 성공, 404 오류, 500 서버 오류 등)를 통해 서버 응답의 성공 여부를 판단합니다.
+3. 데이터 파싱 에러 처리: JSON이나 XML 데이터 파싱 중에 발생하는 에러를 do-catch 문을 통해 처리합니다.
+
+#### 예시 코드:
+```swift
+let task = session.dataTask(with: url) { data, response, error in
+    // 1. 네트워크 에러 확인
+    if let error = error {
+        print("Network error: \(error)")
+        return
+    }
+
+    // 2. HTTP 응답 코드 확인
+    if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+        print("HTTP error: \(httpResponse.statusCode)")
+        return
+    }
+
+    // 3. 데이터 파싱 에러 처리
+    if let data = data {
+        do {
+            let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+            print("Data received:", jsonObject)
+        } catch {
+            print("JSON parsing error: \(error)")
+        }
+    }
+}
+
+task.resume()
+```
+
+<br>
+
+#### 3. 서드파티 라이브러리(예: Alamofire)를 사용하는 이유
+Alamofire와 같은 서드파티 네트워크 라이브러리는 URLSession을 더 쉽게 다루고, 네트워크 요청에 필요한 다양한 기능을 제공하여 편리하게 사용할 수 있습니다.
+
+<br>
+
+#### Alamofire의 주요 장점
+1. 간단하고 가독성 높은 코드: Alamofire는 URLSession보다 간단한 문법으로 네트워크 요청을 작성할 수 있어 코드 가독성이 높습니다.
+2. 편리한 응답 핸들링: JSON 응답 파싱이 내장되어 있어, JSON 데이터를 보다 쉽게 처리할 수 있습니다.
+3. 추가 기능: API 요청과 응답에 대한 로깅, 네트워크 상태 모니터링, 이미지 업로드 및 다운로드 기능 등을 제공합니다.
+4. 에러 처리와 리트라이 기능: 에러에 대해 자동으로 재시도하는 기능과, HTTP 상태 코드에 따른 에러 처리를 쉽게 관리할 수 있습니다.
+
+#### Alamofire 예시 코드:
+```swift
+import Alamofire
+
+Alamofire.request("https://jsonplaceholder.typicode.com/todos/1").responseJSON { response in
+    switch response.result {
+    case .success(let value):
+        print("Received data:", value)
+    case .failure(let error):
+        print("Error occurred:", error)
+    }
+}
+```
+
+<br>
+
+#### Moya의 주요 특징
+1. 코드 가독성 향상: API 엔드포인트를 프로토콜로 정의하여 직관적이고 간결하게 작성할 수 있습니다.
+2. 타입 안전성: 요청마다 타입을 지정할 수 있어 코드의 안정성과 유지보수성을 높여줍니다.
+3. 네트워크 테스트 및 Mocking 용이: 테스트용 가짜 응답을 쉽게 생성하여 네트워크 테스트가 가능합니다.
+4. Alamofire 통합: Alamofire 위에 구성되어 있어 Alamofire의 기능을 그대로 활용할 수 있습니다.
+
+<br>
+
+#### Moya의 기본 사용 방법
+Moya에서는 API의 각 엔드포인트를 TargetType 프로토콜로 정의하여 관리합니다. TargetType에는 API 요청에 필요한 정보(기본 URL, 경로, HTTP 메서드, 파라미터 등)를 설정하고, 각 엔드포인트를 코드로 구분할 수 있습니다.
+
+<br>
+
+#### 1. TargetType 설정
+Moya에서는 API 엔드포인트를 TargetType이라는 프로토콜로 정의합니다. TargetType 프로토콜의 주요 속성들은 다음과 같습니다:
+
+- baseURL: 기본 URL을 정의합니다.
+- path: API 경로를 정의합니다.
+- method: HTTP 메서드를 정의합니다 (GET, POST 등).
+- task: 요청 타입과 파라미터를 정의합니다 (예: .requestParameters).
+- headers: 요청에 필요한 HTTP 헤더를 설정합니다.
+
+#### TargetType 예시
+
+```swift
+import Moya
+
+// 1. API 엔드포인트를 정의하는 TargetType 프로토콜
+enum MyAPI {
+    case getUser(id: Int)
+    case createUser(name: String, age: Int)
+}
+
+// 2. TargetType 프로토콜 구현
+extension MyAPI: TargetType {
+    var baseURL: URL { return URL(string: "https://jsonplaceholder.typicode.com")! }
+
+    var path: String {
+        switch self {
+        case .getUser(let id):
+            return "/users/\(id)"
+        case .createUser:
+            return "/users"
+        }
+    }
+
+    var method: Moya.Method {
+        switch self {
+        case .getUser:
+            return .get
+        case .createUser:
+            return .post
+        }
+    }
+
+    var task: Task {
+        switch self {
+        case .getUser:
+            return .requestPlain
+        case .createUser(let name, let age):
+            return .requestParameters(parameters: ["name": name, "age": age], encoding: JSONEncoding.default)
+        }
+    }
+
+    var headers: [String: String]? {
+        return ["Content-Type": "application/json"]
+    }
+}
+```
+<br>
+
+#### 2. MoyaProvider 인스턴스 생성
+MoyaProvider는 요청을 보내는 데 사용하는 클래스입니다. 이 클래스의 인스턴스를 생성하고, 정의한 API 엔드포인트를 호출합니다.
+
+```swift
+let provider = MoyaProvider<MyAPI>()
+```
+
+<br>
+
+#### 3. 네트워크 요청 보내기
+Moya에서는 요청을 쉽게 작성할 수 있습니다. provider.request 메서드에 API 엔드포인트를 지정하고, 응답을 처리하는 클로저에서 결과를 확인할 수 있습니다.
+
+```swift
+// 사용 예시
+provider.request(.getUser(id: 1)) { result in
+    switch result {
+    case .success(let response):
+        do {
+            let data = try response.mapJSON()
+            print("Data received:", data)
+        } catch {
+            print("JSON parsing error:", error)
+        }
+    case .failure(let error):
+        print("Request failed:", error)
+    }
+}
+```
+
+#### 네트워크 테스트 및 Mocking 지원
+Moya는 테스트용으로 Mock 데이터를 쉽게 설정할 수 있어 실제 네트워크 없이도 요청을 테스트할 수 있습니다. 이를 통해 네트워크 응답이 없는 경우에도 테스트가 가능해집니다.
+
+```swift
+// MoyaProvider를 Stub 형식으로 생성하여 Mock 데이터 사용
+let provider = MoyaProvider<MyAPI>(stubClosure: MoyaProvider.immediatelyStub)
+
+provider.request(.getUser(id: 1)) { result in
+    switch result {
+    case .success(let response):
+        let data = try? response.mapJSON()
+        print("Mock data received:", data)
+    case .failure(let error):
+        print("Request failed:", error)
+    }
+}
+```
+
+<br>
+
+#### Moya와 Alamofire 비교
+
+<img src="https://github.com/user-attachments/assets/72e386aa-9862-40f2-a1d3-5b82c37f3063">
+
+<br>
+
+#### Moya의 장점 요약
+- 간결하고 구조화된 코드 작성: API 요청을 구조화하여 코드의 가독성과 유지보수성을 높일 수 있습니다.
+- 타입 안전한 네트워크 요청: TargetType을 통한 명확한 API 엔드포인트 정의로 타입 안전성을 강화합니다.
+- 테스트 지원: Stub 기능을 통해 네트워크 테스트 및 Mock 데이터 생성을 쉽게 할 수 있어, 실제 네트워크 없이도 요청 테스트가 가능합니다.
+
+Moya는 Alamofire의 확장으로, RESTful API 요청이 많은 프로젝트에서 API 관리와 테스트를 용이하게 하기 위한 최적의 라이브러리입니다.
 
 <br>
 <br>
