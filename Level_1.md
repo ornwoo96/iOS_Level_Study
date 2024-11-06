@@ -2780,12 +2780,96 @@ let flatNumbers = nestedNumbers.flatMap { $0 }
 print(flatNumbers)  // 출력: [1, 2, 3, 4, 5, 6]
 ```
 
+<br>
 
+#### filter
+filter는 컬렉션의 각 요소를 조건에 따라 걸러낸 새로운 배열을 반환합니다. 특정 조건을 만족하는 요소들만 추출하고 싶을 때 사용됩니다.
 
+#### 사용 예시
+```swift
+let numbers = [1, 2, 3, 4, 5]
+let evenNumbers = numbers.filter { $0 % 2 == 0 }
+print(evenNumbers)  // 출력: [2, 4]
+```
 
-    - `map`과 `flatMap`의 차이점은 무엇인가요?
-    - `filter`, `reduce` 함수는 어떤 경우에 사용하나요?
-    - `compactMap`은 어떤 역할을 하나요?
+<br>
+
+#### reduce
+reduce는 컬렉션의 모든 요소를 하나의 값으로 합산하는 함수로, 초기값을 주고 이를 기반으로 컬렉션의 요소를 순차적으로 누적하여 결과값을 생성합니다. 합산, 곱셈, 문자열 연결 등 여러 연산에 유용하게 사용됩니다.
+
+#### 사용 예시
+
+```swift
+let numbers = [1, 2, 3, 4, 5]
+let sum = numbers.reduce(0) { $0 + $1 }
+print(sum)  // 출력: 15
+```
+
+<br>
+
+#### compactMap
+compactMap은 컬렉션에서 nil 값을 제거하고 옵셔널을 해제한 배열을 반환합니다. 옵셔널 값을 포함한 배열에서 nil을 제거하고 싶을 때 사용됩니다.
+
+#### 사용 예시
+```swift
+let numbers = ["1", "2", "three", "4"]
+let validNumbers = numbers.compactMap { Int($0) }
+print(validNumbers)  // 출력: [1, 2, 4]
+```
+
+<br>
+
+### 2. map과 flatMap의 차이점
+- map: 각 요소에 연산을 적용하여 변환된 새로운 배열을 반환합니다.
+- flatMap: 각 요소에 연산을 적용한 후, 중첩 배열을 평탄화하여 하나의 배열로 반환합니다. 중첩된 배열을 처리하거나 옵셔널의 중첩을 제거할 때 사용됩니다.
+- 💥 map + 반환되는 배열을 flat하게 만들어주는 기능이 추가된 메서드입니다.
+
+```swift
+let numbers = [1, 2, nil, 4]
+let mapped = numbers.map { $0 }      // 출력: [Optional(1), Optional(2), nil, Optional(4)]
+let flatMapped = numbers.flatMap { $0 }  // 출력: [1, 2, 4]
+```
+
+<br>
+
+### 3. filter, reduce 함수의 사용 예
+#### filter: 컬렉션에서 특정 조건을 만족하는 요소들만 추출할 때 사용됩니다.
+
+```swift
+let names = ["Alice", "Bob", "Charlie", "Dave"]
+let shortNames = names.filter { $0.count <= 4 }
+print(shortNames)  // 출력: ["Bob", "Dave"]
+```
+
+<br>
+
+#### reduce: 컬렉션의 모든 요소를 하나의 값으로 합산할 때 유용합니다. 초기값을 설정하고, 각 요소를 누적하는 방식으로 작동합니다.
+
+```swift
+let expenses = [100, 250, 370]
+let totalExpense = expenses.reduce(0) { $0 + $1 }
+print(totalExpense)  // 출력: 720
+```
+
+<br>
+
+### 4. compactMap의 역할
+- 옵셔널 해제와 nil 제거: 컬렉션 내 옵셔널 요소들을 해제하고, nil 값을 제거한 배열을 반환합니다.
+- 유용한 경우: 옵셔널 배열에서 유효한 값들만 추출하고 싶을 때 사용됩니다.
+
+```swift
+let numbers = ["1", "2", "three", "4"]
+let validNumbers = numbers.compactMap { Int($0) }
+print(validNumbers)  // 출력: [1, 2, 4]
+```
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/2fbe07f6-6aab-4820-a10b-62332cc7e815">
+
+- Swift의 고차 함수는 코드의 간결성과 효율성을 높여주며, 컬렉션 내 데이터의 변환, 필터링, 누적 등에 유용하게 활용됩니다.
 
 <br>
 <br>
