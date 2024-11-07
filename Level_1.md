@@ -3102,6 +3102,52 @@ do {
 
 ## 16.1 순환 참조(Retain Cycle)가 발생하는 경우와 해결 방법은 무엇인가요?
 
+### 순환 참조(Retain Cycle)
+
+**순환 참조(Retain Cycle)** 는 두 객체가 서로를 강하게 참조할 때 발생합니다. 두 객체 모두 참조 카운트가 0이 되지 않으므로, 메모리에서 해제되지 않고 **메모리 누수(Memory Leak)**가 발생하게 됩니다.
+
+#### 순환 참조 예시
+```swift
+class Person {
+    var pet: Pet?
+}
+
+class Pet {
+    var owner: Person?
+}
+
+let person = Person()
+let pet = Pet()
+
+person.pet = pet
+pet.owner = person  // 순환 참조 발생
+```
+이 예시에서는 Person과 Pet 객체가 서로를 강하게 참조하고 있어, 두 객체 모두 참조 카운트가 0이 되지 않아 메모리에서 해제되지 않습니다.
+
+<br>
+
+### 순환 참조 해결 방법
+#### 1.	약한 참조 (weak) 사용: 
+
+weak 키워드를 사용하여 참조 카운트를 증가시키지 않도록 하여, 순환 참조를 방지할 수 있습니다.
+
+```swift
+class Person {
+    var pet: Pet?
+}
+
+class Pet {
+    weak var owner: Person?  // 약한 참조
+}
+```
+
+<br>
+
+#### 2.	비소유 참조 (unowned) 사용: 
+- unowned는 참조 카운트를 증가시키지 않으면서, 참조 대상이 해제될 것으로 확신하는 경우에 사용합니다.
+- nil 할당이 허용되지 않아, 참조 대상이 해제되면 런타임 오류가 발생할 수 있습니다.
+
+
 
 <br>
 <br>
