@@ -2942,7 +2942,7 @@ GitHub Flow는 더 간단한 구조로, 보통 main과 feature 브랜치만을 �
 
 <br>
 
-### 충돌(Conflict) 발생 시 해결 방법
+### 14.3 충돌(Conflict) 발생 시 해결 방법
 병합 시 같은 파일의 같은 부분이 서로 다른 브랜치에서 수정되었다면, 충돌이 발생할 수 있습니다. 이 경우 Git은 자동으로 병합하지 못하고 사용자가 직접 해결해야 합니다.
 
 <br>
@@ -2964,12 +2964,6 @@ git commit -m "Resolve merge conflict"
 <img src="https://github.com/user-attachments/assets/5dec38f1-0340-4c8c-92b5-c0d724b25cde">
 
 Git에서 브랜치를 사용하는 것은 협업의 필수 요소로, 독립적인 작업 공간을 제공하며 작업 내용을 명확하게 관리할 수 있도록 도와줍니다. 각 프로젝트에 맞는 브랜치 전략을 사용하여 효율적인 개발 환경을 유지할 수 있습니다.
-
-<br>
-<br>
-
-## 14.3 충돌(Conflict)이 발생했을 때 해결 방법은 무엇인가요?
-
 
 
 <br>
