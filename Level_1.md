@@ -3153,6 +3153,56 @@ class Pet {
 <br>
 
 ## 16.2 클로저에서 `[weak self]`와 `[unowned self]`의 차이는 무엇인가요?
+클로저 내에서 self에 대한 강한 참조가 발생할 경우, 클로저와 객체가 서로를 강하게 참조하여 순환 참조가 발생할 수 있습니다. 이를 방지하기 위해, [weak self]나 [unowned self]를 사용하여 강한 참조를 약한 참조로 변경할 수 있습니다.
+
+### [weak self]
+- weak는 옵셔널로 선언되어, 참조 대상이 해제될 경우 자동으로 nil이 할당됩니다.
+- 참조 대상이 해제될 수 있는 상황에 적합하며, self가 해제될 가능성이 있는 경우 안전하게 사용됩니다.
+- 사용 시, 옵셔널 언래핑(self?)이 필요합니다.
+
+```swift
+class ViewController {
+    var name = "ViewController"
+
+    func doSomething() {
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            print(self.name)
+        }
+    }
+}
+```
+
+<br>
+
+### [unowned self]
+- unowned는 비옵셔널로 선언되어, 참조 대상이 해제되지 않을 것으로 확신할 때 사용합니다.
+- 참조 대상이 클로저와 동일한 생명 주기를 가지거나, 확실히 해제되지 않는다고 보장되는 경우에 적합합니다.
+- 해제된 객체에 접근 시 런타임 오류가 발생할 수 있습니다.
+
+```swift
+class ViewController {
+    var name = "ViewController"
+
+    func doSomething() {
+        DispatchQueue.global().async { [unowned self] in
+            print(self.name)
+        }
+    }
+}
+```
+
+<br>
+
+### 요약
+<img src="https://github.com/user-attachments/assets/0db707d8-c706-4b31-a5dc-b1cd03a4a93b">
+
+- 순환 참조 해결: weak 또는 unowned 참조를 통해 순환 참조를 방지할 수 있습니다.
+- 클로저 내 weak self와 unowned self:
+	- weak는 옵셔널로 선언되어 안전하며, 해제될 가능성이 있는 객체에 적합합니다.
+	- unowned는 비옵셔널로, 객체가 해제되지 않을 것이라 확신하는 경우에 사용합니다.
+
+Swift에서는 강한 참조, 약한 참조, 비소유 참조를 적절히 사용하여 메모리 관리의 안정성을 높일 수 있습니다.
 
 
 <br>
