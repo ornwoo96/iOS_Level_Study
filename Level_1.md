@@ -3209,9 +3209,107 @@ Swift에서는 강한 참조, 약한 참조, 비소유 참조를 적절히 사�
 <br>
 
 ## 17. **iOS 앱에서 Multi-threading을 구현하는 방법은 무엇인가요?**
-    - `DispatchQueue`와 `OperationQueue`의 차이점은 무엇인가요?
-    - 동시성 프로그래밍에서 Race Condition을 방지하는 방법은 무엇인가요?
-    - 메인 스레드에서 UI 업데이트를 해야 하는 이유는 무엇인가요?
+iOS에서 멀티스레딩을 구현하는 주요 방법으로 **DispatchQueue** 와 **OperationQueue** 가 있습니다. 이를 통해 앱에서 작업을 병렬로 처리하고, 비동기적인 코드 실행을 통해 성능을 최적화할 수 있습니다.
+
+
+<br>
+<br>
+
+## 17.1 `DispatchQueue`와 `OperationQueue`의 차이점은 무엇인가요?
+### DispatchQueue:
+- **GCD(Grand Central Dispatch)** 에서 제공하는 경량의 작업 스케줄러로, 주로 비동기적인 작업을 처리하는 데 사용됩니다.
+- global(), main 등의 시스템 제공 큐와 커스텀 큐를 사용할 수 있습니다.
+- 간단한 작업에서 성능이 좋고 코드가 간결하여 빠르게 비동기 작업을 처리할 때 유용합니다.
+- 작업을 직렬(Serial) 또는 동시(Concurrent)로 실행할 수 있습니다.
+
+```swift
+DispatchQueue.global().async {
+    // 비동기 작업 수행
+}
+DispatchQueue.main.async {
+    // 메인 스레드에서 UI 업데이트
+}
+```
+
+<br>
+
+### OperationQueue:
+- NSOperation과 함께 제공되며, 작업을 객체로 캡슐화하여 작업 간의 의존성 설정, 우선순위 조절 등이 가능합니다.
+- 작업을 재사용하거나 작업 사이의 의존성 관계를 설정할 수 있어, 복잡한 작업 흐름에 적합합니다.
+- 동기 및 비동기 작업 처리가 모두 가능하며, 취소할 수도 있습니다.
+
+```swift
+let queue = OperationQueue()
+let operation = BlockOperation {
+    // 비동기 작업 수행
+}
+queue.addOperation(operation)
+```
+
+<br>
+
+### 비교 요약
+
+<img src="https://github.com/user-attachments/assets/e51d1cd9-4299-454e-a758-aa4379613a31">
+
+<br>
+
+
+
+<br>
+<br>
+
+## 17.2 동시성 프로그래밍에서 Race Condition을 방지하는 방법은 무엇인가요?
+Race Condition은 여러 스레드가 동시에 동일한 자원에 접근할 때 발생하며, 데이터의 불일치나 충돌이 생기는 문제입니다. 이를 방지하기 위해 스레드 안전성을 보장해야 하며, 여러 방법이 있습니다.
+
+### 동기화(Synchronization):
+- DispatchQueue의 serial queue를 사용해 작업을 직렬화하여 한 번에 하나의 작업만 실행하도록 합니다.
+
+<br>
+
+### NSLock 또는 synchronized 사용:
+- NSLock이나 objc_sync_enter/objc_sync_exit을 사용하여 특정 코드 블록에 lock을 걸어 한 번에 하나의 스레드만 접근하도록 제한합니다.
+
+<br>
+
+### DispatchSemaphore:
+- 특정 자원에 접근하는 작업 수를 제어하는 세마포어를 사용해 경쟁 조건을 방지할 수 있습니다.
+
+```swift
+let semaphore = DispatchSemaphore(value: 1)
+semaphore.wait()
+// 작업 수행
+semaphore.signal()
+```
+
+<br>
+<br>
+
+## 17.3 메인 스레드에서 UI 업데이트를 해야 하는 이유는 무엇인가요?
+메인 스레드는 앱의 UI 처리와 사용자 입력을 담당하는 스레드입니다. UIKit은 메인 스레드에서만 안전하게 작동하도록 설계되어 있으므로, UI 업데이트는 메인 스레드에서만 수행해야 합니다.
+
+<br>
+
+### 이유:
+- UIKit과 View 계층은 메인 스레드에서만 안전하게 동작하도록 만들어졌습니다. 이 외의 스레드에서 UI를 업데이트하면 예측 불가능한 결과가 발생할 수 있습니다.
+- 메인 스레드에서 실행하지 않으면 앱이 충돌하거나 레이아웃 갱신이 올바르게 이루어지지 않는 문제가 발생할 수 있습니다.
+
+### 해결 방법:
+- UI 작업을 다른 스레드에서 수행하려고 할 때는 반드시 메인 스레드에서 실행되도록 DispatchQueue.main.async를 사용합니다.
+
+```swift
+DispatchQueue.main.async {
+    // UI 업데이트 작업
+    self.label.text = "Updated Text"
+}
+```
+
+<br>
+
+### 요약
+<img src="https://github.com/user-attachments/assets/55571237-ad5c-4c59-b959-47f3e703fcb8">
+
+iOS에서 멀티스레딩은 동시성을 관리하며 성능을 최적화할 수 있는 중요한 요소입니다. DispatchQueue와 OperationQueue를 적절히 사용하고, Race Condition을 방지하여 안정적이고 효율적인 동시성 프로그래밍을 구현할 수 있습니다.
 
 <br>
 <br>
