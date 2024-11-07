@@ -2970,14 +2970,126 @@ Git에서 브랜치를 사용하는 것은 협업의 필수 요소로, 독립적
 <br>
 
 ## 15. **Swift의 에러 처리 방법에 대해 설명해주세요.**
-    - `throws`, `try`, `catch` 키워드의 사용 방법은 무엇인가요?
-    - 옵셔널을 사용한 에러 처리와 `do-catch`를 사용하는 에러 처리의 차이는 무엇인가요?
-    - 에러를 전파하는 방법은 무엇인가요?
+Swift에서 에러 처리는 프로그램 실행 중 발생할 수 있는 에러 상황에 대처하여 안정적인 코드 흐름을 유지하는 것을 의미합니다. Swift의 에러 처리는 throws, try, catch를 통해 이루어지며, 에러를 발생시키거나 전파하고, 처리하는 구조로 구성됩니다.
+
+<br>
+
+## 15.1 에러 처리의 기본 키워드
+### 1. throws 키워드
+- 함수가 에러를 발생시킬 가능성이 있을 때 함수 선언에 throws 키워드를 사용합니다.
+- throws를 사용한 함수는 호출 시 반드시 try와 함께 사용해야 합니다.
+
+```swift
+enum NetworkError: Error {
+    case badURL
+}
+
+func fetchData(from url: String) throws -> String {
+    guard url.starts(with: "https") else {
+        throw NetworkError.badURL
+    }
+    return "Data from \(url)"
+}
+```
+
+<br>
+
+### 2. try 키워드
+- 에러가 발생할 수 있는 코드 앞에 붙여 사용하며, 에러를 발생시키는 함수 호출 시 사용됩니다.
+- try에는 세 가지 형태가 있습니다:
+	- try: 일반적인 에러 처리 방법으로 do-catch와 함께 사용합니다.
+	- try?: 에러 발생 시 nil을 반환하여 옵셔널로 에러를 처리합니다.
+	- try!: 에러가 발생하지 않을 것이라 확신할 때 사용하며, 에러 발생 시 런타임 에러가 발생합니다.
+
+```swift
+do {
+    let data = try fetchData(from: "http://example.com")
+    print(data)
+} catch {
+    print("Failed to fetch data:", error)
+}
+```
+
+<br>
+
+### 3. catch 키워드
+- catch는 do 블록에서 발생한 에러를 처리하는 데 사용합니다.
+- catch 블록에서 에러를 특정 타입으로 분류하여 세분화된 에러 처리를 할 수도 있습니다.
+
+```swift
+do {
+    let data = try fetchData(from: "http://example.com")
+    print(data)
+} catch NetworkError.badURL {
+    print("Invalid URL provided.")
+} catch {
+    print("Unexpected error:", error)
+}
+```
+
+- 옵셔널을 사용한 에러 처리와 do-catch를 사용하는 에러 처리의 차이
+
+<br>
+
+## 15.2 옵셔널을 사용한 에러 처리와 `do-catch`를 사용하는 에러 처리의 차이는 무엇인가요?
+### 1. 옵셔널을 사용한 에러 처리 (try?)
+- try?를 사용하면 에러가 발생할 경우 nil을 반환하여 에러를 옵셔널로 처리합니다.
+- 에러의 구체적인 내용을 알 필요가 없거나, 에러 발생 시 nil로 대체해도 되는 경우에 유용합니다.
+
+```swift
+let data = try? fetchData(from: "http://example.com")
+print(data)  // 에러 발생 시 nil 반환
+```
+
+<br>
+
+### 2.	do-catch를 사용하는 에러 처리
+- do-catch 구문은 에러를 명확히 캡처하여 구체적으로 처리할 수 있습니다.
+- 에러의 원인이나 종류에 따라 여러 catch 블록을 만들어 구체적인 에러 처리가 가능하며, 에러 정보를 출력하거나 사용자에게 안내할 때 유용합니다.
+
+```swift
+do {
+    let data = try fetchData(from: "http://example.com")
+    print(data)
+} catch {
+    print("An error occurred:", error)
+}
+```
+
+<br>
+<br>
+
+## 15.3 에러를 전파하는 방법은 무엇인가요?
+- 에러를 전파하는 방법은 함수에서 발생한 에러를 호출한 곳으로 전달하여, 최종적으로 적절한 위치에서 에러를 처리할 수 있도록 하는 것입니다.
+- 이를 위해 함수 선언에 throws를 명시하고, 함수 호출 시 try를 사용합니다.
+
+```swift
+func loadData() throws {
+    try fetchData(from: "http://example.com")
+}
+
+do {
+    try loadData()
+} catch {
+    print("Error while loading data:", error)
+}
+```
+에러를 전파하면, 최종적으로는 do-catch 블록에서 에러를 처리하거나, 프로그램 전체의 흐름을 중단할 수 있습니다.
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/e3bb5e39-d9b7-464d-ae0f-d26970643b20">
+
 
 <br>
 <br>
 
 ## 16. **메모리 관리에서 강한 참조(Strong Reference)와 약한 참조(Weak Reference)의 차이점은 무엇인가요?**
+
+
+
     - 순환 참조(Retain Cycle)가 발생하는 경우와 해결 방법은 무엇인가요?
     - 클로저에서 `[weak self]`와 `[unowned self]`의 차이는 무엇인가요?
 
