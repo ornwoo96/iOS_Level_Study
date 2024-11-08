@@ -4599,9 +4599,113 @@ class DataFetcher {
 <br>
 
 ## 23. **Swift의 제네릭(Generic)에 대해 설명해주세요.**
-    - 제네릭을 사용하는 이유는 무엇인가요?
-    - 제네릭 타입 파라미터와 제약 조건을 설정하는 방법은 무엇인가요?
-    - 제네릭을 사용할 때의 장점과 주의할 점은 무엇인가요?
+**Swift의 제네릭(Generic)** 은 타입에 의존하지 않고 여러 타입에 대해 재사용할 수 있는 코드를 작성하게 해주는 기능입니다. 제네릭을 사용하면 코드의 유연성과 안전성을 높이면서도 중복을 줄이고, 다양한 타입에서 동작하는 함수를 작성할 수 있습니다.
+
+<br>
+
+### 제네릭(Generic)이란 무엇인가?
+
+제네릭은 코드의 유연성을 높여 여러 타입을 지원할 수 있게 합니다. 예를 들어, 특정 타입의 배열에서 가장 큰 값을 찾는 함수를 제네릭을 사용해 작성하면, 정수 배열뿐만 아니라 문자열 배열, 부동소수 배열 등 다양한 배열에서도 작동할 수 있습니다.
+
+<br>
+
+### 제네릭을 사용하는 이유
+1. 코드 중복 제거: 제네릭을 사용하면 같은 로직을 다양한 타입에 대해 중복 작성할 필요가 없습니다.
+2. 유연성과 타입 안전성 향상: 제네릭을 통해 다양한 타입을 지원하면서도 타입 검사를 엄격히 할 수 있어, 런타임 오류를 줄일 수 있습니다.
+3. 재사용성 증가: 하나의 제네릭 함수나 타입으로 여러 상황에서 활용할 수 있어 코드의 재사용성을 높입니다.
+
+#### 예시: 제네릭 함수와 제네릭 타입
+#### 1.	제네릭 함수
+아래 예제는 제네릭을 사용하여 배열의 첫 번째 요소를 반환하는 함수입니다. 제네릭을 통해 Int 배열, String 배열 등 어떤 타입의 배열도 지원할 수 있습니다.
+
+```swift
+func getFirstElement<T>(from array: [T]) -> T? {
+    return array.first
+}
+
+let numbers = [1, 2, 3]
+let firstNumber = getFirstElement(from: numbers) // Int형 요소 반환
+
+let words = ["apple", "banana", "cherry"]
+let firstWord = getFirstElement(from: words) // String형 요소 반환
+```
+
+<br>
+
+#### 2.	제네릭 타입
+아래 예제는 Stack이라는 자료구조를 제네릭 타입으로 구현한 것입니다. 이 스택은 Int, String, 또는 다른 타입의 요소를 저장할 수 있습니다.
+
+```swift
+struct Stack<Element> {
+    private var items: [Element] = []
+
+    mutating func push(_ item: Element) {
+        items.append(item)
+    }
+
+    mutating func pop() -> Element? {
+        return items.popLast()
+    }
+}
+
+var intStack = Stack<Int>()
+intStack.push(1)
+intStack.push(2)
+print(intStack.pop()) // 출력: 2
+
+var stringStack = Stack<String>()
+stringStack.push("apple")
+print(stringStack.pop()) // 출력: apple
+```
+
+<br>
+
+### 제네릭 타입 파라미터와 제약 조건 설정 방법
+
+Swift의 제네릭은 타입 파라미터에 제약 조건을 걸어 특정 타입 또는 프로토콜을 준수하는 타입만 사용할 수 있게 할 수 있습니다.
+
+#### 1.	타입 파라미터 선언
+제네릭 타입은 <T>처럼 꺾쇠 괄호 안에 타입 파라미터를 작성하여 선언합니다. 제네릭 함수나 타입 내부에서는 이 타입 파라미터를 실제 타입처럼 사용할 수 있습니다.
+
+<br>
+
+#### 2.	제약 조건 설정
+where 구문 또는 : Protocol 구문을 사용해 제네릭 타입에 제약 조건을 추가할 수 있습니다.
+
+```swift
+// Comparable 프로토콜을 준수하는 요소의 최대값을 반환하는 함수
+func findMaximum<T: Comparable>(in array: [T]) -> T? {
+    guard !array.isEmpty else { return nil }
+    return array.max()
+}
+
+let maxInt = findMaximum(in: [1, 5, 3, 9, 2]) // 출력: 9
+let maxString = findMaximum(in: ["apple", "banana", "cherry"]) // 출력: cherry
+```
+
+위 예제에서 T: Comparable은 배열 요소들이 서로 비교 가능하도록 하여 max() 메서드를 사용할 수 있게 합니다.
+
+<br>
+
+### 제네릭을 사용할 때의 장점과 주의할 점
+
+#### 장점
+1. 코드 중복 감소: 하나의 제네릭 타입으로 여러 타입을 커버할 수 있어 코드가 간결해집니다.
+2. 타입 안전성: 제네릭은 컴파일 타임에 타입 검사를 수행해 타입 오류를 방지합니다.
+3. 유연성: 다양한 타입에 대해 공통 기능을 제공하므로 코드 재사용성이 높아집니다.
+
+<br>
+
+#### 주의할 점
+1. 제네릭 과용: 지나치게 많은 제네릭 타입을 사용하는 것은 코드 가독성을 떨어뜨릴 수 있습니다.
+2. 제약 조건의 필요성: 제네릭 타입이 특정 타입이나 프로토콜을 따를 필요가 있을 때 적절한 제약 조건을 설정해야 합니다.
+3. 런타임 성능: 제네릭은 컴파일 타임에 타입이 결정되므로 일반적으로 성능이 우수하지만, 복잡한 제약 조건이 과도하게 설정된 경우 성능 저하가 발생할 수 있습니다.
+
+<br>
+
+### 요약
+
+제네릭은 다양한 타입을 처리할 수 있는 유연한 코드를 작성할 수 있게 하며, 중복 코드를 줄이고 안전성을 높이는 장점이 있습니다. 하지만 지나친 사용은 코드 복잡성을 초래할 수 있으므로 상황에 맞게 적절히 사용하는 것이 중요합니다.
 
 <br>
 <br>
