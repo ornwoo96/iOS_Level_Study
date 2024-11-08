@@ -3767,6 +3767,115 @@ Flyable 프로토콜을 채택한 Bird 클래스와 Airplane 구조체는 모두
 <br>
 
 ## 20.1 클래스 상속을 사용할 때의 장단점은 무엇인가요?
+클래스 상속을 사용할 때의 장단점은 코드 재사용성, 계층 구조의 용이성과 같은 이점이 있지만, 복잡성이 증가하고 유연성이 낮아지는 등의 단점도 있습니다.
+
+<br>
+
+### 클래스 상속의 장점
+
+#### 1.	코드 재사용:
+- 부모 클래스의 속성이나 메서드를 자식 클래스가 물려받아 코드 중복을 줄이고 재사용할 수 있습니다.
+- 예를 들어, Vehicle이라는 기본 클래스에서 Car와 Bike 같은 자식 클래스들이 공통 기능을 상속받아 재사용할 수 있습니다.
+
+```swift
+class Vehicle {
+    var speed: Int = 0
+    func start() {
+        print("Starting vehicle")
+    }
+}
+
+// Car 클래스가 Vehicle 클래스를 상속받아 start() 메서드를 재사용
+class Car: Vehicle {
+    func drive() {
+        print("Car is driving at speed \(speed)")
+    }
+}
+
+let car = Car()
+car.speed = 50
+car.start()      // 출력: Starting vehicle
+car.drive()      // 출력: Car is driving at speed 50
+```
+
+<br>
+
+#### 2.	기능 확장:
+- 부모 클래스에 정의된 기능을 **자식 클래스에서 재정의(override)**하여 확장할 수 있습니다.
+- 상속을 통해 공통 기능을 유지하면서도, 개별 자식 클래스에서 고유한 동작을 추가할 수 있습니다.
+
+```swift
+class Animal {
+    func makeSound() {
+        print("Some generic animal sound")
+    }
+}
+
+// Dog 클래스가 Animal 클래스를 상속받아 makeSound()를 재정의
+class Dog: Animal {
+    override func makeSound() {
+        print("Bark")
+    }
+}
+
+let dog = Dog()
+dog.makeSound()  // 출력: Bark
+```
+
+<br>
+
+#### 3.	계층 구조 구축:
+- 클래스 상속을 통해 유사한 속성과 메서드를 가지는 객체들을 계층적으로 구성할 수 있어, 코드의 가독성과 관리가 용이해집니다.
+- 예를 들어 Animal -> Mammal -> Dog와 같은 계층을 통해 객체 구조를 나타낼 수 있습니다.
+
+<br>
+
+### 클래스 상속의 단점
+#### 1.	단일 상속 제한:
+- Swift는 단일 상속만 허용하기 때문에, 한 클래스가 여러 부모 클래스를 상속받을 수 없습니다.
+- 여러 부모 클래스의 기능을 동시에 사용할 수 없기 때문에, 여러 기능이 필요할 경우 프로토콜을 사용하는 것이 유리합니다.
+
+#### 2.	유연성 부족:
+- 상속 구조가 복잡해질수록 상위 클래스의 변경이 하위 클래스에 영향을 줄 수 있어, 수정이나 확장이 어려워질 수 있습니다.
+- 클래스 간 결합이 강해져, 코드 변경 시 예기치 않은 오류가 발생할 가능성이 높아집니다.
+
+#### 3.	의도치 않은 기능 상속:
+- 상속을 통해 필요하지 않은 속성이나 메서드도 하위 클래스에 불필요하게 포함될 수 있습니다.
+- 모든 자식 클래스가 부모 클래스의 모든 기능을 물려받기 때문에, 원하지 않는 동작을 포함하게 될 수 있습니다.
+
+```swift
+class Vehicle {
+    func start() {
+        print("Vehicle starting")
+    }
+    
+    func stop() {
+        print("Vehicle stopping")
+    }
+}
+
+// Bicycle 클래스가 Vehicle을 상속받지만, stop 기능이 필요하지 않다고 가정
+class Bicycle: Vehicle {
+    func pedal() {
+        print("Pedaling the bicycle")
+    }
+}
+
+let bike = Bicycle()
+bike.start()    // 출력: Vehicle starting
+bike.pedal()    // 출력: Pedaling the bicycle
+bike.stop()     // 출력: Vehicle stopping (필요하지 않은 기능)
+```
+
+이 예시에서 Bicycle은 Vehicle에서 start()와 stop() 메서드를 상속받지만, Bicycle에서는 stop() 기능이 필요하지 않을 수 있습니다.
+
+<br>
+
+### 요약 
+
+<img src="https://github.com/user-attachments/assets/a6a9dec9-b304-466e-9dc4-d0f39b56cacb">
+
+상속은 코드 재사용성과 확장성을 높일 수 있는 강력한 개념이지만, 적절하게 설계하지 않으면 불필요한 기능이 포함되거나 코드 유지보수가 어려워질 수 있습니다. 상황에 따라 상속과 프로토콜을 적절히 사용하여 더 유연하고 효율적인 구조를 설계하는 것이 중요합니다.
 
 
 <br>
