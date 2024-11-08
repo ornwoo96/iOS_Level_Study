@@ -3389,6 +3389,80 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
 <br>
 
 ## 18.3 CollectionView의 레이아웃을 커스터마이징하는 방법은 무엇인가요?
+UICollectionView는 레이아웃을 커스터마이징할 수 있는 다양한 옵션을 제공합니다.
+
+<br>
+
+### 1. UICollectionViewFlowLayout:
+- 기본 레이아웃으로, 아이템을 그리드 형식으로 배치합니다.
+- itemSize, minimumInteritemSpacing, minimumLineSpacing 등을 설정하여 셀 간 간격을 조정할 수 있습니다.
+- 아래 코드에서는 CustomFlowLayout을 만들어, 각 셀의 높이를 임의의 값으로 설정하여 워터폴 레이아웃을 생성합니다.
+
+```swift
+import UIKit
+
+func createWaterfallLayout(with heights: [CGFloat]) -> UICollectionViewCompositionalLayout {
+    return UICollectionViewCompositionalLayout { (sectionIndex, layoutEnvironment) -> NSCollectionLayoutSection? in
+        
+        // 화면 너비에 따라 열 수를 동적으로 설정
+        let columns = layoutEnvironment.container.effectiveContentSize.width > 600 ? 3 : 2
+        
+        // 아이템 크기 설정 (너비는 비율, 높이는 이후에 그룹에서 설정)
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5) // 아이템 간 간격 설정
+
+        // 섹션 내 각 아이템의 높이를 동적으로 설정
+        var sectionItems: [NSCollectionLayoutGroup] = []
+        
+        // heights 배열의 각 값을 사용해 그룹 생성
+        for height in heights {
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0 / CGFloat(columns)), heightDimension: .absolute(height))
+            let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+            sectionItems.append(group)
+        }
+        
+        // 전체 그룹들을 포함하는 섹션 생성
+        let layoutSection = NSCollectionLayoutSection(group: NSCollectionLayoutGroup.vertical(layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(sectionItems.reduce(0) { $0 + $1.layoutSize.heightDimension.dimension })), subitems: sectionItems))
+        
+        layoutSection.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+        layoutSection.interGroupSpacing = 10
+        
+        return layoutSection
+    }
+}
+```
+
+<br>
+
+### 2.	UICollectionViewCompositionalLayout:
+- iOS 13부터 제공되는 레이아웃으로, 더 복잡하고 다양한 구성의 레이아웃을 만들 수 있습니다.
+- NSCollectionLayoutItem, NSCollectionLayoutGroup, NSCollectionLayoutSection을 조합하여 레이아웃을 구성합니다.
+
+```swift
+// 각 아이템의 크기를 설정하는 NSCollectionLayoutSize를 생성
+// 너비는 컬렉션 뷰의 50%이고, 높이는 그룹의 전체 높이로 설정
+let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5), heightDimension: .fractionalHeight(1))
+
+// 아이템 레이아웃을 설정, 해당 레이아웃이 itemSize를 기반으로 아이템을 배치
+let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+// 그룹의 크기를 설정하는 NSCollectionLayoutSize를 생성
+// 너비는 컬렉션 뷰의 전체 너비(100%)이며, 높이는 컬렉션 뷰의 20%로 설정
+let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(0.2))
+
+// 그룹을 가로 방향으로 설정하고, 각 그룹에 포함할 아이템을 지정
+// 이 그룹은 item을 포함하며, item을 그룹 크기 내에 배치
+let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+// 그룹을 포함하는 섹션을 생성
+let section = NSCollectionLayoutSection(group: group)
+
+// 최종적으로 섹션을 포함하는 UICollectionViewCompositionalLayout을 생성
+// 컬렉션 뷰에 해당 레이아웃을 적용하여 구성
+let layout = UICollectionViewCompositionalLayout(section: section)
+collectionView.collectionViewLayout = layout
+```
 
 
 <br>
@@ -3396,10 +3470,7 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
 
 ## 18.4 diffableDatasource는 뭔가요?
 
-<br>
-<br>
 
-## 18.5 compositionalLayout은 무엇이고 어떻게 사용하나요?
 
 <br>
 <br>
