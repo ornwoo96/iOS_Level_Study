@@ -3882,7 +3882,89 @@ bike.stop()     // 출력: Vehicle stopping (필요하지 않은 기능)
 <br>
 
 ## 20.2 다중 상속(Multiple Inheritance)이 불가능한 이유는 무엇인가요?
+**다중 상속(Multiple Inheritance)** 이란 하나의 클래스가 여러 부모 클래스로부터 상속받아 기능을 물려받는 것을 의미합니다. Swift는 다중 상속을 지원하지 않으며, 대신 다중 프로토콜 채택을 통해 이와 같은 기능을 구현할 수 있습니다.
 
+<br>
+
+### 다중 상속이 불가능한 이유
+
+#### 1.	복잡성 증가:
+- 다중 상속은 클래스 간의 관계를 지나치게 복잡하게 만들 수 있습니다. 여러 부모 클래스에서 상속받은 메서드나 속성이 많아질수록 코드가 이해하기 어려워지고, 유지보수하기도 힘들어집니다.
+  
+<br>
+
+#### 2.	다이아몬드 문제(Diamond Problem):
+- 여러 부모 클래스가 같은 조상 클래스를 상속하고 있을 때, 자식 클래스가 어떤 조상의 메서드나 속성을 상속받아야 할지 모호해지는 문제입니다.
+- 예를 들어, 두 부모 클래스가 같은 이름의 메서드나 속성을 가지고 있다면, 어느 쪽을 사용해야 할지 알 수 없게 됩니다.
+
+```swift
+// 다이아몬드 문제를 시뮬레이션한 예시 (Swift에서는 다중 상속 불가능)
+class A {
+    func doSomething() {
+        print("Doing something in A")
+    }
+}
+
+class B: A {
+    override func doSomething() {
+        print("Doing something in B")
+    }
+}
+
+class C: A {
+    override func doSomething() {
+        print("Doing something in C")
+    }
+}
+
+// hypothetical class D: B, C { ... } // 다중 상속을 시도하면 어떤 doSomething()을 사용할지 모호함
+```
+
+<br>
+
+#### 3.	복잡한 메모리 관리:
+- 다중 상속을 허용할 경우, 상속받은 각 부모 클래스의 인스턴스에 대한 메모리 관리를 효율적으로 수행하기가 어려워집니다. 이는 성능 저하와 예기치 않은 오류의 원인이 될 수 있습니다.
+
+<br>
+
+### 다중 상속 대신 프로토콜을 사용하는 방법
+
+Swift에서는 다중 상속을 지원하지 않지만, 다중 프로토콜 채택을 통해 유사한 효과를 얻을 수 있습니다. 여러 프로토콜을 동시에 채택하여 필요한 기능을 정의하고, 각 프로토콜을 채택한 타입에 구현할 수 있습니다.
+
+```swift
+protocol Drivable {
+    func drive()
+}
+
+protocol Flyable {
+    func fly()
+}
+
+// Airplane 클래스는 Drivable와 Flyable 프로토콜을 모두 채택하여 다중 기능을 구현
+class Airplane: Drivable, Flyable {
+    func drive() {
+        print("Airplane is driving on the runway")
+    }
+    
+    func fly() {
+        print("Airplane is flying")
+    }
+}
+
+let airplane = Airplane()
+airplane.drive() // 출력: Airplane is driving on the runway
+airplane.fly()   // 출력: Airplane is flying
+```
+
+여기서 Airplane 클래스는 다중 상속을 사용하지 않고도 Drivable와 Flyable 프로토콜을 채택하여 여러 기능을 한 클래스에서 구현할 수 있습니다.
+
+<br>
+
+### 요약
+#### 다중 상속을 지원하지 않는 이유:
+- 코드 복잡성을 줄이고, 다이아몬드 문제와 메모리 관리 문제를 방지하기 위함.
+#### Swift의 대안:
+- 다중 프로토콜 채택을 통해 여러 기능을 한 클래스에서 구현할 수 있으며, 다중 상속의 효과를 달성할 수 있습니다.
 
 <br>
 <br>
