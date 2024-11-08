@@ -3361,7 +3361,28 @@ let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: 
 <br>
 
 ## 18.2 동적인 셀 높이(Dynamic Cell Height)를 설정하는 방법은 무엇인가요?
+동적인 셀 높이는 콘텐츠 크기에 따라 셀의 높이를 자동으로 조정하는 방법입니다.
 
+<br>
+
+### UITableView에서 동적 셀 높이 설정:
+- tableView.rowHeight = UITableView.automaticDimension와 estimatedRowHeight를 설정하여 셀의 높이가 자동으로 조정되도록 합니다.
+
+```swift
+tableView.rowHeight = UITableView.automaticDimension
+tableView.estimatedRowHeight = 100  // 예상 높이
+```
+
+<br>
+
+- UICollectionView에서는 셀의 높이를 유동적으로 지정하려면 UICollectionViewFlowLayoutDelegate의 sizeForItemAt 메서드를 구현하여 각 셀의 크기를 동적으로 반환할 수 있습니다.
+```swift
+extension ViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: collectionView.frame.width / 2, height: 100)  // 예시로 각 셀의 높이를 지정
+    }
+}
+```
 
 
 <br>
@@ -3370,6 +3391,15 @@ let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: 
 ## 18.3 CollectionView의 레이아웃을 커스터마이징하는 방법은 무엇인가요?
 
 
+<br>
+<br>
+
+## 18.4 diffableDatasource는 뭔가요?
+
+<br>
+<br>
+
+## 18.5 compositionalLayout은 무엇이고 어떻게 사용하나요?
 
 <br>
 <br>
