@@ -3469,8 +3469,79 @@ collectionView.collectionViewLayout = layout
 <br>
 
 ## 18.4 diffableDatasource는 뭔가요?
+- **diffable data source** 는 UITableView와 UICollectionView에서 데이터 관리 및 업데이트를 더 쉽게 하고 성능을 높여주는 새로운 데이터 소스입니다.
+- iOS 13부터 도입된 UICollectionViewDiffableDataSource와 UITableViewDiffableDataSource를 통해 기존의 데이터 소스 방식보다 간단하고 안전하게 UI를 업데이트할 수 있습니다.
 
+<br>
 
+### diffable data source의 주요 특징
+#### 1.	자동으로 변경 사항을 계산:
+- 기존의 데이터 소스에서는 데이터가 변경될 때 삽입, 삭제, 이동, 업데이트 같은 변화를 수동으로 관리해야 했습니다.
+- diffable data source는 이를 자동으로 계산해, **기존 데이터와 새 데이터 간의 차이점(diff)** 을 알아내고 필요한 변경 사항만을 적용합니다.
+- 예를 들어, 새 데이터를 제공하면 diffable data source가 애니메이션과 함께 자동으로 셀을 추가, 삭제, 이동합니다.
+
+#### 2.	스냅샷(Snapshot) 기반의 데이터 관리:
+- diffable data source는 데이터를 직접 관리하는 대신, 스냅샷을 사용하여 데이터 상태를 표현합니다. 스냅샷은 현재 데이터의 일종의 사진처럼 작동하며, 스냅샷을 생성하고 이를 적용하는 방식으로 UI를 업데이트합니다.
+- 이로 인해 변경 사항을 더 직관적이고 쉽게 관리할 수 있습니다.
+
+#### 3.	데이터 불변성:
+- 스냅샷이 적용되는 시점의 데이터 상태가 반영되기 때문에, 데이터는 불변성을 유지합니다. 데이터의 일관성이 높아져 다중 스레드 상황에서도 안전하게 사용할 수 있습니다.
+
+<br>
+
+### diffable data source의 사용 예시
+- 아래는 UICollectionView에 diffable data source를 사용하는 간단한 예시입니다.
+```swift
+import UIKit
+
+class ViewController: UIViewController {
+    enum Section {
+        case main
+    }
+    
+    var collectionView: UICollectionView!
+    var dataSource: UICollectionViewDiffableDataSource<Section, Int>!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // 컬렉션 뷰 설정
+        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: createLayout())
+        view.addSubview(collectionView)
+        
+        // 셀 등록
+        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
+        
+        // diffable data source 설정
+        dataSource = UICollectionViewDiffableDataSource<Section, Int>(collectionView: collectionView) { (collectionView, indexPath, item) -> UICollectionViewCell? in
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
+            cell.contentView.backgroundColor = .systemBlue
+            return cell
+        }
+        
+        // 초기 데이터 로드
+        applySnapshot(items: [1, 2, 3, 4, 5])
+    }
+    
+    // 레이아웃 생성
+    func createLayout() -> UICollectionViewLayout {
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+        let section = NSCollectionLayoutSection(group: group)
+        return UICollectionViewCompositionalLayout(section: section)
+    }
+    
+    // 스냅샷을 적용하여 UI 업데이트
+    func applySnapshot(items: [Int], animatingDifferences: Bool = true) {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Int>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(items)
+        dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
+    }
+}
+```
 
 <br>
 <br>
