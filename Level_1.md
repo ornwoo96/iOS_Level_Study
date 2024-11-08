@@ -4364,7 +4364,126 @@ TDD는 코드를 작성하기 전부터 명확한 목표와 요구사항을 바�
 <br>
 
 ## 21.3 의존성 주입(Dependency Injection)을 활용하여 테스트 가능한 코드를 작성하는 방법은 무엇인가요?
+**의존성 주입(Dependency Injection)** 은 객체 간의 결합도를 낮추고, 유연성을 높여 테스트 가능하게 만드는 중요한 디자인 패턴입니다. 의존성 주입을 활용하면 테스트가 필요한 객체에 외부에서 필요한 의존성을 주입하여 테스트 대상 객체의 동작을 검증하기 쉽게 만듭니다.
 
+<br>
+
+### 의존성 주입(Dependency Injection)을 통한 테스트 작성 방법
+#### 1. 의존성 주입의 기본 원리
+- 객체가 필요한 의존성을 스스로 생성하지 않고, 외부에서 주입받는 방식입니다.
+- 이를 통해 객체의 동작을 독립적으로 테스트할 수 있으며, 테스트 중에는 **모의 객체(Mock Object)**로 의존성을 교체할 수 있습니다.
+
+<br>
+
+#### 2.	의존성 주입 방법
+- 생성자 주입(Constructor Injection): 생성자를 통해 의존성을 주입.
+- 메서드 주입(Method Injection): 메서드의 매개변수를 통해 의존성을 주입.
+- 프로퍼티 주입(Property Injection): 프로퍼티를 통해 의존성을 주입.
+
+<br>
+
+### 예제: 생성자 주입을 사용하여 테스트 가능한 코드 작성하기
+
+아래 예제는 네트워크 요청을 통해 데이터를 가져오는 DataFetcher 클래스입니다. DataFetcher는 NetworkService라는 의존성을 가지고 있으며, 이를 통해 데이터를 가져옵니다.
+
+#### 1. NetworkService 프로토콜 정의
+
+먼저, DataFetcher의 의존성을 유연하게 하기 위해 NetworkService 프로토콜을 정의합니다. 이렇게 하면 테스트 시 MockNetworkService를 통해 의존성을 주입할 수 있습니다.
+
+```swift
+// NetworkService 프로토콜 정의
+protocol NetworkService {
+    func fetchData(completion: (String) -> Void)
+}
+
+// 실제 네트워크 서비스를 구현한 클래스
+class RealNetworkService: NetworkService {
+    func fetchData(completion: (String) -> Void) {
+        // 네트워크 요청을 통해 데이터를 가져오는 코드 (여기서는 예시로 단순 문자열을 반환)
+        completion("Real data from network")
+    }
+}
+```
+
+<br>
+
+#### 2. DataFetcher 클래스 정의 및 생성자 주입
+
+DataFetcher는 NetworkService를 의존성으로 받아 데이터를 가져오는 역할을 수행합니다.
+
+```swift
+// DataFetcher는 NetworkService에 의존하여 데이터를 가져옴
+class DataFetcher {
+    private let networkService: NetworkService
+
+    // 생성자에서 NetworkService를 주입받음
+    init(networkService: NetworkService) {
+        self.networkService = networkService
+    }
+
+    func getData(completion: (String) -> Void) {
+        networkService.fetchData { data in
+            completion(data)
+        }
+    }
+}
+```
+
+<br>
+
+#### 3. Mock 객체를 사용한 단위 테스트
+
+테스트할 때는 RealNetworkService 대신 MockNetworkService를 사용하여 DataFetcher의 동작을 검증할 수 있습니다. MockNetworkService는 실제 네트워크 요청을 수행하지 않고, 미리 정의된 데이터를 반환합니다.
+
+```swift
+// MockNetworkService는 테스트 목적으로 사용되는 가짜 네트워크 서비스
+class MockNetworkService: NetworkService {
+    func fetchData(completion: (String) -> Void) {
+        completion("Mock data for testing") // 테스트용 데이터 반환
+    }
+}
+
+// 테스트 클래스
+import XCTest
+
+class DataFetcherTests: XCTestCase {
+    func testGetDataWithMockNetworkService() {
+        // MockNetworkService를 주입하여 DataFetcher를 생성
+        let mockService = MockNetworkService()
+        let dataFetcher = DataFetcher(networkService: mockService)
+        
+        // getData를 호출하고 반환된 데이터가 예상 값과 일치하는지 확인
+        dataFetcher.getData { data in
+            XCTAssertEqual(data, "Mock data for testing") // "Mock data for testing"이 반환될 것으로 기대
+        }
+    }
+}
+```
+
+이 테스트는 MockNetworkService가 주입된 DataFetcher 객체에서 데이터를 가져오는 기능이 제대로 동작하는지 확인합니다. RealNetworkService와 같은 실제 네트워크 요청을 수행하지 않으므로, 네트워크 환경과 무관하게 테스트가 가능하고 실행 속도가 빨라집니다.
+
+<br>
+
+### 의존성 주입을 통한 테스트 가능 코드 작성의 장점
+
+#### 1.	유연성 향상:
+- 의존성 주입을 통해 특정 기능을 다양한 구현체로 교체할 수 있어, 코드의 유연성이 높아집니다.
+
+<br>
+
+#### 2.	테스트 용이성:
+- 테스트 시 실제 객체 대신 Mock 객체를 주입할 수 있어, 테스트 환경에 영향을 받지 않고 독립적인 검증이 가능합니다.
+
+<br>
+
+#### 3.	결합도 감소:
+- 클래스가 특정 구현체에 의존하지 않도록 하여, 객체 간의 결합도를 줄이고 유지보수가 쉬워집니다.
+
+<br>
+
+### 요약
+
+의존성 주입은 코드의 결합도를 낮추고 유연성을 높이며, 테스트 작성이 용이한 코드를 만드는데 유용한 기법입니다. 특히, Swift의 XCTest와 함께 사용하면, 프로덕션 코드와 테스트 코드의 의존성을 분리하여 독립적이고 신뢰할 수 있는 테스트를 작성할 수 있습니다.
 
 
 <br>
