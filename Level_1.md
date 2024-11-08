@@ -3315,9 +3315,61 @@ iOS에서 멀티스레딩은 동시성을 관리하며 성능을 최적화할 �
 <br>
 
 ## 18. **UIKit에서 TableView와 CollectionView의 차이점은 무엇인가요?**
-    - 셀(Cell)의 재사용(Reusability)은 어떻게 구현되나요?
-    - 동적인 셀 높이(Dynamic Cell Height)를 설정하는 방법은 무엇인가요?
-    - CollectionView의 레이아웃을 커스터마이징하는 방법은 무엇인가요?
+UITableView와 UICollectionView는 iOS에서 리스트 형태의 UI를 구현하는 데 사용됩니다. 두 가지 모두 셀 재사용을 통해 효율성을 높일 수 있지만, 사용하는 방식과 목적에는 차이가 있습니다.
+
+<br>
+### UITableView
+- 단일 열로 구성된 세로 스크롤형 리스트입니다.
+- 주로 리스트 형태의 단순한 데이터 표시를 위해 사용되며, 스크롤 방향은 세로로만 설정할 수 있습니다.
+- 섹션과 행으로 구성되며, 각 셀의 높이를 다양하게 지정할 수 있습니다.
+
+### UICollectionView
+- 그리드 형태나 커스텀 레이아웃이 가능하여, 다양한 형태의 데이터 배치가 가능합니다.
+- 세로와 가로로 모두 스크롤할 수 있으며, 여러 개의 열을 구성할 수 있어 레이아웃이 유연합니다.
+- 커스텀 레이아웃을 적용하여 유연하고 복잡한 배치가 가능하므로 이미지 갤러리와 같은 UI에 적합합니다.
+
+<br>
+
+
+## 18.1 셀(Cell)의 재사용(Reusability)은 어떻게 구현되나요?
+셀 재사용은 화면에 보이는 셀만 메모리에 로드하여 메모리 사용을 최소화하는 기법으로, UITableView와 UICollectionView 모두 셀을 큐에 저장하고 재사용하는 방식으로 구현됩니다.
+
+<br>
+
+### 셀 등록
+- register 메서드를 사용해 셀을 등록하여 큐에 미리 로드합니다.
+
+```swift
+tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
+```
+
+<br>
+
+### 셀 재사용
+- dequeueReusableCell 메서드를 사용해 큐에서 셀을 가져옵니다. 기존 셀이 큐에 있다면 재사용하고, 없다면 새로 생성합니다.
+
+```swift
+// TableView에서 셀 재사용
+let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+
+// CollectionView에서 셀 재사용
+let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
+```
+
+<br>
+<br>
+
+## 18.2 동적인 셀 높이(Dynamic Cell Height)를 설정하는 방법은 무엇인가요?
+
+
+
+<br>
+<br>
+
+## 18.3 CollectionView의 레이아웃을 커스터마이징하는 방법은 무엇인가요?
+
+
 
 <br>
 <br>
