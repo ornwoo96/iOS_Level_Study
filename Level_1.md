@@ -3547,16 +3547,120 @@ class ViewController: UIViewController {
 <br>
 
 ## 19. **ARC(Automatic Reference Counting)의 동작 원리는 무엇인가요?**
-    - Retain Cycle이 발생하지 않도록 방지하는 방법은 무엇인가요?
-    - `deinit` 메서드는 언제 호출되며, 어떤 역할을 하나요?
+**Automatic Reference Counting (ARC)** 는 메모리 관리 기법으로, 객체가 메모리에서 해제될 시점을 자동으로 관리합니다. ARC는 객체에 대한 **참조 카운트(Reference Count)** 를 추적하며, 참조가 없어진 객체를 메모리에서 해제합니다.
+
+<br>
+
+### 동작 원리:
+- 객체가 생성되면 참조 카운트가 1이 됩니다.
+- 객체가 강하게 참조될 때마다 참조 카운트가 증가합니다.
+- 참조가 해제될 때 참조 카운트가 감소하며, 카운트가 0이 되면 ARC가 객체를 메모리에서 해제합니다.
+
+<br>
+
+### 참조 타입:
+- 강한 참조(Strong): 참조 카운트를 증가시키며 기본 참조 방식입니다.
+- 약한 참조(Weak): 참조 카운트를 증가시키지 않아, 순환 참조를 방지하는 데 사용됩니다. 참조 대상이 해제되면 자동으로 nil이 됩니다.
+- 비소유 참조(Unowned): 참조 카운트를 증가시키지 않으면서 참조 대상이 항상 존재한다고 가정할 때 사용됩니다. 비옵셔널로 선언되며 참조 대상이 해제된 후 접근 시 런타임 오류가 발생할 수 있습니다.
+
+<br>
+<br>
+
+## 19.1 Retain Cycle이 발생하지 않도록 방지하는 방법은 무엇인가요?
+**Retain Cycle (순환 참조)** 는 두 객체가 서로를 강하게 참조하여, 참조 카운트가 0이 되지 않으면서 메모리 누수가 발생하는 상황을 의미합니다.
+
+<br>
+
+### 순환 참조 해결 방법
+
+#### 1.	약한 참조(weak):
+- weak 키워드를 사용하여 참조 카운트를 증가시키지 않도록 합니다.
+- 객체가 해제되면 자동으로 nil이 할당됩니다.
+- 주로 delegate 패턴에 사용됩니다.
+
+```swift
+class Person {
+    var pet: Pet?
+}
+
+class Pet {
+    weak var owner: Person? // 약한 참조로 순환 참조 방지
+}
+```
+
+<br>
+
+#### 2.	비소유 참조(unowned):
+- unowned 키워드는 weak과 유사하게 참조 카운트를 증가시키지 않습니다. 다만 객체가 항상 존재한다고 가정할 때 사용됩니다.
+- 주로 서로 강한 의존 관계가 있지만, 동시에 해제되는 관계에서 사용됩니다.
+```swift
+class Country {
+    var name: String
+    var capitalCity: City!
+    
+    init(name: String, capitalName: String) {
+        self.name = name
+        self.capitalCity = City(name: capitalName, country: self)
+    }
+}
+
+class City {
+    var name: String
+    unowned let country: Country // 비소유 참조로 순환 참조 방지
+    
+    init(name: String, country: Country) {
+        self.name = name
+        self.country = country
+    }
+}
+```
+
+<br>
+
+#### 3.	클로저에서 [weak self] 또는 [unowned self] 사용:
+- 클로저 내에서 self를 캡처하면 순환 참조가 발생할 수 있습니다. 이를 방지하기 위해 [weak self]나 [unowned self]를 사용하여 강한 참조 대신 약한 참조로 캡처합니다.
+- weak self는 옵셔널로 선언되므로 해제될 수 있는 객체에 적합하고, unowned self는 반드시 존재한다고 가정하는 경우 사용됩니다.
+
+```swift
+class MyClass {
+    var completion: (() -> Void)?
+
+    func doSomething() {
+        completion = { [weak self] in
+            print("Task completed by \(self?.description ?? "")")
+        }
+    }
+}
+```
+
+<br>
+<br>
+
+## 19.2 deinit` 메서드는 언제 호출되며, 어떤 역할을 하나요?
+
 
 <br>
 <br>
 
 ## 20. **상속(Inheritance)과 프로토콜(Protocol)의 차이점은 무엇인가요?**
-    - 클래스 상속을 사용할 때의 장단점은 무엇인가요?
-    - 다중 상속(Multiple Inheritance)이 불가능한 이유는 무엇인가요?
-    - 프로토콜 준수(Conformance)를 통해 다형성을 구현하는 방법은 무엇인가요?
+
+
+<br>
+<br>
+
+## 20.1 클래스 상속을 사용할 때의 장단점은 무엇인가요?
+
+
+<br>
+<br>
+
+## 20.2 다중 상속(Multiple Inheritance)이 불가능한 이유는 무엇인가요?
+
+
+<br>
+<br>
+
+## 20.3 프로토콜 준수(Conformance)를 통해 다형성을 구현하는 방법은 무엇인가요?
 
 <br>
 <br>
