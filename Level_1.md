@@ -4490,9 +4490,110 @@ class DataFetcherTests: XCTestCase {
 <br>
 
 ## 22. **Xcode에서 Instruments를 사용하여 앱의 성능을 분석하는 방법은 무엇인가요?**
-    - Time Profiler를 사용하여 성능 이슈를 찾는 방법을 설명해주세요.
-    - Allocations Instrument를 사용하여 메모리 누수를 탐지하는 방법은 무엇인가요?
-    - Leaks Instrument를 사용하여 메모리 누수를 찾는 방법은 무엇인가요?
+Xcode의 Instruments는 iOS 및 macOS 애플리케이션의 성능을 분석하고 최적화하는 데 유용한 도구입니다. Instruments를 사용하여 CPU, 메모리, 그래픽, 네트워크 등 다양한 성능 지표를 실시간으로 모니터링하고, 성능 병목 현상을 찾을 수 있습니다.
+
+### Instruments를 사용하여 성능 분석하는 방법
+
+#### 1. Instruments 실행 및 도구 선택
+
+1.	Xcode에서 프로젝트를 열고, Product > Profile을 선택하거나 Command + I를 눌러 Instruments를 엽니다.
+2.	원하는 성능 도구를 선택하여 성능 분석을 시작합니다. 자주 사용하는 주요 도구는 다음과 같습니다:
+- Time Profiler: CPU 사용량 분석, 성능 병목 식별
+- Allocations: 메모리 사용 추적 및 메모리 누수 문제 확인
+- Leaks: 메모리 누수 탐지
+- Energy Log: 에너지 사용량을 모니터링하여 배터리 소모 문제 확인
+
+<br>
+
+#### 2. 성능 분석 시작
+
+- Instruments에서 Record 버튼을 클릭하여 성능 추적을 시작합니다.
+- 앱의 특정 화면을 탐색하거나 성능 문제가 발생할 가능성이 있는 기능을 실행합니다.
+- Instruments는 CPU 사용량, 메모리 할당, 메모리 누수 등의 성능 정보를 실시간으로 수집하여 그래프로 시각화해 줍니다.
+
+<br>
+
+### Time Profiler를 사용하여 성능 문제 찾기
+[Time Profiler](https://iosdevhistory.tistory.com/27)
+Time Profiler는 CPU 사용률을 분석하여 성능이 저하되는 지점을 찾는 데 유용합니다.
+
+1. Instruments에서 Time Profiler 선택 및 기록 시작:
+- Time Profiler를 선택하고 Record 버튼을 눌러 앱을 실행합니다.
+2. CPU 사용량 확인:
+- 앱에서 CPU 리소스를 많이 사용하는 작업을 수행합니다.
+3. Call Tree 분석:
+- Time Profiler의 Call Tree에서는 CPU를 많이 사용하는 함수나 메서드를 계층적으로 확인할 수 있습니다.
+- 가장 많은 CPU 시간을 소모하는 함수부터 확인하여 최적화가 필요한 지점을 파악합니다.
+
+예시: 이미지 처리 코드가 CPU를 많이 사용하는 경우, 이미지 처리 작업을 백그라운드 스레드로 이동하여 성능을 최적화할 수 있습니다.
+
+```swift
+DispatchQueue.global().async {
+    let processedImage = processImage(image)
+    DispatchQueue.main.async {
+        imageView.image = processedImage
+    }
+}
+```
+
+<br>
+
+### Allocations Instrument로 메모리 누수 탐지하기
+[Allocations Instrument](https://ios-development.tistory.com/604)
+Allocations 도구는 메모리 할당을 추적하여 메모리 누수와 과도한 메모리 사용 문제를 발견할 수 있습니다.
+
+1. Allocations 선택 및 기록 시작:
+- Allocations 도구를 선택하고 Record 버튼을 눌러 메모리 할당을 추적합니다.
+2. 메모리 사용량 분석:
+- 앱에서 메모리 사용이 증가하는 화면을 탐색하고, Live Bytes와 Persistent Bytes를 확인하여 메모리 누수 가능성을 확인합니다.
+
+예시: UITableView 또는 UICollectionView에서 셀을 재사용하지 않고 새로운 셀을 계속 생성할 경우, 메모리가 과도하게 사용될 수 있습니다. 셀을 재사용하도록 변경하여 메모리를 최적화할 수 있습니다.
+
+```swift
+func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+    cell.textLabel?.text = data[indexPath.row]
+    return cell
+}
+```
+
+<br>
+
+### Leaks Instrument로 메모리 누수 찾기
+[leaks Instrument](https://beepeach.tistory.com/638)
+Leaks Instrument는 메모리 누수를 자동으로 탐지하고 누수된 객체를 표시하여, 메모리 누수 문제를 찾고 해결하는 데 유용합니다.
+
+1. Leaks 선택 및 기록 시작:
+- Leaks 도구를 선택하고 Record 버튼을 눌러 메모리 누수 탐지를 시작합니다.
+2. 누수된 객체 확인:
+- Leaks가 누수를 감지하면 경고를 표시하며, 누수된 객체를 트리로 보여줍니다.
+- 객체 참조 경로를 통해 누수 원인을 추적하여 해결할 수 있습니다.
+
+예시: 클로저에서 self를 강하게 참조하면 메모리 누수가 발생할 수 있습니다. 이를 방지하기 위해 [weak self]를 사용합니다.
+
+```swift
+class DataFetcher {
+    var fetchData: (() -> Void)?
+
+    func startFetching() {
+        fetchData = { [weak self] in
+            self?.executeFetching()
+        }
+    }
+
+    func executeFetching() {
+        // 데이터 가져오는 작업
+    }
+}
+```
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/4d743d80-f072-4b41-b208-6ae63dc0b123">
+
+
 
 <br>
 <br>
