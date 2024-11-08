@@ -3970,6 +3970,119 @@ airplane.fly()   // 출력: Airplane is flying
 <br>
 
 ## 20.3 프로토콜 준수(Conformance)를 통해 다형성을 구현하는 방법은 무엇인가요?
+- 프로토콜 준수(Conformance)를 통해 다형성을 구현하면, 다양한 타입이 같은 인터페이스를 통해 공통된 동작을 제공할 수 있습니다.
+- Swift에서는 클래스, 구조체, 열거형이 프로토콜을 채택하고 요구 메서드나 속성을 구현하여 다형성을 구현할 수 있습니다.
+- 이 방식은 상속을 사용하지 않고도 여러 타입을 일관성 있게 사용할 수 있게 해주어 코드의 유연성과 재사용성을 높입니다.
+
+<br>
+
+### 다형성이란?
+- **다형성(Polymorphism)** 은 여러 타입이 동일한 인터페이스를 통해 다른 동작을 구현할 수 있도록 하는 성질입니다.
+- Swift에서는 프로토콜을 사용하여 다형성을 구현합니다.
+- 프로토콜을 채택한 타입은 동일한 메서드, 속성, 기능을 구현하지만 각 타입에 맞는 고유의 동작을 가질 수 있습니다.
+
+<br>
+
+### 프로토콜을 통한 다형성 구현 예시
+
+아래 예제에서는 Drivable 프로토콜을 사용하여 다형성을 구현해 보겠습니다.
+
+1. 프로토콜 정의: Drivable 프로토콜을 통해 drive() 메서드를 정의합니다.
+2. 다양한 타입에서 프로토콜 채택: Car와 Bicycle 클래스가 각각 Drivable 프로토콜을 채택하여 drive() 메서드를 구현합니다.
+3. 다형성 사용: startDriving 함수는 Drivable 프로토콜을 준수하는 모든 타입을 매개변수로 받을 수 있습니다.
+
+```swift
+// 1. Drivable 프로토콜 정의
+protocol Drivable {
+    func drive()
+}
+
+// 2. Car 클래스가 Drivable 프로토콜을 채택하고 drive() 메서드를 구현
+class Car: Drivable {
+    func drive() {
+        print("Car is driving")
+    }
+}
+
+// Bicycle 클래스도 Drivable 프로토콜을 채택하고 drive() 메서드를 구현
+class Bicycle: Drivable {
+    func drive() {
+        print("Bicycle is being ridden")
+    }
+}
+
+// 3. 다형성을 활용한 startDriving 함수, Drivable 타입을 매개변수로 받음
+func startDriving(vehicle: Drivable) {
+    vehicle.drive() // 전달된 객체의 drive() 메서드를 호출
+}
+
+// 다형성 구현 예시
+let car = Car()
+let bicycle = Bicycle()
+startDriving(vehicle: car)       // 출력: Car is driving
+startDriving(vehicle: bicycle)    // 출력: Bicycle is being ridden
+```
+
+이 예시에서 Car와 Bicycle은 각각 Drivable 프로토콜을 채택하고, 자신만의 방식으로 drive() 메서드를 구현했습니다. startDriving 함수는 Drivable 타입을 받아서 drive() 메서드를 호출할 수 있어, 다양한 타입을 하나의 인터페이스로 다룰 수 있는 다형성이 구현됩니다.
+
+<br>
+
+### 다형성의 장점
+
+#### 1.	코드의 일관성:
+- 프로토콜을 통해 일관된 인터페이스를 제공하므로, 여러 타입을 동일한 방식으로 처리할 수 있습니다.
+#### 2.	유연성:
+- 프로토콜은 클래스, 구조체, 열거형에서 모두 채택할 수 있어 특정 타입에 의존하지 않고 기능을 확장할 수 있습니다.
+#### 3.	확장성:
+- 새로운 타입이 추가되더라도 해당 타입이 프로토콜을 준수하기만 하면 기존 코드를 수정할 필요 없이 동일한 기능을 사용할 수 있습니다.
+
+<br>
+
+### 프로토콜을 통한 다형성 예시 2: 동물과 소리내기
+아래 예시에서는 SoundMaking 프로토콜을 통해 다양한 동물이 소리를 내는 동작을 구현해 봅니다.
+
+```swift
+// SoundMaking 프로토콜 정의
+protocol SoundMaking {
+    func makeSound()
+}
+
+// Dog 클래스가 SoundMaking 프로토콜을 채택하고 makeSound() 메서드를 구현
+class Dog: SoundMaking {
+    func makeSound() {
+        print("Bark")
+    }
+}
+
+// Cat 클래스도 SoundMaking 프로토콜을 채택하고 makeSound() 메서드를 구현
+class Cat: SoundMaking {
+    func makeSound() {
+        print("Meow")
+    }
+}
+
+// 다형성을 활용한 playSound 함수, SoundMaking 타입을 매개변수로 받음
+func playSound(animal: SoundMaking) {
+    animal.makeSound() // 전달된 객체의 makeSound() 메서드 호출
+}
+
+// 다형성 구현 예시
+let dog = Dog()
+let cat = Cat()
+playSound(animal: dog)  // 출력: Bark
+playSound(animal: cat)  // 출력: Meow
+```
+
+playSound 함수는 SoundMaking 프로토콜을 준수하는 모든 타입을 매개변수로 받을 수 있어, Dog와 Cat 모두를 SoundMaking으로 처리하여 소리를 낼 수 있습니다. 이를 통해 유연하게 다형성을 적용할 수 있습니다.
+
+<br>
+
+### 요약
+
+- 프로토콜 준수를 통한 다형성은 프로토콜을 통해 일관된 인터페이스를 정의하고, 여러 타입에서 이를 채택하여 다양한 구현을 제공함으로써 코드의 유연성과 재사용성을 높입니다.
+- Swift에서 상속 없이 클래스, 구조체, 열거형에서 동일한 프로토콜을 채택하여 다양한 타입을 다형적으로 다룰 수 있습니다.
+- 프로토콜을 채택한 타입이 동일한 메서드를 구현하면, 공통된 인터페이스를 통해 서로 다른 동작을 제공하는 다형성을 쉽게 구현할 수 있습니다.
+
 
 <br>
 <br>
