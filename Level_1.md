@@ -3637,7 +3637,37 @@ class MyClass {
 <br>
 
 ## 19.2 deinit` 메서드는 언제 호출되며, 어떤 역할을 하나요?
+deinit 메서드는 객체가 메모리에서 해제될 때 호출됩니다. 클래스에만 존재하며, ARC가 참조 카운트를 0으로 줄여 객체가 해제될 때 자동으로 실행됩니다.
 
+<br>
+
+### 역할:
+- 객체가 해제되기 전에 필요한 정리 작업을 수행합니다. 예를 들어, 파일을 닫거나 타이머를 무효화하고, 관찰 중인 이벤트를 해제하는 등 리소스를 해제할 수 있습니다.
+- deinit 메서드는 직접 호출할 수 없으며, 객체가 메모리에서 해제되는 시점에 자동으로 호출됩니다.
+
+```swift
+class Resource {
+    init() {
+        print("Resource initialized")
+    }
+    
+    deinit {
+        print("Resource deinitialized")
+    }
+}
+
+var resource: Resource? = Resource()  // "Resource initialized" 출력
+resource = nil                        // "Resource deinitialized" 출력
+```
+
+위 예시에서 resource 변수에 nil을 할당하면, ARC가 Resource 객체를 메모리에서 해제하면서 deinit 메서드가 호출됩니다.
+
+<br>
+
+### 요약 
+<img src="https://github.com/user-attachments/assets/f757813b-e2f2-44e1-a313-85e29b826966">
+
+ARC를 통해 iOS에서는 효율적인 메모리 관리가 가능하며, 순환 참조를 방지하기 위해 참조 타입을 적절히 사용하는 것이 중요합니다. deinit 메서드는 객체가 해제되기 전 리소스를 정리할 수 있는 좋은 기회를 제공합니다.
 
 <br>
 <br>
