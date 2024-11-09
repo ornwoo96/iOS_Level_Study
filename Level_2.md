@@ -368,6 +368,150 @@ for shape in shapes {
 <img src="https://github.com/user-attachments/assets/0030d1da-9f66-4772-bfa8-6f432d13a417">
 
 ## 2.1 캡슐화(Encapsulation)와 정보 은닉(Information Hiding)의 차이점은 무엇인가요?
+- 캡슐화(Encapsulation): 데이터를 보호하고, 해당 데이터에 접근할 수 있는 인터페이스(메서드)를 제공하는 OOP의 원칙.
+- 정보 은닉(Information Hiding): 클래스 외부에서 내부의 세부 구현을 알 필요가 없도록 숨기는 것을 의미.
+
+이 두 가지는 서로 밀접하게 관련이 있으며, 캡슐화를 통해 정보 은닉을 실현할 수 있습니다.
+
+### 1. 캡슐화: 데이터를 메서드로만 조작 가능
+
+캡슐화는 데이터에 접근 가능한 방법을 제한하여 데이터 무결성을 보장하고, 잘못된 사용을 방지합니다.
+
+#### 예시: 사용자 계정 관리
+
+```swift
+class UserAccount {
+    private var password: String // 정보 은닉: 외부에서 직접 접근 불가
+    
+    init(password: String) {
+        self.password = password
+    }
+    
+    // 캡슐화: 데이터를 수정하거나 가져갈 때 반드시 메서드를 사용
+    func changePassword(currentPassword: String, newPassword: String) -> Bool {
+        guard currentPassword == password else {
+            print("Current password is incorrect")
+            return false
+        }
+        
+        password = newPassword
+        print("Password updated successfully")
+        return true
+    }
+    
+    func isPasswordValid(inputPassword: String) -> Bool {
+        return inputPassword == password
+    }
+}
+
+// 사용 예시
+let userAccount = UserAccount(password: "secure123")
+
+// 캡슐화를 통해 안전하게 데이터 조작
+userAccount.changePassword(currentPassword: "secure123", newPassword: "newSecure456") // 성공
+userAccount.changePassword(currentPassword: "wrongPassword", newPassword: "fail456") // 실패
+```
+
+<br>
+
+### 2. 정보 은닉: 내부 구현 세부사항 숨기기
+정보 은닉은 클래스 내부의 세부 사항(예: 데이터 저장 방식, 비즈니스 로직)을 외부에서 알지 못하도록 합니다.
+
+#### 예시: 결제 처리
+```swift
+class PaymentProcessor {
+    private var paymentHistory: [String] = [] // 정보 은닉: 외부에서 결제 이력을 알 수 없음
+    
+    func processPayment(amount: Double) -> Bool {
+        guard amount > 0 else {
+            print("Invalid payment amount")
+            return false
+        }
+        
+        // 정보 은닉: 결제 처리 로직은 외부에서 알 필요 없음
+        let transactionID = UUID().uuidString
+        paymentHistory.append(transactionID)
+        print("Payment of \(amount) processed successfully. Transaction ID: \(transactionID)")
+        return true
+    }
+    
+    func refundPayment(transactionID: String) -> Bool {
+        if let index = paymentHistory.firstIndex(of: transactionID) {
+            paymentHistory.remove(at: index)
+            print("Refund successful for transaction ID: \(transactionID)")
+            return true
+        } else {
+            print("Transaction ID not found")
+            return false
+        }
+    }
+}
+
+// 사용 예시
+let processor = PaymentProcessor()
+processor.processPayment(amount: 100.0)
+processor.processPayment(amount: -10.0) // 실패
+// 내부 결제 이력은 외부에서 직접 접근할 수 없음 (정보 은닉)
+```
+
+<br>
+
+
+### 캡슐화와 정보 은닉의 차이 요약
+<img src="https://github.com/user-attachments/assets/b50ae48a-4ff4-4366-8ba1-8faea884725f">
+
+#### 결합 예시: 사용자 인증 시스템
+캡슐화와 정보 은닉을 모두 활용
+
+```swift
+class AuthService {
+    private var users: [String: String] = [:] // 정보 은닉: 유저 데이터 저장 방식 숨기기
+    
+    // 캡슐화: 외부에서 메서드를 통해서만 데이터를 조작
+    func registerUser(username: String, password: String) -> Bool {
+        guard users[username] == nil else {
+            print("Username already exists")
+            return false
+        }
+        users[username] = password
+        print("User \(username) registered successfully")
+        return true
+    }
+    
+    func login(username: String, password: String) -> Bool {
+        guard let storedPassword = users[username], storedPassword == password else {
+            print("Invalid username or password")
+            return false
+        }
+        print("User \(username) logged in successfully")
+        return true
+    }
+}
+
+// 사용 예시
+let authService = AuthService()
+authService.registerUser(username: "john_doe", password: "password123")
+authService.login(username: "john_doe", password: "password123") // 성공
+authService.login(username: "john_doe", password: "wrongpassword") // 실패
+```
+
+- 캡슐화: 메서드(registerUser, login)를 통해서만 데이터를 조작.
+- 정보 은닉: 유저 데이터 저장 방식(users 딕셔너리)은 외부에서 접근 불가.
+- 캡슐화를 하면 불필요한 정보를 감출 수 있기 때문에, 정보은닉을 할 수 있다는 특징을 가집니다.
+- 고객이 식당에 와서 밥을 먹을 때 계란의 유통 구조와 삶는 법을 알 필요가 없을 것입니다.
+- 고객 입장에서는 식당 이용 방법, 즉 public으로 정의된 속성만 알면 되는 것입니다.
+
+<br>
+
+### 캡슐화와 정보 은닉의 관계
+1.	캡슐화(Encapsulation)
+- 데이터와 그 데이터를 조작하는 메서드를 하나의 단위(캡슐)로 묶는 것을 의미합니다.
+- 데이터를 보호하고 외부에서 접근할 수 없도록 하며, 필요한 경우 메서드를 통해 데이터를 다룰 수 있도록 합니다.
+- 주안점: 클래스 설계와 데이터 접근 방식.
+2.	정보 은닉(Information Hiding)
+- 외부에서 알 필요가 없는 내부 구현을 숨기는 것을 의미합니다.
+- 내부의 세부 구현(예: 데이터 저장 방식, 내부 변수 등)이 변경되더라도 외부 인터페이스(API)에 영향을 주지 않도록 설계합니다.
+- 주안점: 인터페이스(API)와 내부 구현의 분리.
 
 <br>
 <br>
