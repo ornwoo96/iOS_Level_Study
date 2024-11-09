@@ -824,9 +824,199 @@ for storage in storages {
 <br>
 
 ## 3. 프로토콜 지향 프로그래밍(POP)이란 무엇이며, 어떤 장점이 있나요?
-- 프로토콜 확장(Protocol Extension)을 사용하는 이유는 무엇인가요?
-- 프로토콜 컴포지션(Protocol Composition)은 어떤 경우에 사용하나요?
-- 프로토콜과 제네릭(Generic)을 함께 사용하면 어떤 이점이 있나요?
+
+### 정의
+- 프로토콜 지향 프로그래밍(POP)은 프로토콜을 설계의 중심으로 사용하는 프로그래밍 패러다임입니다.
+- Swift에서 객체지향 프로그래밍(OOP)의 단점을 보완하기 위해 도입된 방식으로, 클래스 외에도 구조체 및 열거형과 같은 **값 타입(Value Type)**에서도 재사용성과 유연성을 제공하는 것이 특징입니다.
+
+<br>
+
+### POP의 주요 특징
+1. 프로토콜 중심 설계: 구현보다는 인터페이스(프로토콜)를 중심으로 설계.
+2. 값 타입의 활용: Swift의 구조체 및 열거형과 같은 값 타입을 활용하여 메모리 관리 부담 감소.
+3. 프로토콜 확장(Protocol Extension): 프로토콜에 기본 구현을 제공하여 코드 재사용성 증대.
+4. 컴포지션 기반 설계: 다중 상속을 허용하지 않는 대신, 다중 프로토콜 채택으로 유연한 설계 가능.
+
+<br>
+
+### POP의 장점
+1. 코드 재사용성 증대
+- 프로토콜 확장을 통해 공통 기능의 기본 구현 제공.
+- 여러 타입에서 동일한 기능을 재사용 가능.
+2. 유연성과 확장성
+- 다중 상속의 문제를 해결하며, 다중 프로토콜 채택으로 유연한 설계 가능.
+- 클래스를 사용하지 않아도 구조체와 열거형에서 동일한 방식으로 동작 구현 가능.
+3. 값 타입 지원
+- 구조체 및 열거형과 같은 값 타입을 활용하여 안전한 메모리 관리와 성능 최적화 가능.
+4. 테스트 용이성
+- 의존성 주입과 같은 패턴과 결합하여 Mock 객체를 쉽게 생성 가능.
+
+### POP의 활용 예시
+#### 1. 기본 구현 제공
+```swift
+protocol Flyable {
+    func fly()
+}
+
+extension Flyable {
+    func fly() {
+        print("Default flying behavior")
+    }
+}
+
+struct Bird: Flyable {}
+struct Airplane: Flyable {
+    func fly() {
+        print("Airplane flying differently")
+    }
+}
+
+// 사용 예시
+let bird = Bird()
+bird.fly() // 출력: Default flying behavior
+
+let airplane = Airplane()
+airplane.fly() // 출력: Airplane flying differently
+```
+
+<br>
+
+#### 2. 값 타입 활용
+
+```swift
+protocol Drawable {
+    func draw()
+}
+
+struct Circle: Drawable {
+    func draw() {
+        print("Drawing a circle")
+    }
+}
+
+struct Square: Drawable {
+    func draw() {
+        print("Drawing a square")
+    }
+}
+
+// 값 타입 사용
+let shapes: [Drawable] = [Circle(), Square()]
+for shape in shapes {
+    shape.draw()
+    // 출력:
+    // Drawing a circle
+    // Drawing a square
+}
+```
+
+<br>
+
+#### 3. 프로토콜 컴포지션을 활용한 다중 기능
+
+```swift
+protocol Flyable {
+    func fly()
+}
+
+protocol Swimable {
+    func swim()
+}
+
+struct Duck: Flyable, Swimable {
+    func fly() {
+        print("Duck is flying")
+    }
+    
+    func swim() {
+        print("Duck is swimming")
+    }
+}
+
+func performActions(entity: Flyable & Swimable) {
+    entity.fly()
+    entity.swim()
+}
+
+// 사용 예시
+let duck = Duck()
+performActions(entity: duck)
+// 출력:
+// Duck is flying
+// Duck is swimming
+```
+
+<br>
+
+#### 4. 프로토콜과 제네릭의 결합
+
+```swift
+protocol Shape {
+    func area() -> Double
+}
+
+struct Rectangle: Shape {
+    var width: Double
+    var height: Double
+    func area() -> Double {
+        return width * height
+    }
+}
+
+struct Circle: Shape {
+    var radius: Double
+    func area() -> Double {
+        return .pi * radius * radius
+    }
+}
+
+func printArea<T: Shape>(_ shape: T) {
+    print("The area is \(shape.area())")
+}
+
+// 사용 예시
+let rectangle = Rectangle(width: 10, height: 5)
+let circle = Circle(radius: 3)
+
+printArea(rectangle) // 출력: The area is 50.0
+printArea(circle)    // 출력: The area is 28.27...
+```
+
+<br>
+
+### POP VS OOP
+
+<img src="https://github.com/user-attachments/assets/527c5fd7-4e99-409c-9d46-3a454b79ddfd">
+
+<br>
+
+### POP를 선택해야 하는 이유
+- 유연성: 프로토콜을 중심으로 설계하면 다중 상속의 문제를 피하면서도 다양한 기능을 결합 가능.
+- 안전성: 값 타입을 활용하여 메모리 관리가 용이하고, 데이터의 불변성을 유지하기 쉬움.
+- 코드 재사용성: 기본 구현을 통해 공통 코드를 공유하고, 각 타입에서 필요한 부분만 재정의 가능.
+
+<br>
+
+### 결론:
+- Swift의 프로토콜 지향 프로그래밍은 OOP의 단점을 보완하며, 특히 구조체와 프로토콜을 통해 값 타입 중심의 설계를 가능하게 합니다.
+- POP는 유연성과 재사용성을 강조하는 현대적인 프로그래밍 패러다임으로, Swift의 강력한 기능 중 하나입니다.
+
+<br>
+<br>
+
+## 3.1 프로토콜 확장(Protocol Extension)을 사용하는 이유는 무엇인가요?
+
+
+<br>
+<br>
+
+## 3.2 프로토콜 컴포지션(Protocol Composition)은 어떤 경우에 사용하나요?
+
+
+<br>
+<br>
+
+## 3.4 프로토콜과 제네릭(Generic)을 함께 사용하면 어떤 이점이 있나요?
 
 <br>
 <br>
