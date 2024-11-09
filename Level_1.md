@@ -5211,9 +5211,169 @@ Task 2 ended
 <br>
 
 ## 26. **GCD(Grand Central Dispatch)의 주요 개념과 사용 방법을 설명해주세요.**
-    - 직렬(Serial) 큐와 동시(Concurrent) 큐의 차이는 무엇인가요?
-    - 글로벌 큐(Global Queue)와 메인 큐(Main Queue)는 어떻게 다르나요?
-    - DispatchWorkItem을 사용하는 방법은 무엇인가요?
+
+- GCD(Grand Central Dispatch)는 Apple에서 제공하는 멀티스레드 프로그래밍을 간소화하기 위한 저수준 API입니다.
+- GCD는 작업(Closure)을 큐(Queue)에 등록하고, 적절한 스레드에서 실행되도록 관리합니다.
+- 이를 통해 개발자는 스레드 생성과 관리의 복잡성을 줄이고 동시성을 쉽게 구현할 수 있습니다.
+
+<br>
+
+### 주요 개념
+
+#### 1.	작업 단위
+- GCD는 작업을 Closure 또는 DispatchWorkItem 형태로 처리합니다.
+- 작업은 큐에 추가되어 순차적 또는 동시적으로 실행됩니다.
+
+<br>
+
+#### 2. 큐(Queue)
+GCD에서 작업을 실행하는 두 가지 큐가 있습니다:
+
+<br>
+
+#### 3. 스레드 관리
+GCD는 작업 실행에 필요한 스레드를 자동으로 관리하며, 개발자가 직접 스레드를 생성하거나 종료하지 않아도 됩니다.
+
+
+<br>
+<br>
+
+## 직렬(Serial) 큐와 동시(Concurrent) 큐의 차이
+<img src="https://github.com/user-attachments/assets/35ac07b3-669a-4b32-9a9e-58c987043103">
+
+#### 예시:
+```swift
+// 직렬 큐
+let serialQueue = DispatchQueue(label: "com.example.serialQueue")
+serialQueue.async { print("Task 1") }
+serialQueue.async { print("Task 2") }
+// 출력 순서: Task 1, Task 2
+
+// 동시 큐
+let concurrentQueue = DispatchQueue(label: "com.example.concurrentQueue", attributes: .concurrent)
+concurrentQueue.async { print("Task 1") }
+concurrentQueue.async { print("Task 2") }
+// 출력 순서: Task 1, Task 2 (순서는 실행 환경에 따라 달라질 수 있음)
+```
+
+<br>
+<br>
+
+## 글로벌 큐(Global Queue)와 메인 큐(Main Queue)
+<img src = "https://github.com/user-attachments/assets/95c9f6aa-ff28-4ae0-b280-d6ca1ce1af9b">
+
+#### 예시: 
+
+```swift
+// 글로벌 큐에서 비동기 작업 실행
+DispatchQueue.global(qos: .background).async {
+    print("Background Task")
+}
+
+// 메인 큐에서 UI 업데이트
+DispatchQueue.main.async {
+    print("Update UI")
+}
+```
+
+<br>
+<br>
+
+## DispatchWorkItem을 사용하는 방법은 무엇인가요?
+DispatchWorkItem은 실행할 작업을 캡슐화하는 객체로, 작업의 취소 가능성과 작업 완료 후 작업 추가 등의 기능을 제공합니다.
+
+<br>
+
+#### 1.	DispatchWorkItem 생성
+
+```swift
+let workItem = DispatchWorkItem {
+    print("Work Item Executed")
+}
+```
+
+<br>
+
+#### 2. 큐에 작업 추가
+```swift
+DispatchQueue.global().async(execute: workItem)
+```
+
+<br>
+
+#### 3.	작업 취소
+
+```swift
+workItem.cancel()
+```
+
+<br>
+
+#### 4.	완료 핸들러 추가
+```swift
+workItem.notify(queue: DispatchQueue.main) {
+    print("Work Item Completed")
+}
+```
+
+<br>
+
+#### 예시:
+```swift
+let workItem = DispatchWorkItem {
+    print("Performing a task")
+}
+
+// 글로벌 큐에서 작업 실행
+DispatchQueue.global().async(execute: workItem)
+
+// 작업 완료 후 메인 큐에서 추가 작업 실행
+workItem.notify(queue: DispatchQueue.main) {
+    print("Task Completed")
+}
+```
+
+<br>
+
+### 사용 시 주의점
+
+#### 1.	UI 작업은 항상 메인 큐에서 실행해야 합니다.
+UI 업데이트를 백그라운드 큐에서 실행하면 앱이 충돌할 수 있습니다.
+
+```swift
+DispatchQueue.global().async {
+    let data = fetchData()
+    DispatchQueue.main.async {
+        updateUI(with: data)
+    }
+}
+```
+
+<br>
+
+#### 2.	메모리 관리
+GCD 작업 내에서 self를 강하게 참조하면 메모리 누수(Retain Cycle)가 발생할 수 있습니다. [weak self]를 사용하여 이를 방지해야 합니다.
+
+```swift
+DispatchQueue.global().async { [weak self] in
+    self?.performTask()
+}
+```
+
+<br>
+
+#### 3.	과도한 동시 작업은 성능 저하를 초래할 수 있습니다. 작업의 우선순위를 적절히 설정하세요.
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/09682371-475e-4112-a4c1-c252b5e31bd1">
+
+GCD는 강력하면서도 간단하게 동시성 작업을 처리할 수 있는 도구입니다. 큐의 특성과 동작을 잘 이해하고 적절히 활용하면 앱의 성능과 응답성을 크게 향상시킬 수 있습니다.
+
+
+
 
 <br>
 <br>
