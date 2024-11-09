@@ -5094,6 +5094,44 @@ fetchData { result in
 
 <br>
 
+### 세마포어(Semaphore)와 OperationQueue의 차이점
+<img src ="https://github.com/user-attachments/assets/a7b574ac-1dc9-42f2-abd4-82f9375c0848">
+
+<br>
+
+#### DispatchSemaphore를 사용해야 하는 경우
+#### 1.	리소스 제한이 필요한 경우
+- 예: 데이터베이스 연결 제한, 네트워크 연결 수 제한.
+- 제한된 리소스를 여러 스레드에서 동시에 접근하지 못하도록 제어.
+#### 동기화가 필요한 경우
+- 예: 여러 스레드가 공유 데이터에 접근할 때 경쟁 조건(Race Condition)을 방지.
+#### 3.	간단한 동시 작업 수 제한이 필요한 경우
+- 예: 동시 실행 작업 수를 간단히 제한하고자 할 때.
+
+<br>
+
+#### OperationQueue를 사용해야 하는 경우
+#### 1.	복잡한 작업 흐름 관리
+- 작업 간 의존성(dependency) 설정이 필요한 경우.
+- 예: 데이터 다운로드 후 파싱 작업 실행.
+#### 2.	작업 취소 및 상태 모니터링
+- 작업을 취소하거나 상태를 추적해야 하는 경우.
+- 예: 네트워크 요청을 중단하거나 진행 상태를 확인.
+#### 3.	동시 작업 제한 + 작업 간 관리
+- 동시 실행 작업 수를 제한하면서, 작업 우선순위나 상태 관리가 필요한 경우.
+
+<br>
+
+#### 실무에서의 선택 기준
+<img src="https://github.com/user-attachments/assets/a53ae4cb-6405-44a0-a8ab-7506fef56acb">
+
+#### 정리
+- DispatchSemaphore는 동기화와 리소스 제한을 위한 저수준 도구로, 간단한 작업에 적합합니다.
+- OperationQueue는 작업 흐름 관리와 동시성 제어를 위한 고수준 도구로, 복잡한 작업 흐름에서 더 유용합니다.
+
+<br>
+
+
 ### 세마포어(Semaphore)와 뮤텍스(Mutex)의 차이점
 
 #### 1. 세마포어(Semaphore)
@@ -5275,6 +5313,9 @@ DispatchQueue.main.async {
     print("Update UI")
 }
 ```
+
+### QoS 종류 및 사용 사례
+<img src="https://github.com/user-attachments/assets/8fdde0b2-839d-43d9-a511-3a6d658534dd">
 
 <br>
 <br>
