@@ -517,6 +517,156 @@ authService.login(username: "john_doe", password: "wrongpassword") // 실패
 <br>
 
 ## 2.2 상속(Inheritance)의 장단점은 무엇인가요?
+상속은 **부모 클래스(슈퍼클래스)** 의 속성과 메서드를 **자식 클래스(서브클래스)** 가 물려받는 객체지향 프로그래밍(OOP)의 중요한 개념입니다. 이를 통해 코드 재사용성을 높이고 기능 확장을 용이하게 합니다.
+
+### 장점
+
+#### 1. 코드 재사용성 증가
+- 부모 클래스에서 정의한 코드(속성 및 메서드)를 자식 클래스에서 그대로 사용 가능.
+- 중복 코드를 줄이고 유지보수를 용이하게 만듦.
+
+```swift
+class Animal {
+    func eat() {
+        print("Eating food")
+    }
+}
+
+class Dog: Animal {
+    func bark() {
+        print("Barking")
+    }
+}
+
+// 사용 예시
+let dog = Dog()
+dog.eat() // 부모 클래스 메서드 호출
+dog.bark() // 자식 클래스 메서드 호출
+```
+
+<br>
+
+#### 2. 확장성
+- 자식 클래스에서 부모 클래스의 기능을 확장하거나, 필요한 경우 메서드를 재정의(Overriding)하여 새로운 기능 추가 가능.
+
+```swift
+class Animal {
+    func sound() {
+        print("Some generic sound")
+    }
+}
+
+class Cat: Animal {
+    override func sound() {
+        print("Meow") // 메서드 재정의
+    }
+}
+
+// 사용 예시
+let cat = Cat()
+cat.sound() // 출력: Meow
+```
+
+<br>
+
+#### 3. 다형성 활용 가능
+- 부모 클래스의 참조 변수로 자식 클래스를 참조하여 다형성을 구현 가능.
+- 다양한 객체를 동일한 방식으로 처리할 수 있음.
+
+```swift
+class Animal {
+    func sound() {
+        print("Some generic sound")
+    }
+}
+
+class Dog: Animal {
+    override func sound() {
+        print("Bark")
+    }
+}
+
+class Cat: Animal {
+    override func sound() {
+        print("Meow")
+    }
+}
+
+// 사용 예시
+let animals: [Animal] = [Dog(), Cat()]
+for animal in animals {
+    animal.sound() // 각각 Bark와 Meow 출력
+}
+```
+
+<br>
+
+### 단점
+
+#### 1. 높은 결합도
+- 자식 클래스가 부모 클래스에 의존적이므로, 부모 클래스를 수정하면 자식 클래스에도 영향을 미침.
+- 클래스 간 결합도가 높아 유지보수가 어려워질 수 있음.
+
+#### 예시:
+- 모 클래스의 메서드를 수정하면, 이를 사용하는 자식 클래스에서 의도치 않은 버그가 발생할 가능성.
+
+<br>
+
+#### 2. 복잡성 증가
+- 다단계 상속(상속 체계가 깊어질 경우)은 코드의 가독성을 저하시킬 수 있음.
+- 클래스 구조를 이해하기 어려워지고 디버깅이 복잡해질 수 있음.
+
+```swift
+class A {
+    func method() {
+        print("Class A")
+    }
+}
+
+class B: A {
+    override func method() {
+        print("Class B")
+    }
+}
+
+class C: B {
+    override func method() {
+        print("Class C")
+    }
+}
+
+// 사용 예시
+let obj = C()
+obj.method() // 상속 계층이 깊을수록 어떤 메서드가 호출되는지 추적이 어려움
+```
+
+<br>
+
+#### 3. 다중 상속 지원 불가
+- Swift는 다중 상속을 지원하지 않으므로, 클래스 간 복잡한 관계를 표현하기 어려움.
+- Swift에서는 다중 프로토콜 채택으로 이를 해결.
+
+#### 예시:
+- 두 개 이상의 부모 클래스를 상속받으려는 경우 Swift에서 허용되지 않음.
+
+```swift
+// 다중 상속 불가
+class Parent1 {}
+class Parent2 {}
+// class Child: Parent1, Parent2 {} // 오류 발생
+```
+
+<br>
+
+### 정리
+<img src="https://github.com/user-attachments/assets/e4549059-9e33-479f-ab97-d20d7e2cc0c2">
+
+<br>
+
+### 결론:
+
+- 상속은 코드 재사용성과 확장성을 높이지만, 높은 결합도와 복잡성을 주의해야 합니다.
+- 상속보다는 **구성(Composition)**과 프로토콜 채택을 고려하는 것이 더 유연한 설계가 될 수 있습니다.
 
 <br>
 <br>
