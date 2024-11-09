@@ -1008,9 +1008,174 @@ printArea(circle)    // 출력: The area is 28.27...
 **프로토콜 확장(Protocol Extension)** 은 프로토콜에 기본 구현을 추가하여, 프로토콜을 채택한 모든 타입에서 해당 구현을 공유하거나 재정의할 수 있도록 합니다. 이는 코드 재사용성을 높이고, 설계를 유연하게 만들어주는 중요한 기능입니다.
 
 <br>
+
+### 프로토콜 확장을 사용하는 이유
+#### 1. 기본 구현 제공
+- 프로토콜을 채택한 타입에서 공통적으로 사용할 수 있는 기본 동작을 정의.
+- 채택한 타입에서 필요한 경우에만 재정의(Override) 가능.
+
+<br>
+
+#### 2. 코드 재사용성 증가
+- 여러 타입에서 동일한 동작을 구현할 필요 없이, 프로토콜 확장에서 한 번만 구현하면 됨.
+- 중복 코드를 줄여 유지보수성을 향상.
+
+<br>
+
+#### 3. 타입 확장 가능
+- 프로토콜 확장을 통해 기존 타입에 새로운 동작을 추가하거나, 타입에 따라 동작을 구체화 가능.
+
+<br>
+
+#### 4. 유연한 설계
+- 프로토콜 확장은 클래스, 구조체, 열거형에 모두 적용 가능.
+- 상속 없이 기능을 확장할 수 있어 더 유연한 설계 가능.
+
+### 예시 코드
+
+#### 1. 기본 구현 제공
+
+
+```swift
+protocol Flyable {
+    func fly()
+}
+
+extension Flyable {
+    func fly() {
+        print("Flying by default")
+    }
+}
+
+struct Bird: Flyable {}
+struct Airplane: Flyable {
+    func fly() {
+        print("Flying like an airplane")
+    }
+}
+
+// 사용 예시
+let bird = Bird()
+bird.fly() // 출력: Flying by default
+
+let airplane = Airplane()
+airplane.fly() // 출력: Flying like an airplane
+```
+
+- 이점: Flyable 프로토콜을 채택한 타입에 기본 동작(Flying by default)을 제공.
+Airplane는 기본 동작을 재정의하여 자신만의 동작을 구현.
+
+<br>
+
+#### 2. 코드 재사용성을 높이는 경우
+```swift
+protocol Identifiable {
+    var id: String { get }
+}
+
+extension Identifiable {
+    func identify() {
+        print("My ID is \(id)")
+    }
+}
+
+struct User: Identifiable {
+    var id: String
+}
+
+struct Product: Identifiable {
+    var id: String
+}
+
+// 사용 예시
+let user = User(id: "user123")
+user.identify() // 출력: My ID is user123
+
+let product = Product(id: "product456")
+product.identify() // 출력: My ID is product456
+```
+
+- 이점: identify 메서드는 Identifiable을 채택한 모든 타입에서 재사용 가능.
+User와 Product가 별도로 동일한 메서드를 구현할 필요가 없음.
+
+<br>
+
+#### 3. 기존 타입 확장
+```swift
+protocol Summable {
+    static func +(lhs: Self, rhs: Self) -> Self
+}
+
+extension Summable {
+    static func sum(_ values: [Self]) -> Self {
+        return values.reduce(0, +)
+    }
+}
+
+// Int와 Double이 Summable 채택
+extension Int: Summable {}
+extension Double: Summable {}
+
+// 사용 예시
+let intSum = Int.sum([1, 2, 3, 4]) // 출력: 10
+let doubleSum = Double.sum([1.5, 2.5, 3.5]) // 출력: 7.5
+```
+
+- 이점: Summable 프로토콜을 확장하여 모든 Summable 타입(Int, Double 등)에서 sum 메서드 재사용 가능.
+
+<br>
+
+#### 4. 타입별 구체화된 동작
+
+```swift
+protocol Drawable {
+    func draw()
+}
+
+extension Drawable {
+    func draw() {
+        print("Default drawing")
+    }
+}
+
+struct Circle: Drawable {}
+struct Square: Drawable {
+    func draw() {
+        print("Drawing a square")
+    }
+}
+
+// 사용 예시
+let shapes: [Drawable] = [Circle(), Square()]
+for shape in shapes {
+    shape.draw()
+    // Circle: Default drawing
+    // Square: Drawing a square
+}
+```
+
+- 이점: Circle은 기본 동작을 사용하고, Square는 자신만의 동작을 구현
+
+<br>
+
+### Protocol Extension과 Class Inheritance의 차이
+<img src="https://github.com/user-attachments/assets/3cd1741c-769f-460a-afdb-38ddc412c391">
+
+<br>
+
+### 정리
+
+- 프로토콜 확장은 코드 재사용성, 유연성, 타입 확장성을 제공하여 Swift의 강력한 기능 중 하나입니다.
+- 기본 구현 제공을 통해 공통 동작을 한 곳에서 관리하고, 필요할 때만 재정의하여 사용 가능합니다.
+- 객체지향 프로그래밍에서 상속의 단점을 보완하며, 구성(Composition) 기반의 설계를 가능하게 합니다.
+
+
+<br>
 <br>
 
 ## 3.2 프로토콜 컴포지션(Protocol Composition)은 어떤 경우에 사용하나요?
+
+
 
 
 <br>
