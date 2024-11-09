@@ -673,9 +673,155 @@ class Parent2 {}
 
 ## 2.3 다형성(Polymorphism)을 활용하는 예시를 들어주세요.
 
-<br>
+**다형성(Polymorphism)** 은 동일한 메서드나 인터페이스를 통해 여러 형태의 객체를 처리할 수 있는 객체지향 프로그래밍(OOP)의 핵심 개념입니다.
+Swift에서는 메서드 오버라이딩과 프로토콜 준수를 통해 다형성을 구현합니다.
+
 <br>
 
+### 1. 메서드 오버라이딩을 사용한 다형성
+
+#### 설명
+부모 클래스의 메서드를 자식 클래스에서 재정의하여 각 객체의 동작을 다르게 정의할 수 있습니다.
+
+```swift
+class Animal {
+    func sound() {
+        print("Some generic sound")
+    }
+}
+
+class Dog: Animal {
+    override func sound() {
+        print("Bark")
+    }
+}
+
+class Cat: Animal {
+    override func sound() {
+        print("Meow")
+    }
+}
+
+// 사용 예시
+let animals: [Animal] = [Dog(), Cat(), Animal()]
+
+for animal in animals {
+    animal.sound() // 각각 Bark, Meow, Some generic sound 출력
+}
+```
+
+<br>
+
+### 2. 프로토콜 준수를 사용한 다형성
+
+#### 설명
+다양한 클래스가 동일한 프로토콜을 준수하고, 동일한 인터페이스를 통해 다르게 동작하도록 구현할 수 있습니다.
+
+```swift
+protocol Flyable {
+    func fly()
+}
+
+class Bird: Flyable {
+    func fly() {
+        print("Bird is flying")
+    }
+}
+
+class Airplane: Flyable {
+    func fly() {
+        print("Airplane is flying")
+    }
+}
+
+// 사용 예시
+let flyingObjects: [Flyable] = [Bird(), Airplane()]
+
+for object in flyingObjects {
+    object.fly() // 각각 Bird is flying, Airplane is flying 출력
+}
+```
+
+<br>
+
+### 3. 실무 예시: UIView의 다형성
+
+#### 설명
+iOS의 UIView와 그 하위 클래스들은 다형성을 활용하여 다양한 형태의 뷰를 처리할 수 있습니다.
+UIView를 참조 타입으로 사용해 버튼, 레이블, 이미지 뷰 등 다양한 뷰를 공통적으로 처리 가능합니다.
+
+```swift
+import UIKit
+
+class MyViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let label = UILabel()
+        label.text = "Hello"
+        
+        let button = UIButton()
+        button.setTitle("Press me", for: .normal)
+        
+        let views: [UIView] = [label, button] // UIView를 참조 타입으로 사용
+        
+        for view in views {
+            print(type(of: view)) // 각각 UILabel, UIButton 출력
+        }
+    }
+}
+```
+
+### 4. 프로토콜을 활용한 다형성
+#### 설명
+
+다형성을 활용하면 다양한 클래스에 동일한 동작을 적용할 수 있습니다. 예를 들어, iOS에서 데이터 저장을 다형성을 통해 처리하는 예입니다.
+
+```swift
+protocol DataStorable {
+    func save(data: String)
+}
+
+class DatabaseStorage: DataStorable {
+    func save(data: String) {
+        print("Saving \(data) to the database")
+    }
+}
+
+class FileStorage: DataStorable {
+    func save(data: String) {
+        print("Saving \(data) to a file")
+    }
+}
+
+// 사용 예시
+let storages: [DataStorable] = [DatabaseStorage(), FileStorage()]
+
+for storage in storages {
+    storage.save(data: "Example Data")
+    // 출력:
+    // Saving Example Data to the database
+    // Saving Example Data to a file
+}
+```
+
+<br>
+
+### 5. 다형성의 장점
+1. 유연성: 다양한 객체를 공통된 방식으로 처리 가능.
+2. 확장성: 새로운 객체를 추가해도 기존 코드를 수정하지 않음.
+3. 재사용성: 동일한 인터페이스로 다양한 구현체를 사용할 수 있음.
+
+<br>
+
+### 요약
+
+<img src = "https://github.com/user-attachments/assets/9bc1f74a-381d-4df6-9584-8a6ea1200c16">
+
+다형성은 객체를 “is-a” 관계로 처리하는 핵심 개념으로, 실무에서도 코드의 재사용성과 확장성을 극대화하는 데 매우 유용하게 사용됩니다.
+
+<br>
+<br>
 
 ## 3. 프로토콜 지향 프로그래밍(POP)이란 무엇이며, 어떤 장점이 있나요?
 - 프로토콜 확장(Protocol Extension)을 사용하는 이유는 무엇인가요?
