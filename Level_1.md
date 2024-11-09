@@ -4711,16 +4711,500 @@ let maxString = findMaximum(in: ["apple", "banana", "cherry"]) // 출력: cherry
 <br>
 
 ## 24. **Swift의 클로저와 함수의 차이점은 무엇인가요?**
-    - 클로저가 일급 객체(First-Class Citizen)인 이유는 무엇인가요?
-    - 함수형 프로그래밍 패러다임에서 클로저가 어떻게 활용되나요?
+### 1. 정의
+- 클로저: 코드에서 익명 함수 또는 **람다(lambda)** 로도 불리며, 특정 작업을 수행하기 위해 코드 블록을 변수처럼 다룰 수 있는 객체입니다. 클로저는 함수의 축약형으로 생각할 수 있습니다.
+- 함수: 이름이 지정된 코드 블록으로, 특정 작업을 수행하고 재사용할 수 있도록 정의됩니다.
+
+<br>
+
+### 2. 형태
+- 클로저는 코드 블록
+- 함수는 특정 이름으로 정의된 재사용 가능한 코드 단위
+- 클로저는 일반적으로 간결하게 표현되고, 익명으로 사용될 수 있습니다.
+
+```swift
+// 함수
+func greet(name: String) -> String {
+    return "Hello, \(name)!"
+}
+
+// 클로저
+let greetClosure = { (name: String) -> String in
+    return "Hello, \(name)!"
+}
+```
+
+<br>
+
+### 3. Scope와 Capturing
+- 클로저는 클로저가 생성된 스코프의 변수를 캡처하여 사용할 수 있습니다.
+- 함수는 기본적으로 변수를 캡처하지 않고 외부 변수는 명시적으로 전달받아야 합니다.
+
+```swift
+// 클로저가 외부 변수 캡처
+var counter = 0
+let incrementClosure = {
+    counter += 1
+}
+
+incrementClosure()
+print(counter) // 출력: 1
+```
+
+<br>
+
+### 4. 사용 위치
+- 클로저는 주로 비동기 작업, 콜백 함수, 또는 컬렉션 처리 함수(map, filter, reduce)와 같은 함수형 프로그래밍에서 사용됩니다.
+- 함수는 보다 명확하게 정의된 작업 단위를 제공하며, 코드의 모듈화를 돕습니다.
+
+<br>
+
+## Swift에서 일급 객체(First-Class Citizen)의 의미
+**일급 객체(First-Class Citizen)** 는 프로그래밍 언어에서 다음과 같은 특징을 만족하는 객체를 의미합니다:
+
+1. 변수나 상수에 할당할 수 있다.
+2. 함수의 인자로 전달할 수 있다.
+3. 함수의 반환값으로 사용할 수 있다.
+
+Swift에서 **함수(Function)** 와 **클로저(Closure)** 는 이러한 조건을 만족하므로 일급 객체로 간주됩니다.
+
+<br>
+
+### Swift에서의 일급 객체 예시
+
+#### 1.	함수 자체를 변수에 할당
+```swift
+func sayHello() {
+    print("Hello, World!")
+}
+
+let greeting = sayHello
+greeting() // "Hello, World!"
+```
+
+<br>
+
+#### 2.	함수를 인자로 전달
+```swift
+func performAction(action: () -> Void) {
+    action()
+}
+
+performAction(action: {
+    print("Action performed!")
+}) // "Action performed!"
+```
+
+<br>
+
+#### 3. 함수를 반환값으로 사용
+```swift
+func makeMultiplier(multiplier: Int) -> (Int) -> Int {
+    return { $0 * multiplier }
+}
+
+let triple = makeMultiplier(multiplier: 3)
+print(triple(4)) // 12
+```
+
+<br>
+
+#### 4.	클로저도 일급 객체
+클로저는 익명 함수로써 위의 모든 특징을 만족하며, Swift에서 흔히 사용됩니다.
+
+```swift
+let add: (Int, Int) -> Int = { $0 + $1 }
+print(add(3, 5)) // 8
+```
+
+<br>
+
+### Swift에서 다른 일급 객체
+
+- 클래스와 구조체: Swift의 클래스와 구조체도 일급 객체로 간주됩니다.
+
+예를 들어, 클래스를 변수에 할당하거나 함수로 전달할 수 있습니다.
+
+```swift
+class Example {
+    var value: Int
+    init(value: Int) {
+        self.value = value
+    }
+}
+
+let example = Example(value: 10) // 클래스 인스턴스를 변수에 할당
+```
+
+<br>
+
+- 열거형(Enum): Swift의 열거형 역시 변수에 할당하거나 함수 인자로 전달할 수 있습니다.
+
+```swift
+enum Direction {
+    case north, south, east, west
+}
+
+let currentDirection: Direction = .north
+```
+
+<br>
+
+### Swift의 일급 객체 요약
+<img src="https://github.com/user-attachments/assets/a8d1e585-c8ad-42d0-888f-5a8c647bdec4">
+
+Swift는 일급 객체 개념을 폭넓게 지원하여 함수, 클로저, 클래스, 구조체, 열거형 등 대부분의 객체를 유연하게 다룰 수 있게 설계되었습니다.
+
+<br>
+<br>
+
+## 클로저가 일급 객체(First-Class Citizen)인 이유
+Swift에서 클로저는 **일급 객체(First-Class Citizen)** 입니다. 
+이는 클로저가 다음 세 가지 특성을 충족하기 때문입니다.
+
+<br>
+
+### 1. 변수에 할당 가능: 클로저는 변수나 상수에 저장될 수 있습니다.
+```swift
+let sayHello = { print("Hello!") }
+sayHello() // "Hello!"
+```
+
+<br>
+
+### 2. 매개변수로 전달 가능: 클로저는 함수의 인자로 전달될 수 있습니다.
+```swift
+func perform(action: () -> Void) {
+    action()
+}
+perform(action: { print("Task performed!") })
+```
+
+<br>
+
+### 3. 반환값으로 사용 가능: 클로저를 함수의 반환값으로 사용할 수 있습니다.
+```swift
+func createIncrementer(by value: Int) -> () -> Int {
+    var total = 0
+    return {
+        total += value
+        return total
+    }
+}
+let incrementByTwo = createIncrementer(by: 2)
+print(incrementByTwo()) // 2
+print(incrementByTwo()) // 4
+```
+
+<br>
+<br>
+
+## 함수형 프로그래밍에서 클로저의 활용
+함수형 프로그래밍 패러다임은 상태를 변경하지 않고 불변성을 유지하면서 함수를 1급 객체로 다룹니다. 클로저는 이 패러다임에서 핵심적인 역할을 합니다.
+
+<br>
+
+### 1. 고차 함수에서의 활용
+클로저는 Swift의 고차 함수(map, filter, reduce)에서 자주 사용됩니다.
+
+```swift
+let numbers = [1, 2, 3, 4, 5]
+
+// map: 각 요소에 2를 곱한 배열 생성
+let doubled = numbers.map { $0 * 2 }
+print(doubled) // [2, 4, 6, 8, 10]
+
+// filter: 짝수만 필터링
+let evenNumbers = numbers.filter { $0 % 2 == 0 }
+print(evenNumbers) // [2, 4]
+
+// reduce: 배열의 합 계산
+let sum = numbers.reduce(0) { $0 + $1 }
+print(sum) // 15
+```
+
+<br>
+
+### 2. 콜백 처리
+클로저는 비동기 작업의 콜백으로 자주 사용됩니다. 예를 들어, 네트워크 요청이 완료된 후 특정 작업을 실행하려면 클로저를 활용할 수 있습니다.
+
+```swift
+func fetchData(completion: (String) -> Void) {
+    // 네트워크 요청 시뮬레이션
+    DispatchQueue.global().async {
+        let data = "Fetched Data"
+        DispatchQueue.main.async {
+            completion(data)
+        }
+    }
+}
+
+fetchData { result in
+    print(result) // "Fetched Data"
+}
+```
+
+<br>
+
+### 3. 동작 캡슐화
+클로저를 사용하여 특정 동작을 데이터와 함께 캡슐화할 수 있습니다.
+
+```swift
+let tasks: [() -> Void] = [
+    { print("Task 1") },
+    { print("Task 2") },
+    { print("Task 3") }
+]
+tasks.forEach { $0() }
+// 출력:
+// Task 1
+// Task 2
+// Task 3
+```
+
 
 <br>
 <br>
 
 ## 25. **동시성 프로그래밍에서 동기(Synchronous)와 비동기(Asynchronous)의 차이점은 무엇인가요?**
-    - iOS에서 비동기 작업을 처리하는 방법은 무엇인가요?
-    - 세마포어(Semaphore)와 뮤텍스(Mutex)의 차이점은 무엇인가요?
+### 1. 동기(Synchronous)
+- 작업이 직렬적으로 실행됩니다.
+- 현재 작업이 완료되기 전까지 다음 작업이 대기합니다.
+- 작업 순서가 보장되지만, 긴 작업이 전체 프로세스를 블로킹할 수 있습니다.
 
+#### 예시:
+```swift
+print("Start")
+sleep(2) // 2초 대기
+print("End")
+```
+
+#### 출력:
+```swift
+Start
+(2초 후)
+End
+```
+
+<br>
+
+### 2. 비동기(Asynchronous)
+- 작업이 병렬적으로 실행될 수 있습니다.
+- 현재 작업이 완료되지 않아도 다음 작업을 계속 수행합니다.
+- 블로킹 없이 작업을 처리할 수 있지만, 작업 순서를 보장하려면 추가적인 제어가 필요합니다.
+
+#### 예시:
+```swift
+print("Start")
+DispatchQueue.global().async {
+    sleep(2)
+    print("Async Task Done")
+}
+print("End")
+```
+
+#### 출력:
+```swift
+Start
+End
+(2초 후)
+Async Task Done
+```
+
+<br>
+
+### iOS에서 비동기 작업을 처리하는 방법
+
+iOS에서 비동기 작업은 다음과 같은 방법으로 처리할 수 있습니다.
+
+
+### 1. DispatchQueue (GCD)
+GCD를 사용해 작업을 비동기로 실행합니다.
+
+- 글로벌 큐: 백그라운드 작업 처리.
+- 메인 큐: UI 업데이트.
+
+#### 예시: 
+```swift
+DispatchQueue.global().async {
+    let data = loadDataFromNetwork() // 네트워크 작업
+    DispatchQueue.main.async {
+        updateUI(with: data) // UI 업데이트
+    }
+}
+```
+
+<br>
+
+### 2. OperationQueue
+
+OperationQueue는 GCD보다 더 고수준의 API로, 작업을 큐에 추가하고 작업 간의 종속성을 설정할 수 있습니다.
+
+#### 예시: 
+```swift
+let queue = OperationQueue()
+queue.addOperation {
+    print("Background Task")
+}
+queue.addOperation {
+    print("Another Task")
+}
+```
+
+<br>
+
+### 3. async/await (Swift 5.5 이상)
+
+async/await는 Swift에서 비동기 작업을 처리하기 위한 최신 문법으로, 코드의 가독성과 유지보수성을 높입니다.
+
+#### 예시: 
+
+```swift
+func fetchData() async -> String {
+    // 비동기 작업
+    return "Fetched Data"
+}
+
+Task {
+    let result = await fetchData()
+    print(result)
+}
+```
+
+<br>
+
+### 4. Completion Handlers
+
+비동기 작업이 완료된 후 결과를 전달하기 위해 콜백(Closure)을 사용합니다.
+
+#### 예시:
+
+```swift
+func fetchData(completion: (String) -> Void) {
+    DispatchQueue.global().async {
+        sleep(2) // 네트워크 작업 시뮬레이션
+        completion("Data Loaded")
+    }
+}
+
+fetchData { result in
+    print(result)
+}
+```
+
+<br>
+
+### 세마포어(Semaphore)와 뮤텍스(Mutex)의 차이점
+
+#### 1. 세마포어(Semaphore)
+- 멀티스레드 환경에서 동기화 메커니즘을 제공합니다.
+- 카운터를 사용해 리소스 접근을 제한합니다.
+- 카운터가 0이 될 때까지 새로운 스레드는 대기 상태가 됩니다.
+- 한 번에 여러 스레드가 접근 가능한 리소스를 관리할 수 있습니다.
+
+#### 예시 (Swift):
+```swift
+let semaphore = DispatchSemaphore(value: 2) // 동시에 2개의 스레드 접근 허용
+
+DispatchQueue.global().async {
+    semaphore.wait() // 리소스 확보
+    print("Task 1 started")
+    sleep(2)
+    print("Task 1 ended")
+    semaphore.signal() // 리소스 해제
+}
+
+DispatchQueue.global().async {
+    semaphore.wait()
+    print("Task 2 started")
+    sleep(2)
+    print("Task 2 ended")
+    semaphore.signal()
+}
+
+DispatchQueue.global().async {
+    semaphore.wait()
+    print("Task 3 started")
+    sleep(2)
+    print("Task 3 ended")
+    semaphore.signal()
+}
+```
+
+<br>
+
+출력: (동시에 2개의 스레드만 실행)
+
+```
+Task 1 started
+Task 2 started
+Task 1 ended
+Task 3 started
+Task 2 ended
+Task 3 ended
+```
+
+<br>
+
+### 2. 뮤텍스(Mutex)
+- Mutual Exclusion의 약자로, 한 번에 하나의 스레드만 리소스에 접근하도록 제한합니다.
+- 일반적으로 상호 배제를 위해 사용됩니다.
+- 재귀적으로 사용할 수 있는 재진입 가능 뮤텍스도 있습니다.
+
+#### 예시 (Swift):
+```swift
+let lock = NSLock()
+
+DispatchQueue.global().async {
+    lock.lock() // 락 획득
+    print("Task 1 started")
+    sleep(2)
+    print("Task 1 ended")
+    lock.unlock() // 락 해제
+}
+
+DispatchQueue.global().async {
+    lock.lock()
+    print("Task 2 started")
+    sleep(2)
+    print("Task 2 ended")
+    lock.unlock()
+}
+```
+
+<br>
+
+출력: (한 번에 하나의 스레드만 실행)
+
+```swift
+Task 1 started
+Task 1 ended
+Task 2 started
+Task 2 ended
+```
+
+<br>
+
+### 세마포어와 뮤텍스의 비교
+
+
+<img src="https://github.com/user-attachments/assets/4ba6b60c-365b-4718-a8fa-7c7c573353f6">
+
+<br>
+
+### 요약
+
+#### 1.	동기와 비동기:
+- 동기: 직렬적으로 작업 처리, 블로킹 발생 가능.
+- 비동기: 병렬적으로 작업 처리, 블로킹 없이 실행.
+
+#### 2.	iOS 비동기 작업 처리 방법:
+- DispatchQueue (GCD), OperationQueue, async/await, 콜백(Completion Handlers) 등을 사용.
+
+
+#### 3.	세마포어와 뮤텍스:
+- 세마포어는 리소스 접근을 제한하고, 뮤텍스는 상호 배제를 보장합니다.
+- 세마포어는 여러 스레드 접근을 제어, 뮤텍스는 한 번에 하나의 스레드만 허용.
 
 
 <br>
