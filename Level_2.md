@@ -1,9 +1,27 @@
 # 레벨 2
 
 ## 1. Swift의 동시성(Concurrency) 프로그래밍에 대해 설명해주세요.
-- Grand Central Dispatch(GCD)의 주요 개념과 사용 방법을 설명해주세요.
-- OperationQueue와 DispatchQueue의 차이점은 무엇인가요?
-- 동시성 프로그래밍에서 발생할 수 있는 문제(Race Condition, Deadlock 등)와 해결 방법은 무엇인가요?
+- 동시성 프로그래밍은 여러 작업을 동시에 실행하여 애플리케이션 성능을 최적화하는 프로그래밍 기법입니다.
+- Swift에서는 동시성 프로그래밍을 위해 GCD(Grand Central Dispatch), OperationQueue, Swift Concurrency(async/await) 등의 도구를 제공합니다.
+
+
+<br>
+<br>
+
+## Grand Central Dispatch(GCD)의 주요 개념과 사용 방법을 설명해주세요.
+
+
+
+
+<br>
+<br>
+
+## OperationQueue와 DispatchQueue의 차이점은 무엇인가요?
+
+<br>
+<br>
+
+## 동시성 프로그래밍에서 발생할 수 있는 문제(Race Condition, Deadlock 등)와 해결 방법은 무엇인가요?
 
 
 <br>
