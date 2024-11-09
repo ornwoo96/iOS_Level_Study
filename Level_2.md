@@ -8,7 +8,7 @@
 <br>
 <br>
 
-## Grand Central Dispatch(GCD)의 주요 개념과 사용 방법을 설명해주세요.
+## 1.1 Grand Central Dispatch(GCD)의 주요 개념과 사용 방법을 설명해주세요.
 GCD는 Apple에서 제공하는 저수준 API로, 멀티스레드 작업을 간단히 처리할 수 있습니다. 큐(Queue) 기반으로 작업을 관리하며, 비동기적으로 작업을 실행합니다.
 
 ### GCD의 주요 개념
