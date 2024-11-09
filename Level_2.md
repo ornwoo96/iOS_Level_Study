@@ -200,9 +200,184 @@ DispatchQueue.global(qos: .background).async {
 <br>
 
 ## 2. 객체지향 프로그래밍(OOP)의 주요 개념에 대해 설명해주세요.
-- 캡슐화(Encapsulation)와 정보 은닉(Information Hiding)의 차이점은 무엇인가요?
-- 상속(Inheritance)의 장단점은 무엇인가요?
-- 다형성(Polymorphism)을 활용하는 예시를 들어주세요.
+객체지향 프로그래밍(OOP)은 **객체(Object)** 를 중심으로 설계 및 구현하는 프로그래밍 패러다임으로, 코드 재사용성, 유지보수성, 확장성을 높이기 위해 다음의 주요 개념을 사용합니다:
+
+1.	캡슐화(Encapsulation)
+2.	상속(Inheritance)
+3.	다형성(Polymorphism)
+4.	추상화(Abstraction)
+
+<br>
+
+### 1. 캡슐화 (Encapsulation)
+
+캡슐화는 데이터를 보호하고 외부에서는 메서드를 통해서만 접근 가능하도록 만드는 개념입니다. 접근 제어자(private, internal, public 등)를 사용하여 구현됩니다.
+
+```swift
+class BankAccount {
+    private var balance: Double = 0.0 // 외부에서 직접 접근 불가 (정보 은닉)
+    
+    func deposit(amount: Double) { // 캡슐화: 데이터 접근은 메서드로만 가능
+        if amount > 0 {
+            balance += amount
+        }
+    }
+    
+    func withdraw(amount: Double) -> Bool {
+        if amount > 0 && amount <= balance {
+            balance -= amount
+            return true
+        }
+        return false
+    }
+    
+    func getBalance() -> Double {
+        return balance
+    }
+}
+
+// 사용 예시
+let account = BankAccount()
+account.deposit(amount: 100)
+print(account.getBalance()) // 출력: 100.0
+account.withdraw(amount: 30)
+print(account.getBalance()) // 출력: 70.0
+```
+
+<br>
+
+### 2. 상속(Inheritance)
+상속은 부모 클래스의 속성과 메서드를 자식 클래스가 물려받는 기능으로, 코드 재사용성과 확장성을 높입니다.
+
+```swift
+// 상위 클래스
+class Animal {
+    func makeSound() {
+        print("Some generic sound")
+    }
+}
+
+// 하위 클래스
+class Dog: Animal {
+    override func makeSound() { // 메서드 오버라이딩
+        print("Bark!")
+    }
+}
+
+class Cat: Animal {
+    override func makeSound() { // 메서드 오버라이딩
+        print("Meow!")
+    }
+}
+
+// 사용 예시
+let animal: Animal = Animal()
+animal.makeSound() // 출력: Some generic sound
+
+let dog: Animal = Dog()
+dog.makeSound() // 출력: Bark!
+
+let cat: Animal = Cat()
+cat.makeSound() // 출력: Meow!
+```
+
+<br>
+
+### 3. 다형성 (Polymorphism)
+다형성은 동일한 인터페이스나 메서드가 다른 방식으로 동작하는 것을 의미합니다.
+Swift에서는 메서드 오버라이딩 또는 프로토콜 준수를 통해 구현됩니다.
+
+```swift
+class Shape {
+    func area() -> Double {
+        return 0.0 // 기본 구현
+    }
+}
+
+class Rectangle: Shape {
+    var width: Double
+    var height: Double
+    
+    init(width: Double, height: Double) {
+        self.width = width
+        self.height = height
+    }
+    
+    override func area() -> Double {
+        return width * height
+    }
+}
+
+class Circle: Shape {
+    var radius: Double
+    
+    init(radius: Double) {
+        self.radius = radius
+    }
+    
+    override func area() -> Double {
+        return .pi * radius * radius
+    }
+}
+
+// 다형성 활용
+let shapes: [Shape] = [
+    Rectangle(width: 5, height: 10),
+    Circle(radius: 3)
+]
+
+for shape in shapes {
+    print("Area: \(shape.area())") // 각 객체의 타입에 따라 적절한 area 메서드 호출
+}
+```
+
+<br>
+
+### 4. 추상화 (Abstraction)
+
+추상화는 필요한 기능만 공개하고 세부 구현은 감추는 것을 의미합니다.
+Swift에서는 프로토콜과 추상 클래스를 통해 구현됩니다.
+
+```swift
+protocol Drawable {
+    func draw()
+}
+
+class Line: Drawable {
+    func draw() {
+        print("Drawing a line")
+    }
+}
+
+class Circle: Drawable {
+    func draw() {
+        print("Drawing a circle")
+    }
+}
+
+// 추상화 활용
+let shapes: [Drawable] = [Line(), Circle()]
+for shape in shapes {
+    shape.draw() // 각 클래스의 구현에 따라 다르게 동작
+}
+```
+<br>
+
+### 요약 
+
+<img src="https://github.com/user-attachments/assets/0030d1da-9f66-4772-bfa8-6f432d13a417">
+
+## 2.1 캡슐화(Encapsulation)와 정보 은닉(Information Hiding)의 차이점은 무엇인가요?
+
+<br>
+<br>
+
+## 2.2 상속(Inheritance)의 장단점은 무엇인가요?
+
+<br>
+<br>
+
+## 2.3 다형성(Polymorphism)을 활용하는 예시를 들어주세요.
 
 <br>
 <br>
