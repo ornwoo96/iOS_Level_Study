@@ -9,19 +9,191 @@
 <br>
 
 ## Grand Central Dispatch(GCD)의 주요 개념과 사용 방법을 설명해주세요.
+GCD는 Apple에서 제공하는 저수준 API로, 멀티스레드 작업을 간단히 처리할 수 있습니다. 큐(Queue) 기반으로 작업을 관리하며, 비동기적으로 작업을 실행합니다.
 
+### GCD의 주요 개념
+#### 1.	큐(Queue):
+- 직렬 큐(Serial Queue): 하나의 작업이 완료된 후 다음 작업이 실행.
+- 동시 큐(Concurrent Queue): 여러 작업이 동시에 실행될 수 있음.
+#### 2.	글로벌 큐(Global Queue):
+- 시스템에서 제공하는 동시 큐로, QoS(Quality of Service)에 따라 작업 우선순위를 설정 가능.
+#### 3.	메인 큐(Main Queue):
+- UI 작업을 처리하는 직렬 큐.
+#### 4.	QoS(Quality of Service):
+- 작업의 우선순위를 지정하여 시스템 리소스를 효율적으로 사용할 수 있도록 도움.
 
+<br>
+
+### GCD 사용 방법
+#### 비동기 작업 실행 예시:
+
+```swift
+DispatchQueue.global(qos: .background).async {
+    print("Background Task")
+    DispatchQueue.main.async {
+        print("UI Task on Main Thread")
+    }
+}
+```
+
+<br>
+
+#### 동기 작업 실행 예시:
+
+```swift
+DispatchQueue.global().sync {
+    print("Synchronous Task")
+}
+```
+
+<br>
+
+#### 직렬 큐 사용:
+
+```swift
+let serialQueue = DispatchQueue(label: "com.example.serialQueue")
+serialQueue.async {
+    print("Task 1")
+}
+serialQueue.async {
+    print("Task 2")
+}
+```
+
+<br>
+
+#### 동시 큐 사용:
+
+```swift
+let concurrentQueue = DispatchQueue(label: "com.example.concurrentQueue", attributes: .concurrent)
+concurrentQueue.async {
+    print("Task 1")
+}
+concurrentQueue.async {
+    print("Task 2")
+}
+```
+
+<br>
+<br>
+
+## 1.2 OperationQueue와 DispatchQueue의 차이점은 무엇인가요?
+<img src="https://github.com/user-attachments/assets/3f062e13-822e-4980-bd09-a711f506f56e">
+
+#### OperationQueue 예시
+```swift
+let queue = OperationQueue()
+queue.maxConcurrentOperationCount = 2
+
+let operation1 = BlockOperation {
+    print("Operation 1")
+}
+let operation2 = BlockOperation {
+    print("Operation 2")
+}
+operation2.addDependency(operation1) // 작업 간 의존성 추가
+
+queue.addOperations([operation1, operation2], waitUntilFinished: false)
+```
 
 
 <br>
 <br>
 
-## OperationQueue와 DispatchQueue의 차이점은 무엇인가요?
+## 1.3 동시성 프로그래밍에서 발생할 수 있는 문제(Race Condition, Deadlock 등)와 해결 방법은 무엇인가요?
+
+### 1. Race Condition
+- 문제:
+- 두 개 이상의 스레드가 동시에 동일한 데이터에 접근 및 수정하려고 할 때 발생.
+- 데이터 무결성이 깨질 수 있음.
+
+#### 예시:
+```swift
+var counter = 0
+DispatchQueue.concurrentPerform(iterations: 100) { _ in
+    counter += 1 // Race Condition 발생
+}
+print(counter) // 예상값과 다를 수 있음
+```
 
 <br>
+
+#### 해결방법:
+- 동기화(Synchronization): DispatchSemaphore, NSLock 사용.
+
+```swift
+let lock = NSLock()
+var counter = 0
+
+DispatchQueue.concurrentPerform(iterations: 100) { _ in
+    lock.lock()
+    counter += 1
+    lock.unlock()
+}
+print(counter) // 정확한 값
+```
+
 <br>
 
-## 동시성 프로그래밍에서 발생할 수 있는 문제(Race Condition, Deadlock 등)와 해결 방법은 무엇인가요?
+### 2. Deadlock
+- 문제:
+  - 두 스레드가 서로 다른 자원을 대기하면서 영원히 종료되지 않는 상태.
+
+#### 예시:
+
+```swift
+let serialQueue = DispatchQueue(label: "com.example.serialQueue")
+serialQueue.sync {
+    serialQueue.sync { // Deadlock 발생
+        print("Nested Sync")
+    }
+}
+```
+
+#### 해결방법:
+- 중첩 동기 호출을 피함.
+- 작업을 비동기로 실행:
+
+```swift
+let serialQueue = DispatchQueue(label: "com.example.serialQueue")
+serialQueue.sync {
+    serialQueue.async {
+        print("Avoid Deadlock")
+    }
+}
+```
+
+<br>
+
+### 3. Priority Inversion
+- 문제:
+  - 낮은 우선순위 작업이 높은 우선순위 작업보다 먼저 실행되어 리소스가 효율적으로 사용되지 않는 상태.
+- 해결 방법:
+  - 작업에 적절한 QoS 설정:
+```swift
+DispatchQueue.global(qos: .userInitiated).async {
+    print("High Priority Task")
+}
+DispatchQueue.global(qos: .background).async {
+    print("Low Priority Task")
+}
+```
+
+<br>
+
+### 요약
+1. GCD는 경량 API로 간단한 비동기 작업에 적합.
+2. OperationQueue는 작업 의존성 관리, 취소, 상태 추적이 필요한 경우에 적합.
+3. 동시성 문제:
+- Race Condition → Lock, Semaphore 사용.
+- Deadlock → 중첩 동기 호출 피하기.
+- Priority Inversion → QoS 설정으로 해결.
+
+### 실무에서 사용 기준:
+- 간단한 작업 → GCD
+- 복잡한 작업 관리 → OperationQueue
+- 최신 Swift → Swift Concurrency (async/await).
+
 
 
 <br>
