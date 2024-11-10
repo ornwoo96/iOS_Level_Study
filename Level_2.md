@@ -2043,15 +2043,68 @@ Pet is deinitialized
 ```
 
 
-
-
-
 <br>
 <br>
 
 ## 4.4 강한 참조, 약한 참조, 미소유 참조의 차이점을 설명해주세요.
 
+<img src="https://github.com/user-attachments/assets/d893bb1a-f23c-4650-951e-12d563c072de">
 
+#### 미소유 참조 사용 예시
+
+```swift
+class Customer {
+    var card: CreditCard?
+    deinit {
+        print("Customer is deinitialized")
+    }
+}
+
+class CreditCard {
+    unowned let owner: Customer // 미소유 참조
+    init(owner: Customer) {
+        self.owner = owner
+    }
+    deinit {
+        print("CreditCard is deinitialized")
+    }
+}
+
+// 사용 예시
+var customer: Customer? = Customer()
+customer?.card = CreditCard(owner: customer!)
+customer = nil // 순환 참조 없이 메모리 해제
+```
+
+#### 출력
+
+```
+CreditCard is deinitialized
+Customer is deinitialized
+```
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/54bc5a24-18f2-4510-8d0b-719ccd01a4cf">
+
+### 실무 활용
+
+#### 1.	강한 참조
+- 일반적인 객체 소유권 관리에 사용.
+- 예: 뷰 컨트롤러와 모델 객체 간의 관계.
+#### 2.	약한 참조
+- Delegate 패턴 사용 시 순환 참조 방지.
+- 예: tableView.delegate.
+#### 3.	미소유 참조
+- 항상 존재하는 객체 간의 관계에서 사용.
+- 예: 부모-자식 관계 (예: UIView와 UIViewController).
+#### 4.	순환 참조 방지
+- 클로저에서 [weak self] 또는 [unowned self] 사용.
+- 두 객체가 서로 강한 참조를 가지지 않도록 설계.
+
+ARC는 Swift의 강력한 메모리 관리 도구지만, 참조 타입 설계와 순환 참조 방지에 대한 이해가 필수적입니다.
 
 
 <br>
