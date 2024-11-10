@@ -1948,28 +1948,100 @@ person2 = nil                                // 참조 카운트: 0, 메모리 �
 
 #### 출력
 
-```swift
+```
 Alice is initialized
 Alice is deinitialized
 ```
-
-<br>
-
-
-
-
 
 <br>
 <br>
 
 ## 4.2 강한 참조(Strong Reference)와 약한 참조(Weak Reference)의 차이점은 무엇인가요?
 
+<img src="https://github.com/user-attachments/assets/8a893512-84d6-42f2-8d76-c5e7c9a0b19a">
+
+#### 코드 예시
+
+```swift
+class Person {
+    var pet: Pet?
+}
+
+class Pet {
+    weak var owner: Person? // 약한 참조
+}
+
+let john = Person()
+let fido = Pet()
+
+john.pet = fido
+fido.owner = john // 약한 참조로 인해 순환 참조 방지
+```
 
 
 <br>
 <br>
 
 ## 4.3 순환 참조(Retain Cycle)가 발생하는 경우와 해결 방법을 설명해주세요.
+
+### 순환 참조 발생
+
+두 객체가 서로를 강한 참조로 소유할 경우, 참조 카운트가 0이 되지 않아 메모리에서 해제되지 않는 문제가 발생합니다.
+
+#### 코드 예시: 순환 참조 발생
+
+```swift
+class Person {
+    var name: String
+    var pet: Pet?
+    
+    init(name: String) {
+        self.name = name
+    }
+    
+    deinit {
+        print("\(name) is deinitialized")
+    }
+}
+
+class Pet {
+    var owner: Person? // 강한 참조로 인한 순환 참조 발생
+    deinit {
+        print("Pet is deinitialized")
+    }
+}
+
+var john: Person? = Person(name: "John")
+var fido: Pet? = Pet()
+
+john?.pet = fido
+fido?.owner = john
+
+john = nil
+fido = nil // 순환 참조로 인해 객체가 해제되지 않음
+```
+
+#### 출력
+
+```
+(출력 없음, 메모리 누수 발생)
+```
+
+#### 해결 방법: 약한 참조(Weak Reference) 사용
+
+```swift
+class Pet {
+    weak var owner: Person? // 약한 참조로 변경
+}
+```
+
+#### 출력 (수정 후)
+
+```
+John is deinitialized
+Pet is deinitialized
+```
+
 
 
 
