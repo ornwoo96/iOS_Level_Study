@@ -2268,17 +2268,246 @@ Codable은 Swift의 프로토콜로, Encodable과 Decodable을 모두 포함하�
 
 ## 6.1 Encodable과 Decodable 프로토콜의 역할은 무엇인가요?
 
+### 1.	Encodable:
+- 객체를 JSON, Property List 등으로 **변환(인코딩)** 하기 위해 사용.
+- JSONEncoder 같은 인코더가 객체를 직렬화(serialization)할 때 사용됩니다.
+
+### 2.	Decodable:
+- JSON, Property List 등을 객체로 **복원(디코딩)** 하기 위해 사용.
+- JSONDecoder 같은 디코더가 데이터를 객체로 역직렬화(deserialization)할 때 사용됩니다.
+
+
 
 <br>
 <br>
 
 ## 6.2 JSON 데이터를 커스텀 객체로 디코딩하는 방법을 설명해주세요.
 
+#### JSON 데이터 예제
+
+```json
+{
+  "name": "Alice",
+  "age": 25,
+  "isDeveloper": true
+}
+```
+
+<br>
+
+#### 모델 정의
+
+```swift
+struct User: Codable {
+    let name: String
+    let age: Int
+    let isDeveloper: Bool
+}
+```
+
+<br>
+
+#### 디코딩 예시
+
+```swift
+let jsonData = """
+{
+    "name": "Alice",
+    "age": 25,
+    "isDeveloper": true
+}
+""".data(using: .utf8)!
+
+do {
+    let user = try JSONDecoder().decode(User.self, from: jsonData)
+    print("Name: \(user.name), Age: \(user.age), Is Developer: \(user.isDeveloper)")
+} catch {
+    print("Decoding failed: \(error)")
+}
+```
+
+<br>
+
+#### 출력
+
+```
+Name: Alice, Age: 25, Is Developer: true
+```
+
 
 <br>
 <br>
 
 ## 6.3 Codable 프로토콜을 채택한 타입에서 인코딩/디코딩 키를 커스터마이징하는 방법은 무엇인가요?
+#### JSON 데이터
+```json
+{
+  "user_name": "Alice",
+  "user_age": 25,
+  "is_developer": true
+}
+```
+
+<br>
+
+#### 모델 정의
+- JSON 키와 Swift 변수명이 다를 경우, CodingKeys 열거형을 사용하여 매핑합니다.
+
+```swift
+struct User: Codable {
+    let name: String
+    let age: Int
+    let isDeveloper: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case name = "user_name"
+        case age = "user_age"
+        case isDeveloper = "is_developer"
+    }
+}
+```
+
+<br>
+
+#### 디코딩 예시
+
+```swift
+let jsonData = """
+{
+    "user_name": "Alice",
+    "user_age": 25,
+    "is_developer": true
+}
+""".data(using: .utf8)!
+
+do {
+    let user = try JSONDecoder().decode(User.self, from: jsonData)
+    print("Name: \(user.name), Age: \(user.age), Is Developer: \(user.isDeveloper)")
+} catch {
+    print("Decoding failed: \(error)")
+}
+```
+
+<br>
+
+#### 출력
+
+```
+Name: Alice, Age: 25, Is Developer: true
+```
+
+<br>
+<br>
+
+## 6.4 인코딩(Encoding) 예시
+
+#### 모델 정의
+
+```swift
+struct User: Codable {
+    let name: String
+    let age: Int
+    let isDeveloper: Bool
+}
+```
+
+<br>
+
+#### JSON 데이터 생성
+
+```swift
+let user = User(name: "Alice", age: 25, isDeveloper: true)
+
+do {
+    let jsonData = try JSONEncoder().encode(user)
+    if let jsonString = String(data: jsonData, encoding: .utf8) {
+        print(jsonString)
+    }
+} catch {
+    print("Encoding failed: \(error)")
+}
+```
+
+<br>
+
+#### 출력
+
+```
+{"name":"Alice","age":25,"isDeveloper":true}
+```
+
+<br>
+
+## 6.5  전략(Key Strategy)
+
+JSONEncoder와 JSONDecoder는 키 변환 전략을 제공합니다.
+
+#### 스네이크 케이스(Snake Case) 변환
+
+```swift
+let decoder = JSONDecoder()
+decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+let encoder = JSONEncoder()
+encoder.keyEncodingStrategy = .convertToSnakeCase
+```
+
+<br>
+
+#### 사용 예시
+
+```swift
+let jsonData = """
+{
+    "user_name": "Alice",
+    "user_age": 25,
+    "is_developer": true
+}
+""".data(using: .utf8)!
+
+struct User: Codable {
+    let userName: String
+    let userAge: Int
+    let isDeveloper: Bool
+}
+
+let decoder = JSONDecoder()
+decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+do {
+    let user = try decoder.decode(User.self, from: jsonData)
+    print("Name: \(user.userName), Age: \(user.userAge), Is Developer: \(user.isDeveloper)")
+} catch {
+    print("Decoding failed: \(error)")
+}
+```
+
+#### 출력
+
+```
+Name: Alice, Age: 25, Is Developer: true
+```
+
+<br>
+
+## 6.6 Codable의 장점과 주의사항
+### 장점
+
+1. 간단한 직렬화/역직렬화: 데이터를 쉽게 JSON이나 다른 포맷으로 변환 가능.
+2. 타입 안정성: 컴파일 타임에 타입 체크를 제공.
+3. 커스터마이징 가능: 키 매핑, 키 전략 등을 활용하여 유연하게 설계 가능.
+
+<br>
+
+### 주의사항
+1. JSON 키와 Swift 변수명 불일치:
+- 반드시 CodingKeys로 매핑 필요.
+2. 복잡한 JSON 구조:
+- 중첩된 JSON은 수동 구현이 필요할 수 있음.
+3. 선택적 데이터 처리:
+- 옵셔널 타입으로 선언하여 누락된 데이터 처리.
+
+Codable은 iOS 개발에서 데이터를 처리할 때 강력하고 간결한 API를 제공합니다. 이를 통해 JSON 같은 데이터 포맷을 쉽게 변환하고, 유지보수성이 높은 코드를 작성할 수 있습니다.
 
 
 <br>
