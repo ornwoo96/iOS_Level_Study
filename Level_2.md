@@ -2759,12 +2759,127 @@ worker.doWork()
 <br>
 
 ## 8.2 클로저의 캡처 리스트(Capture List)는 어떤 역할을 하나요?
+### 정의
 
+클로저가 외부 변수 또는 객체를 캡처할 때, 캡처된 객체가 강한 참조로 인해 메모리 누수가 발생하지 않도록 관리하는 리스트입니다.
+
+### 사용 방법
+- [weak self] 또는 [unowned self]를 사용하여 캡처된 객체의 참조를 제어.
+
+#### 코드 예시
+
+```swift
+class Example {
+    var value: String = "Hello"
+    
+    func performTask() {
+        // 캡처 리스트 사용
+        let closure = { [weak self] in
+            guard let self = self else { return }
+            print(self.value)
+        }
+        closure()
+    }
+}
+
+var example: Example? = Example()
+example?.performTask() // 출력: Hello
+example = nil
+```
+
+<br>
+
+### 주요 역할
+#### 1. 메모리 관리:
+- 클로저 내부에서 객체가 해제되지 않는 문제를 방지.
+#### 2.	참조 방식 선택:
+- weak: 옵셔널로 참조하며, 참조 대상이 해제되면 nil.
+- unowned: 비옵셔널로 참조하며, 해제된 객체를 참조하면 런타임 에러 발생.
 
 <br>
 <br>
 
 ## 8.3 델리게이션 패턴과 클로저를 함께 사용하는 경우의 장단점은 무엇인가요?
+### 장점
+#### 1.	유연성:
+- 델리게이션 패턴은 반복적인 작업 위임에 적합.
+- 클로저는 특정 작업을 직접 정의하여 간결한 구현 가능.
+#### 2.	명확한 책임 분리:
+- 델리게이션으로 큰 작업 구조를 분리하고, 클로저로 세부 동작 정의.
+
+<br>
+
+### 단점
+#### 1.	복잡성 증가:
+- 델리게이션과 클로저가 함께 사용되면 코드가 복잡해질 수 있음.
+#### 2.	순환 참조 관리:
+- 두 메커니즘 모두 메모리 관리를 신경 써야 함.
+
+<br>
+
+
+#### 예시 코드
+
+```swift
+protocol TaskDelegate: AnyObject {
+    func taskDidStart()
+    func taskDidComplete()
+}
+
+class Worker {
+    weak var delegate: TaskDelegate?
+    var onProgress: ((Double) -> Void)? // 클로저를 사용하여 진행 상황 전달
+
+    func doWork() {
+        delegate?.taskDidStart()
+        
+        for i in 1...100 {
+            if i % 20 == 0 {
+                onProgress?(Double(i) / 100.0)
+            }
+        }
+        
+        delegate?.taskDidComplete()
+    }
+}
+
+class Manager: TaskDelegate {
+    func taskDidStart() {
+        print("Task started.")
+    }
+    
+    func taskDidComplete() {
+        print("Task completed.")
+    }
+}
+
+// 사용
+let worker = Worker()
+let manager = Manager()
+
+worker.delegate = manager
+worker.onProgress = { progress in
+    print("Progress: \(progress * 100)%")
+}
+
+worker.doWork()
+// 출력:
+// Task started.
+// Progress: 20.0%
+// Progress: 40.0%
+// Progress: 60.0%
+// Progress: 80.0%
+// Progress: 100.0%
+// Task completed.
+```
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/584093b4-5057-4287-b4e5-727694da820b">
+
+델리게이션 패턴과 클로저는 서로 보완적인 관계로, 적절한 상황에서 혼합하여 사용하면 더욱 강력한 코드 설계가 가능합니다.
 
 
 
