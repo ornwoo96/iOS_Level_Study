@@ -2522,6 +2522,116 @@ Codable은 iOS 개발에서 데이터를 처리할 때 강력하고 간결한 AP
 
 ## 7.1 의존성 주입의 세 가지 유형(Initializer Injection, Property Injection, Method Injection)을 설명해주세요.
 
+### 1. Initializer Injection
+
+- 의존성을 생성자의 파라미터로 전달받는 방식입니다.
+- 객체 초기화 시 반드시 필요한 의존성을 보장합니다.
+
+#### 예시 코드
+
+```swift
+class NetworkService {
+    func fetchData() {
+        print("Fetching data...")
+    }
+}
+
+class ViewModel {
+    private let networkService: NetworkService
+
+    // 생성자를 통해 의존성을 주입
+    init(networkService: NetworkService) {
+        self.networkService = networkService
+    }
+
+    func loadData() {
+        networkService.fetchData()
+    }
+}
+
+// 사용
+let service = NetworkService()
+let viewModel = ViewModel(networkService: service)
+viewModel.loadData()
+```
+
+<br>
+
+#### 장점:
+- 의존성을 반드시 설정하도록 강제.
+- 불변성을 유지.
+
+<br>
+
+### 2. Property Injection
+- 의존성을 객체의 프로퍼티를 통해 설정하는 방식입니다.
+- 객체 초기화 이후에 의존성을 주입할 수 있습니다.
+
+#### 예시 코드
+
+```swift
+class NetworkService {
+    func fetchData() {
+        print("Fetching data...")
+    }
+}
+
+class ViewModel {
+    var networkService: NetworkService?
+
+    func loadData() {
+        networkService?.fetchData()
+    }
+}
+
+// 사용
+let viewModel = ViewModel()
+viewModel.networkService = NetworkService()
+viewModel.loadData()
+```
+
+<br>
+
+#### 장점:
+- 유연하게 의존성을 설정 가능.
+- 초기화 시점에 의존성을 알 필요 없음.
+
+#### 단점:
+- 의존성이 설정되지 않을 위험 존재.
+
+<br>
+
+### 3. Method Injection
+- 의존성을 메서드의 파라미터로 전달받는 방식입니다.
+- 특정 메서드에서만 필요한 의존성을 주입할 때 사용합니다.
+
+#### 예시 코드
+```swift
+class NetworkService {
+    func fetchData() {
+        print("Fetching data...")
+    }
+}
+
+class ViewModel {
+    func loadData(with networkService: NetworkService) {
+        networkService.fetchData()
+    }
+}
+
+// 사용
+let service = NetworkService()
+let viewModel = ViewModel()
+viewModel.loadData(with: service)
+```
+
+<br>
+
+#### 장점:
+- 메서드 호출 시점에 필요한 의존성을 설정 가능.
+- 의존성이 메서드 내부로 제한되어 명확한 의도를 표현.
+
+
 
 <br>
 <br>
