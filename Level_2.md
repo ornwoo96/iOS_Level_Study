@@ -2637,12 +2637,68 @@ viewModel.loadData(with: service)
 <br>
 
 ## 7.2 의존성 주입 컨테이너(Dependency Injection Container)란 무엇인가요?
+### 정의
 
+의존성 주입 컨테이너는 객체의 생성 및 의존성 관리를 자동화하는 도구입니다. 이를 통해 객체 생성과 의존성 주입을 명확히 분리하여, 복잡한 객체 그래프를 효율적으로 관리할 수 있습니다.
 
-<br>
+#### 예시 코드 
+```swift
+class DependencyContainer {
+    func makeNetworkService() -> NetworkService {
+        return NetworkService()
+    }
+
+    func makeViewModel() -> ViewModel {
+        let networkService = makeNetworkService()
+        return ViewModel(networkService: networkService)
+    }
+}
+
+// 사용
+let container = DependencyContainer()
+let viewModel = container.makeViewModel()
+viewModel.loadData()
+```
+
 <br>
 
 ## 7.3 의존성 주입을 사용함으로써 얻을 수 있는 이점은 무엇인가요?
+
+1. 유연한 설계:
+- 객체 간의 결합도를 낮춰 모듈성을 높입니다.
+- 코드 변경 시 영향을 최소화합니다.
+
+2. 테스트 가능성 향상:
+- 의존성을 쉽게 대체(mock)할 수 있어 단위 테스트 작성이 간단해집니다.
+
+#### 테스트 예시
+
+```swift
+class MockNetworkService: NetworkService {
+    override func fetchData() {
+        print("Mock fetch data")
+    }
+}
+
+// Mock 의존성을 사용하여 ViewModel 테스트
+let mockService = MockNetworkService()
+let viewModel = ViewModel(networkService: mockService)
+viewModel.loadData() // 출력: Mock fetch data
+```
+
+3. 코드 재사용성 증가:
+- 의존성을 분리하여 재사용 가능.
+
+4. 유지보수 용이:
+- 객체 생성과 동작 로직을 분리하여, 코드를 쉽게 이해하고 수정할 수 있습니다.
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/78e02620-57f8-424f-84d1-aa40e1860203">
+
+의존성 주입은 iOS 개발에서 코드의 유연성과 유지보수성을 높이는 중요한 도구이며, 특히 테스트 가능성을 강화하는 데 필수적인 패턴입니다.
 
 <br>
 <br>
@@ -2651,6 +2707,8 @@ viewModel.loadData(with: service)
 - 델리게이션 패턴에서 메모리 누수가 발생할 수 있는 경우와 해결 방법을 설명해주세요.
 - 클로저의 캡처 리스트(Capture List)는 어떤 역할을 하나요?
 - 델리게이션 패턴과 클로저를 함께 사용하는 경우의 장단점은 무엇인가요?
+
+
 
 <br>
 <br>
