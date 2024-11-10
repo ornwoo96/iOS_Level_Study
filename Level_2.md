@@ -1175,13 +1175,488 @@ for shape in shapes {
 
 ## 3.2 프로토콜 컴포지션(Protocol Composition)은 어떤 경우에 사용하나요?
 
+### 정의
+
+프로토콜 컴포지션(Protocol Composition)은 여러 프로토콜을 결합하여, 특정 타입이 다수의 프로토콜을 준수하도록 요구하는 기능입니다. Swift에서 & 연산자를 사용하여 구현되며, 다중 상속의 복잡성을 피하면서도 유연하게 설계할 수 있는 방법을 제공합니다.
+
+<br>
+
+### 프로토콜 컴포지션이 사용되는 경우
+
+#### 1. 타입이 여러 역할을 수행해야 할 때
+- 객체가 다수의 프로토콜을 준수해야 하는 경우, 이를 컴포지션으로 결합하여 설계할 수 있습니다.
+- 예: 날 수 있고, 수영할 수 있는 객체를 설계할 때 Flyable과 Swimmable 프로토콜을 조합.
+
+#### 2. 특정 기능을 조합하여 동작을 제한하고 싶을 때
+- 메서드의 파라미터나 반환 타입을 특정 프로토콜 조합으로 제한할 때 유용.
+
+#### 3. 다중 상속을 대체하고 싶을 때
+- Swift는 클래스의 다중 상속을 지원하지 않으므로, 프로토콜 컴포지션을 사용해 다중 상속과 유사한 동작을 구현.
+
+#### 4. 유연하고 확장 가능한 설계를 구현할 때
+- 객체 지향 설계에서 구성(Composition)을 중시하는 방식으로, 여러 기능을 필요에 따라 조합하여 활용 가능.
+
+<br>
+
+### 코드 예시
+#### 1. 여러 역할을 수행하는 객체
+
+```swift
+protocol Flyable {
+    func fly()
+}
+
+protocol Swimable {
+    func swim()
+}
+
+struct Duck: Flyable, Swimable {
+    func fly() {
+        print("Duck is flying")
+    }
+    
+    func swim() {
+        print("Duck is swimming")
+    }
+}
+
+// 프로토콜 컴포지션 사용
+func performActions(entity: Flyable & Swimable) {
+    entity.fly()
+    entity.swim()
+}
+
+// 사용 예시
+let duck = Duck()
+performActions(entity: duck)
+// 출력:
+// Duck is flying
+// Duck is swimming
+```
+
+#### 설명:
+- Duck은 Flyable과 Swimable을 모두 준수.
+- 함수 performActions는 Flyable & Swimable을 준수하는 객체만 허용.
+
+<br>
+
+#### 2. 특정 기능을 조합하여 동작 제한
+```swift
+protocol Drivable {
+    func drive()
+}
+
+protocol Floatable {
+    func float()
+}
+
+struct AmphibiousCar: Drivable, Floatable {
+    func drive() {
+        print("Driving on land")
+    }
+    
+    func float() {
+        print("Floating on water")
+    }
+}
+
+// 특정 프로토콜 조합을 요구하는 함수
+func operate(vehicle: Drivable & Floatable) {
+    vehicle.drive()
+    vehicle.float()
+}
+
+// 사용 예시
+let car = AmphibiousCar()
+operate(vehicle: car)
+// 출력:
+// Driving on land
+// Floating on water
+```
+
+#### 설명:
+
+- operate 함수는 Drivable와 Floatable을 모두 준수하는 객체만 허용.
+- 프로토콜 컴포지션으로 특정 타입의 동작을 제한.
+
+<br>
+
+#### 3. 파라미터 타입에 대한 제약
+
+```swift
+protocol Identifiable {
+    var id: String { get }
+}
+
+protocol Persistable {
+    func save()
+}
+
+struct User: Identifiable, Persistable {
+    var id: String
+    func save() {
+        print("Saving user with id \(id)")
+    }
+}
+
+func saveEntity(entity: Identifiable & Persistable) {
+    print("Saving entity with id \(entity.id)")
+    entity.save()
+}
+
+// 사용 예시
+let user = User(id: "user123")
+saveEntity(entity: user)
+// 출력:
+// Saving entity with id user123
+// Saving user with id user123
+```
+
+#### 설명:
+- saveEntity 함수는 Identifiable과 Persistable을 모두 준수하는 객체만 처리.
+
+<br>
+
+#### 4. 반환 타입에 대한 제한
+```swift
+protocol Readable {
+    func read() -> String
+}
+
+protocol Writeable {
+    func write(data: String)
+}
+
+struct File: Readable, Writeable {
+    func read() -> String {
+        return "File content"
+    }
+    
+    func write(data: String) {
+        print("Writing data: \(data)")
+    }
+}
+
+// 특정 반환 타입을 요구하는 함수
+func openFile() -> Readable & Writeable {
+    return File()
+}
+
+// 사용 예시
+let file = openFile()
+print(file.read()) // 출력: File content
+file.write(data: "New data") // 출력: Writing data: New data
+```
+
+#### 설명:
+- openFile 함수는 Readable과 Writeable을 모두 준수하는 객체를 반환.
+
+<br>
+
+### 프로토콜 컴포지션의 장점
+
+#### 1.	유연성 증가
+- 객체가 여러 역할을 수행하도록 설계 가능.
+- 특정 프로토콜 조합만 허용하여 타입 안전성 확보.
+#### 2.	다중 상속 대체
+- 클래스의 단일 상속 제한을 극복하고, 다중 상속의 복잡성을 피하면서 기능 확장 가능.
+#### 3.	구성 기반 설계
+- 객체를 역할(프로토콜) 단위로 분리하여, 설계를 더 직관적이고 유지보수 가능하게 만듦.
+
+<br>
+
+### 실무 활용 예시: Delegate 패턴
+iOS 개발에서 Delegate 패턴을 사용할 때 프로토콜 컴포지션을 활용할 수 있습니다.
+
+```swift
+protocol UITableViewDelegate: AnyObject {
+    func didSelectRow(at indexPath: IndexPath)
+}
+
+protocol UITableViewDataSource: AnyObject {
+    func numberOfRows(in section: Int) -> Int
+    func cellForRow(at indexPath: IndexPath) -> UITableViewCell
+}
+
+class TableViewHandler: UITableViewDelegate & UITableViewDataSource {
+    func didSelectRow(at indexPath: IndexPath) {
+        print("Row selected at \(indexPath)")
+    }
+    
+    func numberOfRows(in section: Int) -> Int {
+        return 10
+    }
+    
+    func cellForRow(at indexPath: IndexPath) -> UITableViewCell {
+        return UITableViewCell()
+    }
+}
+```
 
 
+#### 설명:
+
+- TableViewHandler는 UITableViewDelegate와 UITableViewDataSource를 모두 준수.
+- 이를 통해 하나의 객체에서 Delegate와 DataSource 역할을 모두 처리 가능.
+
+<br>
+
+### 정리
+
+<img src="https://github.com/user-attachments/assets/9d3d4be0-c32d-4ebe-8e0f-604389d772c6">
+
+프로토콜 컴포지션은 타입을 더 명확히 정의하고, 역할 기반의 설계를 가능하게 하여 코드의 유지보수성과 유연성을 높이는 데 기여합니다.
 
 <br>
 <br>
 
 ## 3.4 프로토콜과 제네릭(Generic)을 함께 사용하면 어떤 이점이 있나요?
+프로토콜과 제네릭을 결합하면 특정 프로토콜을 준수하는 타입만을 제네릭 타입이나 함수에서 허용할 수 있습니다. 이를 통해 코드의 유연성과 재사용성을 극대화하면서도 타입 안전성을 유지할 수 있습니다.
+
+<br>
+
+### 이점
+
+#### 1. 타입 안전성
+
+- 특정 프로토콜을 준수하는 타입만 허용하여, 런타임 오류를 방지하고 컴파일 타임에 타입 검사를 수행.
+
+#### 2. 재사용성
+
+- 동일한 로직을 여러 타입에 대해 적용 가능하며, 중복 코드 작성 없이 다양한 타입을 처리 가능.
+
+#### 3. 유연성
+
+- 클래스, 구조체, 열거형 모두 프로토콜을 채택할 수 있어, 특정 동작이 필요한 모든 타입을 처리 가능.
+
+#### 4. 가독성과 유지보수성 향상
+
+- 제네릭과 프로토콜을 조합하여 더 명확한 타입 제약 조건을 제공하고, 읽기 쉽고 관리하기 쉬운 코드를 작성.
+
+<br>
+
+### 코드 예시
+#### 1. 특정 프로토콜을 준수하는 타입만 허용
+
+```swift
+protocol Shape {
+    func area() -> Double
+}
+
+struct Rectangle: Shape {
+    var width: Double
+    var height: Double
+    func area() -> Double {
+        return width * height
+    }
+}
+
+struct Circle: Shape {
+    var radius: Double
+    func area() -> Double {
+        return .pi * radius * radius
+    }
+}
+
+func printArea<T: Shape>(_ shape: T) {
+    print("The area is \(shape.area())")
+}
+
+// 사용 예시
+let rectangle = Rectangle(width: 10, height: 5)
+let circle = Circle(radius: 3)
+
+printArea(rectangle) // 출력: The area is 50.0
+printArea(circle)    // 출력: The area is 28.274333882308138
+```
+
+- 이점: Shape를 준수하는 타입만 제네릭 함수에서 허용하여, 타입 안전성과 유연성을 확보.
+
+<br>
+
+#### 2. 제약 조건 추가하기
+
+```swift
+protocol ComparableShape: Shape {
+    func isLarger(than other: Self) -> Bool
+}
+
+struct Square: ComparableShape {
+    var side: Double
+    func area() -> Double {
+        return side * side
+    }
+    func isLarger(than other: Square) -> Bool {
+        return self.area() > other.area()
+    }
+}
+
+func compareShapes<T: ComparableShape>(_ first: T, _ second: T) {
+    if first.isLarger(than: second) {
+        print("First shape is larger")
+    } else {
+        print("Second shape is larger")
+    }
+}
+
+// 사용 예시
+let square1 = Square(side: 5)
+let square2 = Square(side: 3)
+
+compareShapes(square1, square2) // 출력: First shape is larger
+```
+
+- 이점: ComparableShape 프로토콜을 준수하는 타입만을 비교하도록 제한하여 타입 안정성을 유지.
+
+
+<br>
+
+#### 3. 제네릭 타입과 프로토콜 결합
+
+```swift
+protocol Storable {
+    var id: String { get }
+}
+
+struct User: Storable {
+    var id: String
+    var name: String
+}
+
+struct Product: Storable {
+    var id: String
+    var price: Double
+}
+
+struct Storage<T: Storable> {
+    private var items: [T] = []
+    
+    mutating func addItem(_ item: T) {
+        items.append(item)
+    }
+    
+    func getItem(by id: String) -> T? {
+        return items.first { $0.id == id }
+    }
+}
+
+// 사용 예시
+var userStorage = Storage<User>()
+userStorage.addItem(User(id: "1", name: "Alice"))
+
+if let user = userStorage.getItem(by: "1") {
+    print("Found user: \(user.name)") // 출력: Found user: Alice
+}
+
+var productStorage = Storage<Product>()
+productStorage.addItem(Product(id: "101", price: 29.99))
+
+if let product = productStorage.getItem(by: "101") {
+    print("Found product with price: \(product.price)") // 출력: Found product with price: 29.99
+}
+```
+
+- 이점: Storable 프로토콜을 준수하는 타입만 Storage에 저장 가능, 유연하면서도 안전한 데이터 저장소를 구현.
+
+<br>
+
+#### 4. 제네릭 메서드와 프로토콜의 결합
+
+```swift
+protocol Flyable {
+    func fly()
+}
+
+struct Bird: Flyable {
+    func fly() {
+        print("Bird is flying")
+    }
+}
+
+struct Airplane: Flyable {
+    func fly() {
+        print("Airplane is flying")
+    }
+}
+
+func performFlying<T: Flyable>(_ entity: T) {
+    entity.fly()
+}
+
+// 사용 예시
+let bird = Bird()
+let airplane = Airplane()
+
+performFlying(bird)      // 출력: Bird is flying
+performFlying(airplane)  // 출력: Airplane is flying
+```
+
+- 이점: Flyable 프로토콜을 준수하는 모든 타입에 대해 유연한 메서드 호출 가능.
+
+<br>
+
+### 제네릭과 프로토콜 결합의 장점
+<img src="https://github.com/user-attachments/assets/b4e34926-e60b-4de2-aaca-10ed9dc60c48">
+
+<br>
+
+### 실무 활용 예시
+#### 1. 네트워크 요청과 디코딩
+
+```swift
+import Foundation
+
+protocol DecodableModel: Decodable {}
+
+struct User: DecodableModel {
+    let id: Int
+    let name: String
+}
+
+struct Product: DecodableModel {
+    let id: Int
+    let price: Double
+}
+
+func fetch<T: DecodableModel>(from url: String, as type: T.Type, completion: @escaping (T?) -> Void) {
+    guard let url = URL(string: url) else {
+        completion(nil)
+        return
+    }
+    
+    URLSession.shared.dataTask(with: url) { data, _, _ in
+        guard let data = data else {
+            completion(nil)
+            return
+        }
+        
+        let decoded = try? JSONDecoder().decode(T.self, from: data)
+        completion(decoded)
+    }.resume()
+}
+
+// 사용 예시
+fetch(from: "https://example.com/user", as: User.self) { user in
+    if let user = user {
+        print("Fetched user: \(user.name)")
+    }
+}
+```
+
+- 이점: DecodableModel을 준수하는 모델만 허용하여 타입 안전한 네트워크 요청 처리 가능.
+
+<br>
+
+### 정리
+
+#### 프로토콜과 제네릭 결합의 핵심 이점:
+
+1. 타입 안정성과 유연성: 특정 타입 제약을 통해 런타임 오류를 방지.
+2. 재사용성 증가: 공통 로직을 여러 타입에서 쉽게 재사용 가능.
+3. 확장성: 구조체, 열거형, 클래스 모두 지원.
+4. 가독성: 제약 조건을 명확히 하여 코드의 의도를 분명히 표현.
+
+실무에서는 네트워크 요청 처리, 데이터 저장소 설계, UI 컴포넌트 재사용 등 다양한 시나리오에서 활용됩니다.
 
 <br>
 <br>
