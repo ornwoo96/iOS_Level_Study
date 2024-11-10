@@ -3118,30 +3118,195 @@ UITableView는 단순한 리스트, UICollectionView는 복잡한 데이터 표�
 <br>
 
 ## 10.2 각 아키텍처 패턴의 구성 요소와 책임을 설명해주세요.
+### MVC
+- Model: 데이터 및 비즈니스 로직
+- View: UI 요소와 사용자 입력
+- Controller: Model과 View 사이의 중재 역할
+
+<br>
+
+### MVVM
+- Model: 데이터 및 비즈니스 로직
+- View: UI 요소와 사용자 입력
+- ViewModel: Model과 View 사이의 바인딩 및 데이터 처리
+
+<br>
+
+### VIP
+- View: UI와 사용자 입력
+- Interactor: 비즈니스 로직 및 데이터 처리
+- Presenter: View와 Interactor 간의 데이터 전달 및 변환
+
+<br>
+
+### MVI
+- Model: 상태와 데이터를 보유
+- View: UI와 사용자 입력
+- Intent: 사용자 액션 및 상태 업데이트
+
+<br>
+
+### TCA
+- State: 현재 상태
+- Action: 사용자 액션 및 이벤트
+- Reducer: 상태 변화 로직
+- Store: 상태와 액션 관리
 
 
 <br>
 <br>
 
 ## 10.3 MVVM 패턴에서 Binding은 어떤 역할을 하나요?
+### 역할:
+- View와 ViewModel 간의 데이터 동기화를 자동으로 처리합니다.
+- 데이터 변경 시 View가 자동으로 업데이트되고, 사용자 입력도 ViewModel에 전달됩니다.
+  
+<br>
 
+### 장점:
+- 코드 중복 감소
+- UI와 로직 분리로 테스트 용이
+- 예시 (SwiftUI에서의 데이터 바인딩):
+
+#### 예시 (SwiftUI에서의 데이터 바인딩):
+
+```swift
+class ViewModel: ObservableObject {
+    @Published var text = "Hello, MVVM!"
+}
+
+struct ContentView: View {
+    @StateObject var viewModel = ViewModel()
+
+    var body: some View {
+        Text(viewModel.text)
+        Button("Update Text") {
+            viewModel.text = "Updated Text!"
+        }
+    }
+}
+```
 
 <br>
 <br>
 
 ## 10.4 VIP 패턴에서 Presenter의 역할은 무엇인가요?
+### 역할:
+- Interactor로부터 받은 데이터를 View에서 표시할 수 있는 형식으로 변환.
+- View와 Interactor 간의 직접적인 결합을 방지.
 
+#### 예시:
+
+```swift
+protocol PresenterProtocol {
+    func presentData(response: String) -> String
+}
+
+class Presenter: PresenterProtocol {
+    func presentData(response: String) -> String {
+        return "Formatted: \(response)"
+    }
+}
+```
 
 <br>
 <br>
 
 ## 10.5 MVI 패턴에서 Intent의 역할은 무엇인가요?
+### 역할:
+- 사용자 액션과 상태 변경 요청을 처리.
+- 모든 사용자 이벤트를 Intent로 변환하여 처리.
+
+
+#### 예시:
+```swift
+// Model
+struct CounterState {
+    var count: Int = 0
+}
+
+// Intent
+enum CounterIntent {
+    case increment
+}
+
+// ViewModel
+class CounterViewModel {
+    private var state = CounterState()
+    var updateView: ((CounterState) -> Void)?
+
+    func processIntent(_ intent: CounterIntent) {
+        switch intent {
+        case .increment:
+            state.count += 1
+            updateView?(state)
+        }
+    }
+}
+
+// View
+class CounterViewController {
+    var viewModel = CounterViewModel()
+
+    init() {
+        viewModel.updateView = { [weak self] state in
+            // 업데이트 된 상태를 화면에 표시
+        }
+    }
+
+    @IBAction func incrementButtonTapped(_ sender: Any) {
+        viewModel.processIntent(.increment)
+    }
+}
+```
 
 
 <br>
 <br>
 
 ## 10.6 TCA 란 무엇인가요?
+### TCA (The Composable Architecture):
+- 상태 관리와 비즈니스 로직을 명확히 정의하여, 재사용 가능하고 테스트 가능한 앱 아키텍처를 제공.
+
+<br>
+
+### 구성 요소:
+- State: 앱의 상태
+- Action: 상태를 변경시키는 이벤트
+- Reducer: 액션을 기반으로 상태를 변경하는 로직
+- Store: 상태와 액션을 관리하는 컨테이너
+
+<br>
+
+#### 예시:
+
+```swift
+struct AppState: Equatable {
+    var count = 0
+}
+
+enum AppAction: Equatable {
+    case increment
+}
+
+let appReducer = Reducer<AppState, AppAction, Void> { state, action, _ in
+    switch action {
+    case .increment:
+        state.count += 1
+        return .none
+    }
+}
+
+let store = Store(initialState: AppState(), reducer: appReducer, environment: ())
+
+store.send(.increment)
+```
+
+### 장점:
+- 상태 관리 명확성
+- 테스트 용이성
+- 기능의 모듈화 및 재사용 가능성
+
 
 <br>
 <br>
