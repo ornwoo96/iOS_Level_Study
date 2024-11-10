@@ -1661,6 +1661,255 @@ fetch(from: "https://example.com/user", as: User.self) { user in
 <br>
 <br>
 
+## 3.3 Swift에서 is와 as - 타입 캐스팅 (Type Casting)
+**타입 캐스팅(Type Casting)**은 객체의 타입을 확인하거나 변환하는 방법입니다. Swift는 타입 캐스팅을 위해 is와 as 키워드를 제공합니다.
+
+<br>
+
+### 1. is 키워드
+- 역할: 객체가 특정 타입인지 확인할 때 사용.
+- 리턴 값: Boolean (true 또는 false).
+
+#### 사용 예시
+
+```swift
+class Animal {}
+class Dog: Animal {}
+class Cat: Animal {}
+
+let myPet: Animal = Dog()
+
+// 타입 확인
+if myPet is Dog {
+    print("This is a Dog")
+} else if myPet is Cat {
+    print("This is a Cat")
+} else {
+    print("Unknown animal")
+}
+
+// 출력: This is a Dog
+```
+
+#### 설명:
+- is는 객체가 특정 타입(Dog)인지 검사.
+- 결과는 true 또는 false로 반환.
+
+<br>
+
+### 2. as 키워드
+- 역할: 객체를 특정 타입으로 변환할 때 사용.
+- 종류:
+1.	as? (조건부 캐스팅, Optional):
+    - 캐스팅이 성공하면 옵셔널 값 반환, 실패하면 nil 반환.
+2.	as! (강제 캐스팅, Forced):
+	- 캐스팅이 실패하면 런타임 에러 발생.
+
+<br>
+
+#### 2.1 as? (조건부 캐스팅)
+
+```swift
+let myPet: Animal = Dog()
+
+// 조건부 캐스팅
+if let dog = myPet as? Dog {
+    print("This is a Dog")
+} else {
+    print("This is not a Dog")
+}
+
+// 출력: This is a Dog
+```
+#### 설명:
+- as?는 캐스팅이 실패하면 nil을 반환하므로 안전하게 사용 가능.
+- 옵셔널 바인딩(if let)과 함께 사용하여 캐스팅 여부를 확인.
+
+<br>
+
+#### 2.2 as! (강제 캐스팅)
+
+```swift
+let myPet: Animal = Dog()
+
+// 강제 캐스팅
+let dog = myPet as! Dog
+print("This is definitely a Dog")
+
+// 출력: This is definitely a Dog
+```
+
+#### 설명:
+- 캐스팅이 실패하면 런타임 에러 발생.
+- 타입이 확실하다고 판단되는 경우에만 사용.
+
+<br>
+
+#### 2.3 업캐스팅 (Upcasting)
+- 역할: 서브클래스를 부모 클래스 또는 프로토콜 타입으로 캐스팅.
+- 자동 수행: 명시적인 as 키워드 필요 없음.
+
+```swift
+class Animal {}
+class Dog: Animal {}
+
+let dog = Dog()
+let animal: Animal = dog // 업캐스팅 (명시적 `as` 생략 가능)
+
+print("Upcasted to Animal")
+```
+
+- 설명:
+    - 업캐스팅은 항상 안전하므로 명시적인 as 키워드가 필요하지 않음.
+ 
+<br>
+
+#### 2.4 다운캐스팅 (Downcasting)
+- 역할: 부모 클래스를 서브클래스로 캐스팅.
+- 수동 수행: 반드시 as? 또는 as! 키워드 필요.
+
+```swift
+let animal: Animal = Dog()
+
+// 조건부 다운캐스팅
+if let dog = animal as? Dog {
+    print("This is a Dog")
+} else {
+    print("This is not a Dog")
+}
+
+// 강제 다운캐스팅
+let dog = animal as! Dog
+print("This is definitely a Dog")
+```
+
+<br>
+
+### 3. 사용 사례
+
+#### 3.1 프로토콜 타입 확인
+
+```swift
+protocol Pet {
+    var name: String { get }
+}
+
+class Dog: Pet {
+    var name: String
+    init(name: String) { self.name = name }
+}
+
+class Cat: Pet {
+    var name: String
+    init(name: String) { self.name = name }
+}
+
+let pets: [Pet] = [Dog(name: "Buddy"), Cat(name: "Mittens")]
+
+for pet in pets {
+    if let dog = pet as? Dog {
+        print("Dog's name is \(dog.name)")
+    } else if let cat = pet as? Cat {
+        print("Cat's name is \(cat.name)")
+    }
+}
+
+// 출력:
+// Dog's name is Buddy
+// Cat's name is Mittens
+```
+
+<br>
+
+#### 3.2 프로토콜 준수 여부 확인
+
+```swift
+protocol Flyable {
+    func fly()
+}
+
+class Bird: Flyable {
+    func fly() {
+        print("Bird is flying")
+    }
+}
+
+class Fish {}
+
+let bird = Bird()
+let fish = Fish()
+
+print(bird is Flyable) // 출력: true
+print(fish is Flyable) // 출력: false
+```
+
+<br>
+
+#### 3.3 제네릭과 함께 사용
+
+```swift
+protocol Shape {
+    func area() -> Double
+}
+
+class Circle: Shape {
+    var radius: Double
+    init(radius: Double) { self.radius = radius }
+    func area() -> Double {
+        return .pi * radius * radius
+    }
+}
+
+class Rectangle: Shape {
+    var width: Double
+    var height: Double
+    init(width: Double, height: Double) {
+        self.width = width
+        self.height = height
+    }
+    func area() -> Double {
+        return width * height
+    }
+}
+
+func printShapeArea(_ shape: Shape) {
+    if let circle = shape as? Circle {
+        print("Circle area: \(circle.area())")
+    } else if let rectangle = shape as? Rectangle {
+        print("Rectangle area: \(rectangle.area())")
+    }
+}
+
+let circle = Circle(radius: 5)
+let rectangle = Rectangle(width: 10, height: 5)
+
+printShapeArea(circle)    // 출력: Circle area: 78.53981633974483
+printShapeArea(rectangle) // 출력: Rectangle area: 50.0
+```
+
+<br>
+
+### 주의 사항
+
+#### 1.	as! 강제 캐스팅은 신중하게 사용:
+- 실패 시 앱이 크래시하므로, 반드시 타입이 확실할 때만 사용.
+- 가능하면 as?와 옵셔널 바인딩(if let)을 사용.
+#### 2.	타입 확인은 런타임 비용이 발생:
+- is와 as?는 런타임에 타입을 확인하므로, 빈번한 타입 캐스팅은 성능에 영향을 줄 수 있음.
+#### 3.	업캐스팅은 필요하면 사용:
+- 대부분의 경우 자동으로 수행되므로 명시적으로 작성하지 않아도 됨.
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/c3febb07-94a8-419b-b429-f36b1eb74db5">
+
+is와 as는 타입 검사와 타입 변환을 위해 필수적으로 사용되며, Swift의 타입 시스템에서 강력한 도구로 활용됩니다.
+
+<br>
+<br>
+
 ## 4. iOS 앱의 메모리 관리는 어떻게 이루어지나요?
 - ARC(Automatic Reference Counting)의 동작 원리를 설명해주세요.
 - 강한 참조(Strong Reference)와 약한 참조(Weak Reference)의 차이점은 무엇인가요?
