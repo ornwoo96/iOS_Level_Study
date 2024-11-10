@@ -1911,10 +1911,76 @@ is와 as는 타입 검사와 타입 변환을 위해 필수적으로 사용되�
 <br>
 
 ## 4. iOS 앱의 메모리 관리는 어떻게 이루어지나요?
-- ARC(Automatic Reference Counting)의 동작 원리를 설명해주세요.
-- 강한 참조(Strong Reference)와 약한 참조(Weak Reference)의 차이점은 무엇인가요?
-- 순환 참조(Retain Cycle)가 발생하는 경우와 해결 방법을 설명해주세요.
-- 강한 참조, 약한 참조, 미소유 참조의 차이점을 설명해주세요.
+iOS는 앱의 메모리를 관리하기 위해 **ARC(Automatic Reference Counting)** 를 사용합니다. ARC는 객체의 **참조 카운트(Reference Count)** 를 추적하여, 더 이상 사용되지 않는 객체를 자동으로 메모리에서 해제합니다. 아래는 ARC의 동작 원리와 메모리 관리를 효율적으로 하기 위한 다양한 참조 방식에 대한 설명입니다.
+
+<br>
+<br>
+
+## 4.1 ARC(Automatic Reference Counting)의 동작 원리를 설명해주세요.
+1. 객체가 생성되면 참조 카운트가 1로 설정됩니다.
+2. 새로운 변수가 해당 객체를 참조하면 참조 카운트가 증가합니다.
+3. 참조가 제거되면 참조 카운트가 감소합니다.
+4. 참조 카운트가 0이 되면 객체는 메모리에서 해제됩니다.
+
+#### 코드 예시
+
+```swift
+class Person {
+    let name: String
+    
+    init(name: String) {
+        self.name = name
+        print("\(name) is initialized")
+    }
+    
+    deinit {
+        print("\(name) is deinitialized")
+    }
+}
+
+// 객체 생성 및 참조
+var person1: Person? = Person(name: "Alice") // 참조 카운트: 1
+var person2: Person? = person1               // 참조 카운트: 2
+
+person1 = nil                                // 참조 카운트: 1
+person2 = nil                                // 참조 카운트: 0, 메모리 해제
+```
+
+#### 출력
+
+```swift
+Alice is initialized
+Alice is deinitialized
+```
+
+<br>
+
+
+
+
+
+<br>
+<br>
+
+## 4.2 강한 참조(Strong Reference)와 약한 참조(Weak Reference)의 차이점은 무엇인가요?
+
+
+
+<br>
+<br>
+
+## 4.3 순환 참조(Retain Cycle)가 발생하는 경우와 해결 방법을 설명해주세요.
+
+
+
+
+<br>
+<br>
+
+## 4.4 강한 참조, 약한 참조, 미소유 참조의 차이점을 설명해주세요.
+
+
+
 
 <br>
 <br>
