@@ -2111,9 +2111,151 @@ ARC는 Swift의 강력한 메모리 관리 도구지만, 참조 타입 설계와
 <br>
 
 ## 5. Swift의 문자열(String) 다루기와 관련된 주요 기능은 무엇이 있나요?
-- 서브스트링(Substring)과 문자열의 차이점은 무엇인가요?
-- 문자열 보간법(String Interpolation)을 사용하는 방법과 주의 사항을 설명해주세요.
-- 정규식(Regular Expression)을 사용하여 문자열을 다루는 방법을 설명해주세요.
+- Swift의 문자열은 강력하고 효율적인 API를 제공합니다.
+- 문자열 처리에 있어 서브스트링, 문자열 보간법, 정규식과 같은 기능은 실무에서 자주 사용됩니다. 아래 각 기능의 특징과 사용법을 설명합니다.
+
+
+<br>
+<br>
+
+## 5.1 서브스트링(Substring)과 문자열의 차이점은 무엇인가요?
+### 차이점
+
+#### 1.	메모리 공유:
+- Substring은 원래 문자열의 메모리를 공유합니다. 새로운 메모리를 할당하지 않으므로 효율적입니다.
+- 하지만 오랜 기간 사용해야 할 경우 Substring을 String으로 변환해야 합니다.
+
+#### 2.	사용 목적:
+- Substring은 문자열의 특정 부분을 임시로 다룰 때 사용합니다.
+- String은 독립적으로 저장하고 사용할 때 사용합니다.
+
+#### 코드 예시
+```swift
+let fullString = "Hello, World!"
+let substring = fullString.prefix(5) // "Hello"
+
+// Substring 사용
+print(substring) // 출력: Hello
+
+// Substring을 String으로 변환
+let newString = String(substring)
+print(newString) // 출력: Hello
+```
+
+<br>
+
+### 주의 사항
+- Substring을 장기간 유지하면 원래 문자열의 메모리를 계속 점유하게 됩니다. 이 경우 **String(substring)** 으로 변환하여 독립적인 메모리 공간을 할당해야 합니다.
+
+<br>
+<br>
+
+## 5.2 문자열 보간법(String Interpolation)을 사용하는 방법과 주의 사항을 설명해주세요.
+### 정의
+- 문자열 보간법은 문자열 안에 변수 또는 표현식의 값을 삽입하는 방식입니다.
+- Swift는 \(expression) 구문을 통해 값을 문자열에 포함할 수 있습니다.
+
+#### 코드 예시
+
+```swift
+let name = "Alice"
+let age = 25
+
+let message = "My name is \(name) and I am \(age) years old."
+print(message) // 출력: My name is Alice and I am 25 years old.
+
+// 계산식도 삽입 가능
+let sumMessage = "The sum of 3 and 5 is \(3 + 5)."
+print(sumMessage) // 출력: The sum of 3 and 5 is 8.
+```
+
+### 주의 사항
+1. 복잡한 표현식:
+	- 복잡한 계산이나 조건문을 보간법에 직접 사용하지 말고, 가독성을 위해 별도 변수에 저장 후 삽입합니다.
+2. 성능:
+	- 보간법은 효율적이지만, 과도하게 사용하면 문자열 연산이 복잡해질 수 있습니다.
+
+<br>
+<br>
+
+## 5.3 정규식(Regular Expression)을 사용하여 문자열을 다루는 방법을 설명해주세요.
+
+[정규표현식 (Regex) 정리](https://hamait.tistory.com/342)
+
+### 정의
+- 정규식은 패턴 매칭을 통해 문자열 검색, 수정, 검증 등의 작업을 수행하는 데 사용됩니다.
+- Swift는 iOS 16 이상에서 Regex API를 제공합니다.
+- 이전 버전에서는 NSRegularExpression을 사용합니다.
+
+#### Swift의 Regex API (iOS 16 이상)
+```swift
+let text = "apple, banana, cherry"
+
+// 정규식 패턴 정의
+let pattern = #"\b\w{6}\b"#
+
+// 정규식 매칭
+if let match = text.firstMatch(of: try! Regex(pattern)) {
+    print("Matched word: \(match.0)") // 출력: banana
+}
+```
+
+#### NSRegularExpression (iOS 16 미만)
+
+```swift
+import Foundation
+
+let text = "apple, banana, cherry"
+
+// 정규식 생성
+let pattern = "\\b\\w{6}\\b" // 6글자로 이루어진 단어
+let regex = try! NSRegularExpression(pattern: pattern)
+
+// 정규식 매칭
+let range = NSRange(location: 0, length: text.utf16.count)
+if let match = regex.firstMatch(in: text, options: [], range: range) {
+    let matchRange = match.range
+    let startIndex = text.index(text.startIndex, offsetBy: matchRange.location)
+    let endIndex = text.index(startIndex, offsetBy: matchRange.length)
+    let matchedString = String(text[startIndex..<endIndex])
+    print("Matched word: \(matchedString)") // 출력: banana
+}
+```
+
+<br>
+
+### 정규식 활용 예시
+
+#### 1.	이메일 검증:
+
+```swift
+let email = "example@test.com"
+let emailPattern = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+
+if email.range(of: emailPattern, options: .regularExpression) != nil {
+    print("Valid email")
+} else {
+    print("Invalid email")
+}
+```
+
+<br>
+
+#### 2.	특정 문자 치환:
+
+```swift
+var text = "Hello 12345 World"
+text = text.replacingOccurrences(of: "\\d", with: "#", options: .regularExpression)
+print(text) // 출력: Hello ##### World
+```
+
+<br>
+
+### 요약
+<img src="https://github.com/user-attachments/assets/bae81070-9e58-46f0-9438-d043441d46dc">
+
+Swift의 문자열 처리 기능은 강력하고 효율적입니다. 적절한 기능을 활용하여 복잡한 문자열 작업도 간결하게 처리할 수 있습니다
+
 
 <br>
 <br>
