@@ -2514,9 +2514,25 @@ Codable은 iOS 개발에서 데이터를 처리할 때 강력하고 간결한 AP
 <br>
 
 ## 7. iOS 앱에서 의존성 주입(Dependency Injection)은 어떤 목적으로 사용되나요?
-- 의존성 주입의 세 가지 유형(Initializer Injection, Property Injection, Method Injection)을 설명해주세요.
-- 의존성 주입 컨테이너(Dependency Injection Container)란 무엇인가요?
-- 의존성 주입을 사용함으로써 얻을 수 있는 이점은 무엇인가요?
+
+의존성 주입은 객체 간의 강한 결합도를 줄이고 테스트 가능성을 높이는 디자인 패턴입니다. 객체가 내부에서 직접 의존성을 생성하지 않고, 외부에서 주입받도록 설계합니다. 이를 통해 코드 재사용성과 유지보수성을 높이고, 테스트를 용이하게 만듭니다.
+
+<br>
+<br>
+
+## 7.1 의존성 주입의 세 가지 유형(Initializer Injection, Property Injection, Method Injection)을 설명해주세요.
+
+
+<br>
+<br>
+
+## 7.2 의존성 주입 컨테이너(Dependency Injection Container)란 무엇인가요?
+
+
+<br>
+<br>
+
+## 7.3 의존성 주입을 사용함으로써 얻을 수 있는 이점은 무엇인가요?
 
 <br>
 <br>
