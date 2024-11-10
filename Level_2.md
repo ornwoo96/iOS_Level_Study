@@ -2704,9 +2704,67 @@ viewModel.loadData() // 출력: Mock fetch data
 <br>
 
 ## 8. 델리게이션 패턴(Delegation Pattern)과 클로저의 차이점은 무엇인가요?
-- 델리게이션 패턴에서 메모리 누수가 발생할 수 있는 경우와 해결 방법을 설명해주세요.
-- 클로저의 캡처 리스트(Capture List)는 어떤 역할을 하나요?
-- 델리게이션 패턴과 클로저를 함께 사용하는 경우의 장단점은 무엇인가요?
+
+<img src="https://github.com/user-attachments/assets/00d7b5a0-9404-4551-b3ce-f1e7b91825a2">
+
+<br>
+<br>
+
+## 8.1 델리게이션 패턴에서 메모리 누수가 발생할 수 있는 경우와 해결 방법을 설명해주세요.
+
+### 메모리 누수 발생 조건
+#### 순환 참조(Retain Cycle):
+- 델리게이트 객체가 delegate 프로퍼티를 강한 참조로 보유하고 있는 경우 발생.
+- 강한 참조로 인해 객체가 해제되지 않고 메모리에 남아 있음.
+
+<br>
+
+### 해결 방법: 약한 참조 사용
+
+델리게이트 프로퍼티를 **weak** 으로 선언하여 강한 참조를 방지합니다.
+
+#### 예시 코드
+
+```swift
+protocol TaskDelegate: AnyObject {
+    func taskDidComplete()
+}
+
+class Worker {
+    weak var delegate: TaskDelegate? // 약한 참조로 선언
+    func doWork() {
+        print("Working...")
+        delegate?.taskDidComplete()
+    }
+}
+
+class Manager: TaskDelegate {
+    func taskDidComplete() {
+        print("Task is complete.")
+    }
+}
+
+let worker = Worker()
+let manager = Manager()
+
+worker.delegate = manager
+worker.doWork()
+// 출력:
+// Working...
+// Task is complete.
+```
+
+
+<br>
+<br>
+
+## 8.2 클로저의 캡처 리스트(Capture List)는 어떤 역할을 하나요?
+
+
+<br>
+<br>
+
+## 8.3 델리게이션 패턴과 클로저를 함께 사용하는 경우의 장단점은 무엇인가요?
 
 
 
