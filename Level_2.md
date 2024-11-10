@@ -2887,19 +2887,250 @@ worker.doWork()
 <br>
 
 ## 9. UIKit에서 테이블 뷰(UITableView)와 컬렉션 뷰(UICollectionView)의 차이점은 무엇인가요?
-- 테이블 뷰와 컬렉션 뷰에서 셀을 재사용하는 이유와 방법을 설명해주세요.
-- 테이블 뷰와 컬렉션 뷰의 데이터 소스(Data Source)와 델리게이트(Delegate)의 역할은 무엇인가요?
-- 컬렉션 뷰에서 사용할 수 있는 레이아웃(Layout)의 종류와 특징을 설명해주세요.
+
+
+### 테이블 뷰(UITableView)
+- 구조: 단일 열(Column) 레이아웃.
+- 용도: 리스트 형태의 데이터를 표시.
+- 스크롤 방향: 수직 방향(Vertical) 스크롤만 지원.
+- 레이아웃: 제한적(단순한 리스트).
+- 예제: 연락처 목록, 설정 메뉴 등.
+
+### 컬렉션 뷰(UICollectionView)
+- 구조: 여러 열 및 행의 레이아웃 지원.
+- 용도: 더 복잡한 데이터 표현(그리드, 카드 뷰 등).
+- 스크롤 방향: 수직(Vertical) 및 수평(Horizontal) 스크롤 모두 지원.
+- 레이아웃: 커스터마이징 가능. FlowLayout이나 Compositional Layout 사용.
+- 예제: 사진 갤러리, 앱 스토어의 카드 레이아웃 등.
+
+<img src="https://github.com/user-attachments/assets/52a1b1ee-8e46-4fd2-9a88-db67a05e8685">
+
+
+<br>
+<br>
+
+## 9.1 테이블 뷰와 컬렉션 뷰에서 셀을 재사용하는 이유와 방법을 설명해주세요.
+
+
+### 셀 재사용의 이유
+1. 성능 최적화:
+	- 스크롤 시 새 셀을 생성하는 대신 기존 셀을 재사용하여 메모리와 성능을 절약.
+2. 메모리 관리:
+	- 화면에 표시되지 않는 셀은 메모리에서 해제되므로 메모리 사용량을 줄임.
+
+<br>
+
+
+### 재사용 방법
+
+#### UITableView
+- dequeueReusableCell(withIdentifier:)를 사용해 셀을 재사용 큐에서 가져옴.
+
+```swift
+let tableView = UITableView()
+
+tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+
+func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+    cell.textLabel?.text = "Row \(indexPath.row)"
+    return cell
+}
+```
+
+<br>
+
+#### UICollectionView
+- dequeueReusableCell(withReuseIdentifier:)를 사용해 셀을 재사용 큐에서 가져옴.
+
+```swift
+let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+
+collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "Cell")
+
+func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
+    cell.backgroundColor = .blue
+    return cell
+}
+```
+
+
+<br>
+<br>
+
+## 9.2 테이블 뷰와 컬렉션 뷰의 데이터 소스(Data Source)와 델리게이트(Delegate)의 역할은 무엇인가요?
+### UITableView와 UICollectionView 공통점
+#### 1.	데이터 소스(Data Source):
+- 데이터와 뷰를 연결하는 역할.
+- 필수 메서드:
+- numberOfSections: 섹션 수 반환.
+- numberOfRowsInSection 또는 numberOfItemsInSection: 섹션당 항목 수 반환.
+- cellForRowAt 또는 cellForItemAt: 셀의 콘텐츠 설정.
+  
+#### 2.	델리게이트(Delegate):
+- 사용자 이벤트 및 셀의 동작을 관리.
+- 선택적 메서드:
+- didSelectRowAt 또는 didSelectItemAt: 셀 선택 시 동작 정의.
+- heightForRowAt: 셀 높이 조정(UITableView 전용).
+
+<br>
+
+#### 코드 예시
+
+#### UITableView
+
+```swift
+// MARK: - UITableViewDataSource
+extension MyViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 10 // 10개의 행
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        cell.textLabel?.text = "Row \(indexPath.row)"
+        return cell
+    }
+}
+
+// MARK: - UITableViewDelegate
+extension MyViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print("Selected row: \(indexPath.row)")
+    }
+}
+```
+
+<br>
+
+#### UICollectionView
+
+```swift
+// MARK: - UICollectionViewDataSource
+extension MyCollectionViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 20 // 20개의 아이템
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
+        cell.backgroundColor = .blue
+        return cell
+    }
+}
+
+// MARK: - UICollectionViewDelegate
+extension MyCollectionViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        print("Selected item: \(indexPath.item)")
+    }
+}
+```
+
+
+<br>
+<br>
+
+## 9.3 컬렉션 뷰에서 사용할 수 있는 레이아웃(Layout)의 종류와 특징을 설명해주세요.
+
+### 1. UICollectionViewFlowLayout
+
+- 기본 레이아웃:
+	- 아이템을 그리드 형식으로 배치.
+	- 간격 및 방향 조정 가능.
+- 특징:
+	- 구현이 단순하며, 기본적인 레이아웃 작업에 적합.
+
+#### 코드 예시
+
+```swift
+let layout = UICollectionViewFlowLayout()
+layout.itemSize = CGSize(width: 100, height: 100)
+layout.minimumLineSpacing = 10
+layout.minimumInteritemSpacing = 10
+layout.scrollDirection = .vertical
+
+let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+```
+
+<br>
+
+### 2. UICollectionViewCompositionalLayout
+- 복잡한 레이아웃:
+	- 다양한 섹션과 아이템 크기를 동적으로 설정 가능.
+- 특징:
+	- 매우 유연하며, 다단형 레이아웃, 그리드, 카드 형식 등에 적합.
+
+#### 코드 예시
+
+```swift
+let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.3),
+                                      heightDimension: .fractionalHeight(1.0))
+let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                       heightDimension: .fractionalHeight(0.2))
+let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+let section = NSCollectionLayoutSection(group: group)
+let layout = UICollectionViewCompositionalLayout(section: section)
+
+let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+```
+
+<br>
+
+3. 커스텀 레이아웃(Custom Layout)
+
+- 직접 레이아웃 정의:
+	- UICollectionViewLayout을 상속받아 구현.
+- 특징:
+	- 매우 복잡한 레이아웃을 원하는 경우 사용.
+
+<br>
+
+### 요약
+
+<img src="https://github.com/user-attachments/assets/b468502c-c24c-488f-94cb-1db02cb47655">
+
+UITableView는 단순한 리스트, UICollectionView는 복잡한 데이터 표현에 적합합니다. 컬렉션 뷰는 더 유연한 레이아웃과 구성 옵션을 제공합니다.
 
 <br>
 <br>
 
 ## 10. iOS 앱 아키텍처 패턴 중 MVC, MVVM, VIP, MVI의 차이점은 무엇인가요?
-- MVC의 장점은 무엇인가요?
-- 각 아키텍처 패턴의 구성 요소와 책임을 설명해주세요.
-- MVVM 패턴에서 Binding은 어떤 역할을 하나요?
-- VIP 패턴에서 Presenter의 역할은 무엇인가요?
-- MVI 패턴에서 Intent의 역할은 무엇인가요?
+
+
+<br>
+<br>
+
+## 10.1 MVC의 장점은 무엇인가요?
+
+
+<br>
+<br>
+
+## 10.2 각 아키텍처 패턴의 구성 요소와 책임을 설명해주세요.
+
+
+<br>
+<br>
+
+## 10.3 MVVM 패턴에서 Binding은 어떤 역할을 하나요?
+
+
+<br>
+<br>
+
+## 10.4 VIP 패턴에서 Presenter의 역할은 무엇인가요?
+
+
+<br>
+<br>
+
+## 10.5 MVI 패턴에서 Intent의 역할은 무엇인가요?
+
 
 <br>
 <br>
