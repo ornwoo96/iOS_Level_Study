@@ -3099,7 +3099,8 @@ UITableView는 단순한 리스트, UICollectionView는 복잡한 데이터 표�
 <br>
 <br>
 
-## 10. iOS 앱 아키텍처 패턴 중 MVC, MVVM, VIP, MVI의 차이점은 무엇인가요?
+## 10. iOS 앱 아키텍처 패턴 중 MVC, MVVM, VIP, MVI, TCA의 차이점은 무엇인가요?
+<img src="https://github.com/user-attachments/assets/29900868-52e1-47ab-91a2-e6da8714fb2c">
 
 
 <br>
@@ -3134,6 +3135,12 @@ UITableView는 단순한 리스트, UICollectionView는 복잡한 데이터 표�
 
 <br>
 <br>
+
+## 10.6 TCA 란 무엇인가요?
+
+<br>
+<br>
+
 
 ## 11. Swift에서 옵셔널(Optional)을 사용할 때 주의할 점은 무엇인가요?
 - 강제 언래핑(Force Unwrapping)을 사용하면 안 되는 이유는 무엇인가요?
