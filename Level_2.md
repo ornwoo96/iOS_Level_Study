@@ -6011,9 +6011,113 @@ SwiftUI와 UIKit을 함께 사용할 때, 상태 관리, 생명 주기, 레이�
 <br>
 
 ## 19. Swift에서 키 경로(Key Path)란 무엇이며, 어떻게 사용하나요?
-- 키 경로 표현식(Key Path Expression)의 문법과 사용 예시를 설명해주세요.
-- 런타임에 키 경로를 사용하여 속성에 접근하는 방법은 무엇인가요?
-- 키 경로와 KVO(Key-Value Observing)의 관계를 설명해주세요.
+**키 경로(Key Path)** 는 Swift에서 타입의 속성에 접근하거나 참조할 수 있는 경로를 표현하는 기능입니다. 키 경로는 타입 안전성을 제공하며, 함수형 프로그래밍 스타일이나 데이터 바인딩에서 유용하게 활용됩니다.
+
+<br>
+<br>
+
+## 19.1 키 경로 표현식(Key Path Expression)의 문법과 사용 예시를 설명해주세요.
+### 문법:
+- 키 경로는 \타입.속성 형태로 작성됩니다.
+- 키 경로는 KeyPath 타입으로 표현됩니다.
+
+#### 예시:
+
+```swift
+struct Person {
+    var name: String
+    var age: Int
+}
+
+// 키 경로 생성
+let nameKeyPath = \Person.name
+let ageKeyPath = \Person.age
+
+// 키 경로를 사용하여 속성 읽기
+let person = Person(name: "Alice", age: 25)
+print(person[keyPath: nameKeyPath]) // 출력: Alice
+print(person[keyPath: ageKeyPath])  // 출력: 25
+
+// 키 경로를 사용하여 속성 변경
+var mutablePerson = person
+mutablePerson[keyPath: nameKeyPath] = "Bob"
+print(mutablePerson.name) // 출력: Bob
+```
+
+<br>
+<br>
+
+## 19.2 런타임에 키 경로를 사용하여 속성에 접근하는 방법은 무엇인가요?
+키 경로는 정적으로 생성되지만, 런타임에 동적으로 속성에 접근하거나 수정하는 데 활용할 수 있습니다.
+
+#### 예시:
+
+```swift
+struct Product {
+    var name: String
+    var price: Double
+}
+
+func updateProperty<T, Value>(of object: inout T, for keyPath: WritableKeyPath<T, Value>, to newValue: Value) {
+    object[keyPath: keyPath] = newValue
+}
+
+// 사용
+var product = Product(name: "Laptop", price: 999.99)
+print(product.name) // 출력: Laptop
+
+updateProperty(of: &product, for: \Product.name, to: "Smartphone")
+print(product.name) // 출력: Smartphone
+```
+
+<br>
+<br>
+
+## 19.3 키 경로와 KVO(Key-Value Observing)의 관계를 설명해주세요.
+**Key-Value Observing (KVO)** 는 Objective-C 기반의 프로퍼티 관찰 메커니즘입니다. Swift에서 KVO와 키 경로를 함께 사용할 수 있지만, KVO는 Objective-C 런타임을 필요로 하므로 @objc로 선언된 프로퍼티에서만 동작합니다.
+
+#### 예시:
+
+```swift
+import Foundation
+
+class User: NSObject {
+    @objc dynamic var name: String
+    @objc dynamic var age: Int
+
+    init(name: String, age: Int) {
+        self.name = name
+        self.age = age
+    }
+}
+
+let user = User(name: "Alice", age: 30)
+
+// KVO를 사용하여 프로퍼티 관찰
+let observation = user.observe(\.name, options: [.new, .old]) { user, change in
+    print("Name changed from \(change.oldValue!) to \(change.newValue!)")
+}
+
+// 속성 변경
+user.name = "Bob"
+
+// 관찰 종료
+observation.invalidate()
+```
+
+#### 키 경로와 KVO의 관계:
+- 키 경로는 @objc dynamic 프로퍼티의 경로를 정의하여 KVO에서 사용됩니다.
+- 키 경로를 통해 프로퍼티 변경을 감지하고 특정 동작을 수행할 수 있습니다.
+
+<br>
+
+### 요약
+- 키 경로(Key Path): 타입 안전하게 속성에 접근하거나 수정할 수 있는 경로를 제공.
+- 런타임 활용: 키 경로를 통해 속성을 동적으로 수정.
+- KVO 연계: 키 경로를 KVO와 함께 사용하여 프로퍼티 변경을 관찰 가능.
+
+키 경로는 Swift의 타입 안전성과 KVO의 유연성을 결합하여 데이터 바인딩, 상태 관리, 런타임 동작에서 강력한 도구로 사용됩니다.
+
 
 <br>
 <br>
