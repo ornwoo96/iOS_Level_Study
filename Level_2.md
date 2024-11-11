@@ -3592,15 +3592,24 @@ layer.add(animation, forKey: "positionAnimation")
 #### CAKeyframeAnimation
 여러 중간 경로를 따라 애니메이션을 설정합니다.
 ```swift
+// 키 프레임 애니메이션 생성
 let keyframeAnimation = CAKeyframeAnimation(keyPath: "position")
+// 애니메이션 대상 속성을 "position"으로 설정 (레이어의 위치를 변경)
+
+// 애니메이션 경로의 좌표 설정 (레이어가 이동할 각 위치를 지정)
 keyframeAnimation.values = [
-    CGPoint(x: 50, y: 50),
-    CGPoint(x: 150, y: 50),
-    CGPoint(x: 150, y: 150),
-    CGPoint(x: 50, y: 150)
+    CGPoint(x: 50, y: 50),  // 시작 위치
+    CGPoint(x: 150, y: 50), // 오른쪽으로 이동
+    CGPoint(x: 150, y: 150), // 아래로 이동
+    CGPoint(x: 50, y: 150)  // 왼쪽으로 이동
 ]
+
+// 애니메이션의 총 지속 시간 설정 (3초 동안 진행)
 keyframeAnimation.duration = 3.0
+
+// 레이어에 애니메이션 추가
 layer.add(keyframeAnimation, forKey: "keyframeAnimation")
+// "keyframeAnimation" 키를 사용해 애니메이션 추가 (참조 및 제거 시 사용 가능)
 ```
 
 <br>
@@ -3609,12 +3618,26 @@ layer.add(keyframeAnimation, forKey: "keyframeAnimation")
 스프링 물리 법칙을 기반으로 자연스러운 애니메이션을 제공합니다.
 
 ```swift
+// 스프링 애니메이션 생성
 let springAnimation = CASpringAnimation(keyPath: "position.y")
+// 애니메이션할 레이어의 속성(keyPath)을 "position.y"로 설정 (y축 위치를 변경)
+
+// 애니메이션 시작 값 설정 (y축 위치를 100으로 시작)
 springAnimation.fromValue = 100
+
+// 애니메이션 종료 값 설정 (y축 위치를 200으로 끝)
 springAnimation.toValue = 200
-springAnimation.damping = 5.0  // 감쇠 비율
-springAnimation.initialVelocity = 10.0  // 초기 속도
-springAnimation.duration = springAnimation.settlingDuration // 자동 계산된 지속 시간
+
+// 감쇠 비율 설정 (값이 클수록 애니메이션이 더 빨리 멈추고 부드럽게 감쇠)
+springAnimation.damping = 5.0
+
+// 초기 속도 설정 (값이 클수록 애니메이션이 더 빠르게 시작)
+springAnimation.initialVelocity = 10.0
+
+// 스프링 애니메이션이 안정화되는 지속 시간을 자동으로 계산하여 설정
+springAnimation.duration = springAnimation.settlingDuration
+
+// 레이어에 스프링 애니메이션 추가 (키를 사용해 식별 가능)
 layer.add(springAnimation, forKey: "springAnimation")
 ```
 
@@ -3625,18 +3648,26 @@ layer.add(springAnimation, forKey: "springAnimation")
 여러 애니메이션을 동시에 실행하거나 결합할 때 사용합니다.
 
 ```swift
+// 위치 애니메이션 생성
 let positionAnimation = CABasicAnimation(keyPath: "position")
-positionAnimation.fromValue = CGPoint(x: 50, y: 50)
-positionAnimation.toValue = CGPoint(x: 250, y: 250)
+// 애니메이션할 속성을 "position"으로 설정 (레이어의 위치를 변경)
+positionAnimation.fromValue = CGPoint(x: 50, y: 50) // 시작 위치
+positionAnimation.toValue = CGPoint(x: 250, y: 250) // 종료 위치
 
+// 투명도 애니메이션 생성
 let opacityAnimation = CABasicAnimation(keyPath: "opacity")
-opacityAnimation.fromValue = 1.0
-opacityAnimation.toValue = 0.0
+// 애니메이션할 속성을 "opacity"로 설정 (레이어의 투명도를 변경)
+opacityAnimation.fromValue = 1.0 // 시작 투명도 (불투명)
+opacityAnimation.toValue = 0.0   // 종료 투명도 (완전히 투명)
 
+// 애니메이션 그룹 생성
 let animationGroup = CAAnimationGroup()
+// 그룹에 두 개의 애니메이션 추가 (위치, 투명도)
 animationGroup.animations = [positionAnimation, opacityAnimation]
+// 그룹 전체 지속 시간을 설정 (2초)
 animationGroup.duration = 2.0
 
+// 레이어에 애니메이션 그룹 추가
 layer.add(animationGroup, forKey: "groupAnimation")
 ```
 
@@ -3660,8 +3691,13 @@ UIView.animate(withDuration: 2.0) {
 - Core Animation은 GPU에서 동작하므로 애니메이션 완료 후 상태를 유지하려면, 속성을 직접 변경해야 합니다.
 
 ```swift
+// 애니메이션이 종료된 후 상태 유지
 animation.isRemovedOnCompletion = false
+// 애니메이션이 완료된 후 최종 상태를 유지하도록 설정
+
+// 애니메이션의 fillMode 설정
 animation.fillMode = .forwards
+// 애니메이션이 완료된 후 레이어가 최종 상태를 유지
 ```
 
 <br>
@@ -3742,18 +3778,26 @@ view.layer.addSublayer(layer)
 #### 예제 
 
 ```swift
+// 위치 애니메이션 생성
 let positionAnimation = CABasicAnimation(keyPath: "position")
-positionAnimation.fromValue = CGPoint(x: 50, y: 50)
-positionAnimation.toValue = CGPoint(x: 250, y: 250)
+// 애니메이션할 속성(keyPath)을 "position"으로 설정 (레이어의 위치를 변경)
+positionAnimation.fromValue = CGPoint(x: 50, y: 50) // 시작 위치
+positionAnimation.toValue = CGPoint(x: 250, y: 250) // 종료 위치
 
+// 투명도 애니메이션 생성
 let opacityAnimation = CABasicAnimation(keyPath: "opacity")
-opacityAnimation.fromValue = 1.0
-opacityAnimation.toValue = 0.0
+// 애니메이션할 속성(keyPath)을 "opacity"로 설정 (레이어의 투명도를 변경)
+opacityAnimation.fromValue = 1.0 // 시작 투명도 (불투명)
+opacityAnimation.toValue = 0.0   // 종료 투명도 (완전히 투명)
 
+// 애니메이션 그룹 생성
 let animationGroup = CAAnimationGroup()
+// 그룹에 위치 애니메이션과 투명도 애니메이션 추가
 animationGroup.animations = [positionAnimation, opacityAnimation]
+// 그룹 전체 지속 시간을 설정 (2초)
 animationGroup.duration = 2.0
 
+// 레이어에 애니메이션 그룹 추가
 layer.add(animationGroup, forKey: "groupAnimation")
 ```
 
@@ -3761,6 +3805,74 @@ layer.add(animationGroup, forKey: "groupAnimation")
 <br>
 
 ## 12.3 키 프레임 애니메이션(Keyframe Animation)과 스프링 애니메이션(Spring Animation)의 차이점은 무엇인가요?
+
+<img src="https://github.com/user-attachments/assets/f5f9471e-08e8-49dd-a081-f73d44671f19">
+
+<br>
+
+#### 키 프레임 애니메이션 예제
+
+```swift
+// 키 프레임 애니메이션 생성 및 초기화
+let keyframeAnimation = CAKeyframeAnimation(keyPath: "position")
+// 애니메이션할 레이어 속성을 설정 (position: 위치를 애니메이션)
+
+// 애니메이션 경로의 좌표를 설정
+keyframeAnimation.values = [
+    CGPoint(x: 50, y: 50),  // 시작 위치
+    CGPoint(x: 150, y: 50), // 오른쪽으로 이동
+    CGPoint(x: 150, y: 150), // 아래로 이동
+    CGPoint(x: 50, y: 150),  // 왼쪽으로 이동
+    CGPoint(x: 50, y: 50)   // 처음 위치로 돌아옴
+]
+
+// 애니메이션의 총 지속 시간을 설정 (3초)
+keyframeAnimation.duration = 3.0
+
+// `isAdditive`를 true로 설정하면, 이전 위치를 기준으로 값을 상대적으로 계산
+keyframeAnimation.isAdditive = true
+
+// 애니메이션을 레이어에 추가 (키를 사용하여 애니메이션 식별 가능)
+layer.add(keyframeAnimation, forKey: "keyframeAnimation")
+```
+
+
+#### 스프링 애니메이션 예제
+
+```swift
+// 스프링 애니메이션 생성 및 초기화
+let springAnimation = CASpringAnimation(keyPath: "position.y") 
+// 애니메이션할 레이어 속성을 설정 (y축의 위치를 변경)
+
+// 애니메이션 시작 값 (y축 위치를 100으로 설정)
+springAnimation.fromValue = 100
+
+// 애니메이션 종료 값 (y축 위치를 200으로 설정)
+springAnimation.toValue = 200
+
+// 감쇠 비율 설정 (값이 클수록 애니메이션의 진동이 더 빨리 멈춤)
+springAnimation.damping = 5.0
+
+// 초기 속도 설정 (값이 클수록 애니메이션이 더 빠르게 시작됨)
+springAnimation.initialVelocity = 10.0
+
+// 애니메이션 지속 시간을 자동 계산 (스프링 애니메이션이 안정화되는 시간)
+springAnimation.duration = springAnimation.settlingDuration
+
+// 레이어에 애니메이션 추가 (키를 통해 애니메이션 식별 가능)
+layer.add(springAnimation, forKey: "springAnimation")
+```
+
+<br>
+
+### 요약
+
+Core Animation은 효율적인 애니메이션 구현을 위한 강력한 도구입니다.
+
+- CALayer: 뷰의 기본 요소를 구성하고 애니메이션을 추가.
+- Animation Group: 다중 애니메이션을 동시에 실행.
+- Keyframe vs Spring: 중간 경로를 따라가는 키 프레임과 자연스러운 물리 효과를 제공하는 스프링 애니메이션은 상황에 맞게 선택하여 사용.
+
 
 <br>
 <br>
