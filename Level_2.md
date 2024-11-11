@@ -4477,11 +4477,101 @@ func syncWithServer() {
 <br>
 
 ## 15. Combine 프레임워크란 무엇이며, 어떤 기능을 제공하나요?
+Combine은 Apple이 제공하는 선언적 프레임워크로, 비동기 작업과 이벤트 스트림을 처리하는 데 사용됩니다.
+Publisher와 Subscriber 간의 관계를 통해 데이터를 비동기적으로 처리하고, Operator를 사용하여 데이터 변환과 조작을 제공합니다.
+
 
 <br>
 <br>
 
 ## 15.1 Publisher와 Subscriber의 역할은 무엇인가요?
+
+### Publisher
+#### Publisher의 역할
+- Publisher는 데이터를 발행하는 역할을 담당합니다.
+- 이벤트나 데이터의 흐름(Stream)을 생성하고, 이를 Subscriber에게 전달합니다.
+- 데이터를 전달하는 중 발생할 수 있는 완료(Completion) 또는 오류(Error) 상태도 관리합니다.
+
+<br>
+
+#### Publisher의 주요 특징
+1. 데이터 제공:
+- 연속적 또는 단일 데이터를 제공합니다.
+2. 구독 관리:
+- Subscriber가 구독을 시작하면 데이터를 스트리밍합니다.
+3. 중단 처리:
+- 정상적으로 완료되거나 에러가 발생하면 데이터 스트리밍을 중단합니다.
+
+<br>
+
+### Subscriber
+#### Subscriber의 역할
+- Subscriber는 Publisher에서 발행된 데이터를 수신하고 처리하는 역할을 합니다.
+- 데이터를 받고 나서 화면 업데이트, 로직 처리, 에러 처리 등을 수행합니다.
+
+#### Subscriber의 주요 특징
+1. 데이터 수신:
+- Publisher가 발행한 데이터를 받아와 처리합니다.
+2. 완료/에러 처리:
+- Publisher로부터 전달된 완료 이벤트 또는 에러를 처리합니다.
+3. 구독 해지:
+- 구독을 중단하여 Publisher와의 연결을 끊을 수 있습니다.
+
+<br>
+
+### Publisher와 Subscriber 간의 관계
+- Publisher가 데이터를 제공하면, Subscriber는 이를 처리합니다.
+- Publisher는 데이터 스트림을 제어하고, Subscriber는 해당 데이터를 구독하며 필요한 작업을 수행합니다.
+
+#### 예제: Combine을 사용한 Publisher와 Subscriber
+
+```swift
+import Combine
+
+// 1. Publisher 생성
+let myPublisher = ["Hello", "Combine", "Framework"].publisher
+
+// 2. Subscriber 생성
+let mySubscriber = myPublisher
+    .sink(receiveCompletion: { completion in
+        // 데이터 스트리밍이 완료되거나 에러 발생 시 처리
+        switch completion {
+        case .finished:
+            print("Stream finished!")
+        case .failure(let error):
+            print("Error occurred: \(error)")
+        }
+    }, receiveValue: { value in
+        // 데이터를 수신하여 처리
+        print("Received value: \(value)")
+    })
+
+// 출력:
+// Received value: Hello
+// Received value: Combine
+// Received value: Framework
+// Stream finished!
+```
+
+<br>
+
+#### Publisher와 Subscriber의 동작 과정
+1. Publisher 생성:
+	- 데이터를 발행하기 위한 Publisher 객체를 생성.
+2. Subscriber 등록:
+	- sink 또는 assign 메서드를 통해 Subscriber를 등록.
+3. 데이터 전달:
+	- Publisher가 데이터를 Subscriber에 스트리밍.
+4. 완료 또는 에러 처리:
+	- 모든 데이터를 발행하면 .finished, 에러가 발생하면 .failure로 알림.
+
+<br>
+
+### Publisher와 Subscriber의 상호작용을 요약하면
+- Publisher: 데이터를 발행.
+- Subscriber: 데이터를 수신하여 로직 수행.
+- Combine을 통해 데이터를 간단하고 효율적으로 스트리밍 및 처리 가능.
+
 
 <br>
 <br>
