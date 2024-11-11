@@ -4572,16 +4572,458 @@ let mySubscriber = myPublisher
 - Subscriber: 데이터를 수신하여 로직 수행.
 - Combine을 통해 데이터를 간단하고 효율적으로 스트리밍 및 처리 가능.
 
+<br>
+
+## Publisher와 Subscriber의 종류 및 설명
+
+### Publisher의 종류
+
+Combine 프레임워크에서 제공하는 Publisher는 여러 가지 유형으로 나뉩니다. 대표적인 종류는 다음과 같습니다:
+
+### 1. Built-in Publisher (내장된 Publisher)
+
+#### 1. Just
+- 단일 값을 한 번만 발행하고 완료합니다.
+- 데이터 흐름이 단순한 경우 사용됩니다.
+
+예시: 
+```swift
+let publisher = Just("Hello Combine")
+publisher.sink { value in
+    print(value)
+}
+// 출력: Hello Combine
+```
+
+<br>
+
+#### 2.	Future
+- 단일 값 또는 에러를 비동기로 발행합니다.
+- 주로 네트워크 요청 같은 비동기 작업에 사용됩니다.
+#### 예시:
+
+```swift
+let future = Future<String, Error> { promise in
+    DispatchQueue.global().async {
+        promise(.success("Data Loaded"))
+    }
+}
+future.sink(
+    receiveCompletion: { print($0) },
+    receiveValue: { print($0) }
+)
+// 출력: Data Loaded
+```
+
+<br>
+
+#### 3.	PassthroughSubject
+- 직접 데이터를 발행할 수 있는 Publisher.
+- 다른 객체가 데이터를 발행해야 할 때 사용됩니다.
+#### 예시:
+
+```swift
+let subject = PassthroughSubject<String, Never>()
+subject.sink { print($0) }
+subject.send("Hello")
+// 출력: Hello
+```
+
+<br>
+
+#### 4.	CurrentValueSubject
+- 초기 값을 가지며, 현재 값과 새로운 값을 발행할 수 있습니다.
+- 주로 상태 관리에 유용.
+#### 예시:
+
+```swift
+let subject = CurrentValueSubject<Int, Never>(0)
+subject.sink { print($0) }
+subject.send(1)
+// 출력: 0, 1
+```
+
+<br>
+
+#### 5.	Empty
+- 데이터를 발행하지 않고 즉시 완료됩니다.
+- 기본 값이 없는 상황에서 주로 사용.
+#### 예시:
+```swift
+let emptyPublisher = Empty<Int, Never>()
+emptyPublisher.sink(
+    receiveCompletion: { print("Completed") },
+    receiveValue: { print($0) }
+)
+// 출력: Completed
+```
+
+<br>
+
+#### 6.	Deferred
+- Publisher를 구독 시점에서 생성.
+- 주로 동적 데이터가 필요한 경우 사용.
+#### 예시:
+
+```swift
+let deferredPublisher = Deferred {
+    Just("Deferred Data")
+}
+deferredPublisher.sink { print($0) }
+// 출력: Deferred Data
+```
+
+<br>
+
+#### 7.	Timer
+- 일정한 간격으로 값을 발행하는 Publisher.
+#### 예시:
+
+```swift
+let timer = Timer.publish(every: 1.0, on: .main, in: .default)
+let cancellable = timer.sink { _ in
+    print("Timer fired")
+}
+timer.connect()
+```
+
+<br>
+
+### 2. Custom Publisher
+직접 커스텀 Publisher를 만들 수 있습니다.
+
+#### 예시:
+```swift
+struct CustomPublisher: Publisher {
+    typealias Output = String
+    typealias Failure = Never
+
+    func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, String == S.Input {
+        subscriber.receive(subscription: Subscriptions.empty)
+        _ = subscriber.receive("Custom Publisher")
+        subscriber.receive(completion: .finished)
+    }
+}
+
+let customPublisher = CustomPublisher()
+customPublisher.sink { print($0) }
+// 출력: Custom Publisher
+```
+
+<br>
+
+### Subscriber의 종류
+Combine에서 Subscriber는 특정 값을 수신하고 이를 처리하는 역할을 합니다. 직접 Subscriber를 작성하거나 기본 제공 메서드를 사용할 수 있습니다.
+
+### 1. Built-in Subscriber (내장된 Subscriber)
+
+#### 1.	sink
+- 가장 많이 사용되는 Subscriber로 데이터를 수신하고 처리합니다.
+#### 예시:
+```swift
+let publisher = Just("Hello Combine")
+publisher.sink { value in
+    print(value)
+}
+// 출력: Hello Combine
+```
+
+<br>
+
+#### 2.	assign
+- 데이터를 특정 프로퍼티에 바인딩합니다.
+- 주로 ViewModel이나 UI 업데이트에 사용됩니다.
+#### 예시:
+
+```swift
+class ViewModel: ObservableObject {
+    @Published var message: String = ""
+}
+
+let viewModel = ViewModel()
+Just("Hello Combine").assign(to: \.message, on: viewModel)
+print(viewModel.message)
+// 출력: Hello Combine
+```
+
+<br>
+
+### 2. Custom Subscriber
+직접 Subscriber를 구현할 수 있습니다.
+
+#### 예시: 
+```swift
+struct CustomSubscriber: Subscriber {
+    typealias Input = String
+    typealias Failure = Never
+
+    func receive(subscription: Subscription) {
+        subscription.request(.unlimited) // 요청할 데이터 수 설정
+    }
+
+    func receive(_ input: String) -> Subscribers.Demand {
+        print("Received value: \(input)")
+        return .none
+    }
+
+    func receive(completion: Subscribers.Completion<Never>) {
+        print("Completed")
+    }
+}
+
+let publisher = Just("Custom Subscriber Example")
+let subscriber = CustomSubscriber()
+publisher.subscribe(subscriber)
+// 출력: Received value: Custom Subscriber Example
+// 출력: Completed
+```
+
+<br>
+
+### Publisher와 Subscriber의 관계 요약
+1. Publisher는 데이터를 발행하고, Subscriber는 이를 구독하여 처리합니다.
+2. Built-in Publisher와 Subscriber를 통해 대부분의 작업을 처리할 수 있습니다.
+3. 필요할 경우 Custom Publisher와 Custom Subscriber를 구현해 특정 요구사항을 충족할 수 있습
+니다.
 
 <br>
 <br>
 
 ## 15.2 Operator의 종류와 사용 방법을 설명해주세요.
 
+Combine의 Operator는 Publisher에서 발행된 데이터를 변환, 필터링, 결합, 스케줄링하는 데 사용됩니다. Operator는 체이닝 방식으로 데이터를 처리하며 선언적 프로그래밍 스타일을 제공합니다.
+
+### 1. Transforming Operators (데이터 변환)
+
+#### 1.	map
+- 발행된 데이터를 변환합니다.
+
+#### 예시: 
+```swift
+let numbers = [1, 2, 3].publisher
+numbers
+    .map { $0 * 2 } // 데이터를 2배로 변환
+    .sink { print($0) }
+// 출력:
+// 2
+// 4
+// 6
+```
+
+<br>
+
+#### 2.	flatMap
+- 새로운 Publisher로 데이터를 변환합니다.
+- flatMap은 배열, 옵셔널, 혹은 여러 레벨의 데이터 스트럭처를 평평하게 만들어주는 역할
+
+#### 예시: 
+```swift
+let nestedArrays = [[1, 2, 3], [4, 5, 6]].publisher
+
+nestedArrays
+    .flatMap { $0.publisher } // 각 중첩된 배열을 펼쳐서 단일 Publisher로 변환
+    .sink { print($0) }
+
+// 출력:
+// 1
+// 2
+// 3
+// 4
+// 5
+// 6
+```
+
+<br>
+
+#### 3.	compactMap
+- nil 값을 제거하고 나머지 값을 전달합니다.
+
+#### 예시: 
+```swift
+let strings = ["1", "2", "Swift", "3"].publisher
+strings
+    .compactMap { Int($0) } // 문자열을 정수로 변환, 실패 시 nil 제거
+    .sink { print($0) }
+// 출력:
+// 1
+// 2
+// 3
+```
+
+<br>
+
+### 2. Filtering Operators (데이터 필터링)
+
+#### 1.	filter
+- 특정 조건을 만족하는 값만 전달.
+#### 예시:
+
+```swift
+let numbers = [1, 2, 3, 4, 5].publisher
+numbers
+    .filter { $0 % 2 == 0 } // 짝수만 전달
+    .sink { print($0) }
+// 출력:
+// 2
+// 4
+```
+
+<br>
+
+#### 2.	removeDuplicates
+- 연속된 중복 값을 제거.
+#### 예시:
+
+```swift
+let numbers = [1, 1, 2, 2, 3, 3].publisher
+numbers
+    .removeDuplicates()
+    .sink { print($0) }
+// 출력:
+// 1
+// 2
+// 3
+```
+
+<br>
+
+### 3. Combining Operators (데이터 결합)
+
+#### 1.	merge
+	•	여러 Publisher를 결합해 순서에 상관없이 데이터를 발행.
+#### 예시:
+
+```swift
+let pub1 = [1, 2, 3].publisher
+let pub2 = [4, 5, 6].publisher
+pub1.merge(with: pub2).sink { print($0) }
+// 출력:
+// 1
+// 2
+// 3
+// 4
+// 5
+// 6
+```
+
+<br>
+
+#### 2.	combineLatest
+- 두 Publisher의 최신 값을 결합.
+
+#### 예시
+
+```swift
+let pub1 = CurrentValueSubject<Int, Never>(1)
+let pub2 = CurrentValueSubject<String, Never>("A")
+pub1.combineLatest(pub2).sink { print("Value: \($0), \($1)") }
+pub1.send(2)
+pub2.send("B")
+// 출력: Value: 1, A
+// 출력: Value: 2, A
+// 출력: Value: 2, B
+```
+
+<br>
+
+#### 3. zip
+- 두 Publisher 의 데이터를 짝 지어 발행.
+
+#### 예시:
+```swift
+let pub1 = [1, 2, 3].publisher
+let pub2 = ["A", "B", "C"].publisher
+pub1.zip(pub2).sink { print("\($0), \($1)") }
+// 출력: 1, A
+// 출력: 2, B
+// 출력: 3, C
+```
+
+<br>
+
+### 4. Error Handling Operators (에러 처리)
+
+#### 1. catch
+- 에러가 발생하면 다른 Publisher로 대체.
+
+#### 예시:
+
+```swift
+let failingPublisher = Fail<Int, Error>(error: NSError(domain: "", code: -1, userInfo: nil))
+failingPublisher
+    .catch { _ in Just(0) } // 에러 발생 시 0을 발행
+    .sink { print($0) }
+// 출력: 0
+```
+
+<br>
+
+#### 2. retry
+- 에러 발생 시 작업을 재시도
+
+#### 예시:
+
+```swift
+var attempt = 0
+let retryPublisher = Future<Int, Error> { promise in
+    attempt += 1
+    if attempt < 3 {
+        promise(.failure(NSError(domain: "", code: -1, userInfo: nil)))
+    } else {
+        promise(.success(42))
+    }
+}
+.retry(3)
+
+retryPublisher.sink(
+    receiveCompletion: { print($0) },
+    receiveValue: { print($0) }
+)
+// 출력: 42
+```
+
+<br>
+
+### 5. Scheduling Operators (스레드 관리)
+
+#### 1.	subscribe(on:)
+- 데이터 생성의 실행 스레드를 지정.
+#### 예시:
+
+```swift
+Just("Hello Combine")
+    .subscribe(on: DispatchQueue.global()) // 백그라운드 스레드에서 데이터 생성
+    .sink { print($0) }
+// 출력: Hello Combine (백그라운드에서 생성)
+```
+
+<br>
+
+#### 2.	receive(on:)
+- 데이터 처리를 수행할 스레드를 지정.
+#### 예시:
+```swift
+Just("UI Update")
+    .receive(on: DispatchQueue.main) // 메인 스레드에서 UI 업데이트
+    .sink { print($0) }
+// 출력: UI Update (메인 스레드에서 처리)
+```
+
+<br>
+
+### Combine Operator 사용의 장점
+- 데이터를 직관적이고 효율적으로 변환, 필터링, 결합 가능.
+- 코드가 간결하며, 체이닝 방식으로 복잡한 데이터 흐름을 쉽게 처리 가능.
+- 다양한 내장 Operator를 활용해 비동기 작업 처리에 강력한 유연성을 제공.
+
+
 <br>
 <br>
 
 ## 15.3 Combine과 RxSwift의 차이점은 무엇인가요?
+
+
+
 
 <br>
 <br>
