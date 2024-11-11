@@ -5021,9 +5021,121 @@ Just("UI Update")
 <br>
 
 ## 15.3 Combine과 RxSwift의 차이점은 무엇인가요?
+Combine과 RxSwift는 모두 **반응형 프로그래밍(Reactive Programming)** 을 지원하는 프레임워크입니다. 하지만, 두 프레임워크는 철학, 설계, 그리고 플랫폼 통합 측면에서 차이가 있습니다. 아래에서 주요 차이점을 설명하고, 각각의 사용 사례를 제시합니다.
 
+<br>
 
+### 1. Combine과 RxSwift의 철학과 설계
+<img src="https://github.com/user-attachments/assets/2498eac2-9d89-4295-a746-f4db2d223204">
 
+<br>
+
+### 2. 주요 차이점
+#### a. 플랫폼 의존성
+- Combine: Apple에서 제공하므로 iOS 13+, macOS 10.15+ 등 Apple 생태계에서만 사용 가능.
+- RxSwift: 오픈소스이므로 iOS, Android, Web 등 다양한 플랫폼에서 사용 가능.
+
+<br>
+
+#### b. 내장 연산자 (Operators)
+- Combine: 필요한 주요 연산자 중심으로 제공.
+- map, filter, merge, combineLatest, flatMap 등.
+- RxSwift: 훨씬 더 많은 연산자를 제공하며, 복잡한 데이터 흐름을 처리하기 위한 고급 연산자 지원.
+- 예: withLatestFrom, amb, retryWhen 등.
+
+<br>
+
+#### c. 메모리 관리
+- Combine: Cancellable 객체를 통해 구독을 관리하며, 기본적으로 ARC와 잘 통합됨.
+- RxSwift: DisposeBag을 통해 메모리 관리를 수동으로 처리해야 함.
+
+#### 예시 (Combine):
+
+```swift
+let publisher = Just("Hello, Combine!")
+let subscription = publisher.sink { value in
+    print(value)
+}
+// subscription이 자동으로 ARC에 의해 관리됨
+```
+
+#### 예시 (RxSwift):
+```swift
+let disposeBag = DisposeBag()
+let observable = Observable.just("Hello, RxSwift!")
+observable.subscribe(onNext: { value in
+    print(value)
+}).disposed(by: disposeBag)
+// DisposeBag에 의해 메모리 관리
+```
+
+<br>
+
+#### d.학습 곡선
+- Combine: Swift 표준 라이브러리의 설계를 따르며, API가 직관적.
+- RxSwift: API가 강력하지만, 다양한 연산자와 Rx의 개념을 이해하는 데 시간이 더 걸림.
+
+<br>
+
+### 3. 사용 사례
+
+#### Combine 사용 사례
+
+- iOS 13+ 이상에서 새로운 프로젝트를 개발하는 경우.
+- Apple의 생태계와 밀접하게 통합된 기능 사용.
+- 예: SwiftUI, URLSession, NotificationCenter, Core Data.
+
+#### Combine 예제:
+```swift
+import Combine
+
+let publisher = ["Apple", "Google", "Microsoft"].publisher
+publisher
+    .filter { $0.hasPrefix("A") }
+    .sink { print($0) }
+// 출력: Apple
+```
+
+<br>
+
+#### RxSwift 사용 사례
+- 다양한 플랫폼에서 일관된 API로 반응형 프로그래밍을 구현해야 할 때.
+- 복잡한 데이터 흐름이 필요한 경우, 고급 연산자 활용 가능.
+
+#### RxSwift 예제:
+
+```swift
+import RxSwift
+
+let observable = Observable.of("Apple", "Google", "Microsoft")
+observable
+    .filter { $0.hasPrefix("A") }
+    .subscribe(onNext: { print($0) })
+    .disposed(by: DisposeBag())
+// 출력: Apple
+```
+
+<br>
+
+### 4. Combine과 RxSwift의 선택 기준
+
+#### Combine을 선택할 때
+- 프로젝트가 iOS 13+ 이상을 타겟팅.
+- Apple 생태계와 강하게 연동.
+- 간결한 API와 Swift 표준 통합을 선호.
+
+#### RxSwift를 선택할 때
+
+- 멀티플랫폼 지원이 필요.
+- 복잡한 데이터 흐름과 고급 연산자가 요구됨.
+- 레거시 프로젝트에 통합하거나 Swift 5 이전 프로젝트.
+
+<br>
+
+### 결론
+- Combine은 Apple 생태계에 최적화된 최신 기술로, Swift와의 통합성과 단순성이 강점.
+- RxSwift는 더 많은 기능과 유연성을 제공하며, 다양한 플랫폼에서 활용 가능.
+- 프로젝트의 요구사항에 따라 적합한 프레임워크를 선택하여 사용하면 됩니다.
 
 <br>
 <br>
