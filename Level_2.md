@@ -3878,9 +3878,63 @@ Core Animation은 효율적인 애니메이션 구현을 위한 강력한 도구
 <br>
 
 ## 13. Swift에서 프로토콜 지향 프로그래밍(Protocol-Oriented Programming)을 활용하는 방법은 무엇인가요?
-- 프로토콜 확장(Protocol Extension)을 통해 기본 구현을 제공하는 방법을 설명해주세요.
-- 프로토콜 상속(Protocol Inheritance)은 어떤 경우에 사용하나요?
-- 프로토콜 지향 프로그래밍(Protocol-Oriented Programming)에서 제네릭(Generic)을 함께 사용하면 어떤 이점이 있나요?
+프로토콜 지향 프로그래밍은 프로토콜을 사용하여 코드의 유연성과 재사용성을 극대화하는 Swift의 프로그래밍 패러다임입니다.
+구조체, 클래스, 열거형 등 모든 타입이 프로토콜을 준수할 수 있으며, 프로토콜 확장과 기본 구현을 통해 중복 코드를 줄이고 모듈화된 코드를 작성할 수 있습니다.
+
+<br>
+<br>
+
+## 13.1 프로토콜 확장(Protocol Extension)을 통해 기본 구현을 제공하는 방법을 설명해주세요.
+프로토콜 확장을 사용하면 프로토콜을 채택한 타입에 대해 공통 동작을 기본 구현으로 제공할 수 있습니다.
+
+#### 예제:
+```swift
+protocol Vehicle {
+    var speed: Int { get }
+    func description() -> String
+}
+
+// 프로토콜 확장을 통해 기본 구현 제공
+extension Vehicle {
+    func description() -> String {
+        return "This vehicle moves at \(speed) km/h."
+    }
+}
+
+// 프로토콜 채택한 타입들
+struct Car: Vehicle {
+    var speed: Int
+}
+
+struct Bicycle: Vehicle {
+    var speed: Int
+}
+
+// 기본 구현 활용
+let car = Car(speed: 120)
+let bicycle = Bicycle(speed: 25)
+
+print(car.description())       // 출력: This vehicle moves at 120 km/h.
+print(bicycle.description())  // 출력: This vehicle moves at 25 km/h.
+```
+
+<br>
+
+### 장점:
+- 모든 Vehicle 타입이 description 메서드를 구현할 필요 없이, 공통 로직을 확장에서 제공받습니다.
+- 중복 코드를 줄이고 유지보수를 쉽게 만듭니다.
+
+<br>
+<br>
+
+## 13.2 프로토콜 상속(Protocol Inheritance)은 어떤 경우에 사용하나요?
+
+
+
+<br>
+<br>
+
+## 13.3 프로토콜 지향 프로그래밍(Protocol-Oriented Programming)에서 제네릭(Generic)을 함께 사용하면 어떤 이점이 있나요?
 
 <br>
 <br>
