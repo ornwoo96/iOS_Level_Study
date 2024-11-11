@@ -6123,9 +6123,24 @@ observation.invalidate()
 <br>
 
 ## 20. iOS 앱에서 Deep Link와 Universal Link의 차이점은 무엇인가요?
-- Deep Link를 구현하는 방법과 주의 사항을 설명해주세요.
-- Universal Link의 동작 원리와 설정 방법은 무엇인가요?
-- Deep Link와 Universal Link를 함께 사용하는 경우의 장점은 무엇인가요?
+
+<img src="https://github.com/user-attachments/assets/cf3c1176-0811-4216-9f06-ff38e51665ff">
+
+<br>
+<br>
+
+## 20.1 Deep Link를 구현하는 방법과 주의 사항을 설명해주세요.
+
+<br>
+<br>
+
+## 20.2 Universal Link의 동작 원리와 설정 방법은 무엇인가요?
+
+
+<br>
+<br>
+
+## 20.3 Deep Link와 Universal Link를 함께 사용하는 경우의 장점은 무엇인가요?
 
 <br>
 <br>
