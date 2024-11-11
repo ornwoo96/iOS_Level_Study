@@ -5474,17 +5474,138 @@ let calendarTrigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, r
 
 ## 17.1 로컬 푸시 알림과 원격 푸시 알림(Remote Push Notification)의 차이점은 무엇인가요?
 
+<img src="https://github.com/user-attachments/assets/ec902905-c1de-4e67-bb4f-3ff956d0b42c">
+
 
 <br>
 <br>
 
 ## 17.2 푸시 알림의 콘텐츠(Content)와 트리거(Trigger)는 어떤 역할을 하나요?
+### 1. 콘텐츠(Content)
 
+푸시 알림의 내용을 정의합니다.
+
+#### 주요 속성:
+- title: 알림의 제목.
+- body: 알림의 본문.
+- sound: 알림 소리.
+- badge: 앱 아이콘에 표시될 배지 번호.
+- userInfo: 알림과 함께 전달할 추가 데이터.
+
+#### 예시
+```swift
+let content = UNMutableNotificationContent()
+content.title = "새로운 메시지!"
+content.body = "친구가 보낸 메시지를 확인하세요."
+content.sound = .default
+content.badge = 1
+content.userInfo = ["chatID": "12345"] // 사용자 정의 데이터
+```
+
+<br>
+
+### 2. 트리거(Trigger)
+
+알림이 발생하는 조건을 정의합니다.
+
+#### 주요 종류:
+1. 시간 기반 트리거 (UNTimeIntervalNotificationTrigger)
+- 특정 시간 간격 후에 알림을 발생.
+- 예시: 10초 후 알림 트리거.
+```swift
+let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
+```
+
+<br>
+
+2. 캘린더 기반 트리거 (UNCalendarNotificationTrigger)
+- 특정 날짜와 시간에 알림을 발생.
+- 예시: 매일 오전 8시에 알림 트리거.
+
+```swift
+let dateComponents = DateComponents(hour: 8, minute: 0)
+let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+```
+
+<br>
+
+3. 위치 기반 트리거 (UNLocationNotificationTrigger)
+- 사용자가 특정 지역에 도착하거나 떠날 때 알림을 발생.
+- 예시:
+
+```swift
+let center = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+let region = CLCircularRegion(center: center, radius: 500, identifier: "SFRegion")
+region.notifyOnEntry = true
+region.notifyOnExit = false
+let trigger = UNLocationNotificationTrigger(region: region, repeats: false)
+```
 
 <br>
 <br>
 
 ## 17.3 사용자가 푸시 알림을 탭했을 때 앱의 동작을 처리하는 방법을 설명해주세요.
+
+### 1. AppDelegate에서 처리
+
+AppDelegate의 메서드를 통해 푸시 알림을 클릭했을 때의 동작을 정의할 수 있습니다.
+
+```swift
+import UserNotifications
+
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        UNUserNotificationCenter.current().delegate = self // Delegate 설정
+        return true
+    }
+
+    // 사용자가 푸시 알림을 클릭했을 때 호출
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        if let chatID = userInfo["chatID"] as? String {
+            print("Navigating to chat with ID: \(chatID)")
+            // 알림 클릭 시 채팅 화면으로 이동 로직 추가
+        }
+        completionHandler()
+    }
+}
+```
+
+<br>
+
+### 2. 사용자 정의 데이터 처리
+
+푸시 알림의 userInfo에 포함된 데이터를 통해 앱 내 특정 동작을 수행할 수 있습니다.
+
+#### 예시:
+
+```swift
+let content = UNMutableNotificationContent()
+content.title = "새로운 이벤트!"
+content.body = "지금 확인해보세요!"
+content.userInfo = ["eventID": "event123"] // 특정 화면 이동에 필요한 데이터
+```
+
+알림을 클릭하면 eventID를 기반으로 특정 화면을 띄울 수 있습니다:
+
+```swift
+func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    if let eventID = response.notification.request.content.userInfo["eventID"] as? String {
+        print("Navigating to event with ID: \(eventID)")
+        // 해당 이벤트 화면으로 이동
+    }
+    completionHandler()
+}
+```
+
+<br>
+
+### 요약
+1. 로컬 푸시는 디바이스 내부에서 발생하며, 원격 푸시는 서버에서 관리.
+2. Content는 알림의 제목, 본문, 소리 등 사용자에게 표시되는 부분.
+3. Trigger는 알림이 발생할 조건을 정의.
+4. 사용자가 알림을 클릭하면, AppDelegate 또는 UNUserNotificationCenterDelegate에서 해당 이벤트를 처리하여 화면 이동이나 작업을 수행할 수 있습니다.
 
 
 <br>
