@@ -3928,13 +3928,76 @@ print(bicycle.description())  // 출력: This vehicle moves at 25 km/h.
 <br>
 
 ## 13.2 프로토콜 상속(Protocol Inheritance)은 어떤 경우에 사용하나요?
+프로토콜 상속은 하나의 프로토콜이 다른 프로토콜을 상속받아 기존 요구사항을 확장할 때 사용됩니다.
 
+#### 예제
+```swift
+protocol Drawable {
+    func draw()
+}
 
+protocol Colorable: Drawable {
+    var color: String { get }
+}
+
+// `Colorable`은 `Drawable`을 상속받으므로, `draw` 메서드와 `color` 속성을 모두 구현해야 함
+struct Circle: Colorable {
+    var color: String
+
+    func draw() {
+        print("Drawing a \(color) circle")
+    }
+}
+
+let circle = Circle(color: "red")
+circle.draw() // 출력: Drawing a red circle
+```
+
+### 사용 시기:
+- 기본 동작(Drawable)을 확장하여 추가 기능(Colorable)을 정의하고자 할 때.
+- 계층 구조를 만들고 공통 동작과 추가 동작을 명확히 분리하고 싶을 때.
 
 <br>
 <br>
 
 ## 13.3 프로토콜 지향 프로그래밍(Protocol-Oriented Programming)에서 제네릭(Generic)을 함께 사용하면 어떤 이점이 있나요?
+
+제네릭과 프로토콜을 함께 사용하면 타입에 상관없이 프로토콜을 준수하는 타입을 처리할 수 있습니다.
+이로 인해 코드 재사용성을 극대화하고, 타입 안정성을 유지할 수 있습니다.
+
+#### 예제
+
+```swift
+protocol Summable {
+    static func +(lhs: Self, rhs: Self) -> Self
+}
+
+extension Int: Summable {}
+extension Double: Summable {}
+extension String: Summable {}
+
+func sum<T: Summable>(_ a: T, _ b: T) -> T {
+    return a + b
+}
+
+print(sum(5, 10))         // 출력: 15
+print(sum(3.5, 2.5))      // 출력: 6.0
+print(sum("Hello, ", "World!")) // 출력: Hello, World!
+```
+
+<br>
+
+### 장점:
+1. 다양한 타입(Int, Double, String 등)에 대해 동일한 로직을 적용할 수 있습니다.
+2. 코드 재사용성을 극대화하고, 타입에 의존하지 않는 범용적인 코드를 작성할 수 있습니다.
+3. 컴파일 타임에 타입 체크를 통해 안정성을 보장받을 수 있습니다.
+
+<br>
+
+### 요약
+- 프로토콜 확장: 공통 동작을 기본 구현으로 제공하여 코드 중복 제거.
+- 프로토콜 상속: 계층 구조를 통해 공통 동작과 추가 동작을 명확히 분리.
+- 제네릭과의 조합: 타입에 독립적인 코드 작성으로 재사용성과 안정성을 높임.
 
 <br>
 <br>
