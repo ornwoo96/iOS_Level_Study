@@ -3560,9 +3560,207 @@ class ViewController: UIViewController {
 <br>
 
 ## 12. iOS 앱에서 코어 애니메이션(Core Animation)을 사용하는 방법은 무엇인가요?
-- CALayer의 주요 속성과 메서드를 설명해주세요.
-- 애니메이션 그룹(Animation Group)은 어떤 경우에 사용하나요?
-- 키 프레임 애니메이션(Keyframe Animation)과 스프링 애니메이션(Spring Animation)의 차이점은 무엇인가요?
+Core Animation은 iOS에서 애니메이션을 효율적으로 처리하기 위해 제공되는 강력한 프레임워크입니다. Core Animation은 애니메이션이 GPU에서 실행되도록 지원하여 CPU의 부하를 줄이고, 매끄럽고 빠른 애니메이션을 제공합니다.
+
+### 코어 애니메이션의 기본 개념
+#### 1.	애니메이션 레이어 기반:
+- Core Animation은 CALayer를 기반으로 작동합니다. 모든 UIView는 기본적으로 CALayer를 포함하며, Core Animation을 활용하면 UIView의 속성을 변경해 애니메이션을 구현할 수 있습니다.
+#### 2.	GPU 활용:
+- 애니메이션은 GPU에서 처리되므로 성능이 높고, CPU 부하를 줄입니다.
+#### 3.	암시적 애니메이션과 명시적 애니메이션:
+- 암시적 애니메이션: 레이어 속성 변경 시 기본 애니메이션이 적용됩니다.
+- 명시적 애니메이션: CABasicAnimation, CAKeyframeAnimation 등을 사용해 직접 애니메이션을 설정합니다.
+
+<br>
+
+### 애니메이션 구현
+#### CABasicAnimation
+단일 속성의 애니메이션을 설정할 때 사용합니다.
+
+```swift
+let animation = CABasicAnimation(keyPath: "position")
+animation.fromValue = CGPoint(x: 50, y: 50)  // 시작 위치
+animation.toValue = CGPoint(x: 250, y: 250)  // 끝 위치
+animation.duration = 2.0                    // 애니메이션 지속 시간 (초)
+
+// 애니메이션을 레이어에 추가
+layer.add(animation, forKey: "positionAnimation")
+```
+
+<br>
+
+#### CAKeyframeAnimation
+여러 중간 경로를 따라 애니메이션을 설정합니다.
+```swift
+let keyframeAnimation = CAKeyframeAnimation(keyPath: "position")
+keyframeAnimation.values = [
+    CGPoint(x: 50, y: 50),
+    CGPoint(x: 150, y: 50),
+    CGPoint(x: 150, y: 150),
+    CGPoint(x: 50, y: 150)
+]
+keyframeAnimation.duration = 3.0
+layer.add(keyframeAnimation, forKey: "keyframeAnimation")
+```
+
+<br>
+
+#### CASpringAnimation
+스프링 물리 법칙을 기반으로 자연스러운 애니메이션을 제공합니다.
+
+```swift
+let springAnimation = CASpringAnimation(keyPath: "position.y")
+springAnimation.fromValue = 100
+springAnimation.toValue = 200
+springAnimation.damping = 5.0  // 감쇠 비율
+springAnimation.initialVelocity = 10.0  // 초기 속도
+springAnimation.duration = springAnimation.settlingDuration // 자동 계산된 지속 시간
+layer.add(springAnimation, forKey: "springAnimation")
+```
+
+<br>
+
+#### CAAnimationGroup
+
+여러 애니메이션을 동시에 실행하거나 결합할 때 사용합니다.
+
+```swift
+let positionAnimation = CABasicAnimation(keyPath: "position")
+positionAnimation.fromValue = CGPoint(x: 50, y: 50)
+positionAnimation.toValue = CGPoint(x: 250, y: 250)
+
+let opacityAnimation = CABasicAnimation(keyPath: "opacity")
+opacityAnimation.fromValue = 1.0
+opacityAnimation.toValue = 0.0
+
+let animationGroup = CAAnimationGroup()
+animationGroup.animations = [positionAnimation, opacityAnimation]
+animationGroup.duration = 2.0
+
+layer.add(animationGroup, forKey: "groupAnimation")
+```
+
+<br>
+
+### UIView.animate로 Core Animation 활용
+UIView의 애니메이션은 내부적으로 Core Animation을 사용하며, 코드가 간결하고 사용하기 쉽습니다.
+
+```swift
+UIView.animate(withDuration: 2.0) {
+    view.backgroundColor = .blue
+    view.frame.origin.y += 100
+}
+```
+
+<br>
+
+### Core Animation 활용 시 주의사항
+
+#### 1.	뷰의 최종 상태:
+- Core Animation은 GPU에서 동작하므로 애니메이션 완료 후 상태를 유지하려면, 속성을 직접 변경해야 합니다.
+
+```swift
+animation.isRemovedOnCompletion = false
+animation.fillMode = .forwards
+```
+
+<br>
+
+#### 2.	레퍼런스 타입:
+- CALayer는 레퍼런스 타입이므로 동일한 레이어 객체를 여러 뷰에서 공유하면 문제가 발생할 수 있습니다.
+
+<br>
+
+#### 3.	성능 최적화:
+- Core Animation은 GPU에서 동작하지만, 과도한 애니메이션은 메모리와 성능에 영향을 미칠 수 있습니다.
+
+<br>
+
+### 요약
+
+Core Animation은 CALayer를 기반으로 애니메이션을 설정하며, CABasicAnimation, CAKeyframeAnimation, CASpringAnimation 등을 사용해 다양한 애니메이션 효과를 구현할 수 있습니다. 또한 UIView의 animate 메서드는 Core Animation의 간단한 래퍼로 애니메이션을 쉽게 구현할 수 있습니다.
+
+상황에 맞게 CALayer와 UIView 애니메이션을 적절히 활용해 매끄러운 사용자 경험을 제공합니다.
+
+<br>
+<br>
+
+## 12.1 CALayer의 주요 속성과 메서드를 설명해주세요.
+CALayer는 애니메이션과 시각적 콘텐츠를 관리하는 기본 단위입니다. UIView의 기본 클래스이며, 모든 UIView는 기본적으로 CALayer를 포함합니다.
+
+### 주요 속성
+
+<img src="https://github.com/user-attachments/assets/ff151179-9b56-4c8d-8d85-a09cfb474c86">
+
+<br>
+
+### 주요 메서드
+
+<img src="https://github.com/user-attachments/assets/a0022f78-343e-4c24-b91d-97ecb6566f5b">
+
+<br>
+
+#### CALayer 예제
+
+```swift
+// CALayer 객체 생성
+let layer = CALayer()
+
+// 레이어의 위치와 크기를 설정 (x: 50, y: 50에 너비 100, 높이 100으로 배치)
+layer.frame = CGRect(x: 50, y: 50, width: 100, height: 100)
+
+// 레이어의 배경색을 빨간색으로 설정
+layer.backgroundColor = UIColor.red.cgColor
+
+// 레이어의 모서리를 둥글게 설정 (반지름: 10)
+layer.cornerRadius = 10
+
+// 레이어에 그림자 색상을 검정색으로 설정
+layer.shadowColor = UIColor.black.cgColor
+
+// 레이어의 그림자 불투명도를 설정 (0.0 ~ 1.0, 여기서는 70% 불투명)
+layer.shadowOpacity = 0.7
+
+// 레이어의 그림자 위치를 설정 (x: 5, y: 5으로 이동)
+layer.shadowOffset = CGSize(width: 5, height: 5)
+
+// 뷰의 레이어에 새로운 서브 레이어를 추가하여 화면에 표시
+view.layer.addSublayer(layer)
+```
+
+
+<br>
+<br>
+
+## 12.2 애니메이션 그룹(Animation Group)은 어떤 경우에 사용하나요?
+애니메이션 그룹은 여러 개의 애니메이션을 동시에 실행하거나 순서대로 실행할 때 사용됩니다.
+
+### 특징
+- 병렬 실행: 여러 애니메이션이 동시에 실행됩니다.
+- 공통 속성: 같은 duration, timingFunction 등을 공유.
+
+#### 예제 
+
+```swift
+let positionAnimation = CABasicAnimation(keyPath: "position")
+positionAnimation.fromValue = CGPoint(x: 50, y: 50)
+positionAnimation.toValue = CGPoint(x: 250, y: 250)
+
+let opacityAnimation = CABasicAnimation(keyPath: "opacity")
+opacityAnimation.fromValue = 1.0
+opacityAnimation.toValue = 0.0
+
+let animationGroup = CAAnimationGroup()
+animationGroup.animations = [positionAnimation, opacityAnimation]
+animationGroup.duration = 2.0
+
+layer.add(animationGroup, forKey: "groupAnimation")
+```
+
+<br>
+<br>
+
+## 12.3 키 프레임 애니메이션(Keyframe Animation)과 스프링 애니메이션(Spring Animation)의 차이점은 무엇인가요?
 
 <br>
 <br>
