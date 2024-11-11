@@ -4003,9 +4003,167 @@ print(sum("Hello, ", "World!")) // 출력: Hello, World!
 <br>
 
 ## 14. iOS 앱에서 네트워크 요청 시 응답 캐싱(Response Caching)을 하는 방법은 무엇인가요?
-- URLCache는 어떤 역할을 하나요?
-- 응답 캐싱의 장단점은 무엇인가요?
-- 응답 캐싱을 커스터마이징하는 방법을 설명해주세요.
+
+> 응답 캐싱은 네트워크 요청에 대한 서버의 응답 데이터를 클라이언트 측에 저장하여, 동일한 요청이 다시 발생할 때 네트워크를 통해 데이터를 재요청하지 않고, 저장된 데이터를 재사용하는 기술입니다.
+
+<br>
+
+### 1. URLSession을 이용한 기본 캐싱
+- URLSession은 HTTP 요청 및 응답에 대해 기본적으로 URLCache를 사용하여 캐싱을 지원합니다.
+- HTTP 헤더(Cache-Control, ETag 등)를 통해 서버에서 캐싱 정책을 설정하고, 클라이언트는 이를 따릅니다.
+
+#### 예제
+
+```swift
+import Foundation
+
+// URLSession 구성 시 URLCache 설정
+let cache = URLCache(memoryCapacity: 10 * 1024 * 1024,  // 10MB 메모리 캐시
+                     diskCapacity: 50 * 1024 * 1024,   // 50MB 디스크 캐시
+                     diskPath: "myCache")
+
+let config = URLSessionConfiguration.default
+config.urlCache = cache
+config.requestCachePolicy = .returnCacheDataElseLoad // 캐시가 없으면 네트워크 요청
+
+let session = URLSession(configuration: config)
+
+let url = URL(string: "https://api.example.com/data")!
+
+let task = session.dataTask(with: url) { data, response, error in
+    if let error = error {
+        print("Error:", error)
+        return
+    }
+    if let data = data, let response = response {
+        print("Data:", data)
+        print("Response:", response)
+    }
+}
+
+task.resume()
+```
+
+<br>
+
+### 2. URLCache의 직접 활용
+- URLCache를 사용하면 특정 요청에 대한 응답을 수동으로 저장하거나 조회할 수 있습니다.
+
+#### 예제
+
+```swift
+// 캐시에 직접 응답 저장
+let cache = URLCache.shared
+let request = URLRequest(url: url)
+
+let data = Data("Cached response".utf8)
+let response = URLResponse(url: url,
+                           mimeType: "text/plain",
+                           expectedContentLength: data.count,
+                           textEncodingName: nil)
+
+// 캐시 저장
+let cachedResponse = CachedURLResponse(response: response, data: data)
+cache.storeCachedResponse(cachedResponse, for: request)
+
+// 캐시에서 데이터 가져오기
+if let cachedData = cache.cachedResponse(for: request)?.data,
+   let cachedString = String(data: cachedData, encoding: .utf8) {
+    print("Cached Data:", cachedString)
+}
+```
+
+<br>
+
+### 3. HTTP 헤더를 통한 캐싱 정책
+- 서버와 클라이언트 간의 캐싱 정책은 HTTP 헤더로 정의됩니다.
+
+#### 주요 HTTP 헤더
+#### 1.	Cache-Control:
+- 예: Cache-Control: public, max-age=3600
+- public: 캐시 가능.
+- max-age: 캐시 유효 기간(초 단위).
+
+<br>
+
+#### 2.	ETag:
+- 데이터의 고유 식별자.
+- 클라이언트는 If-None-Match 헤더로 서버에 변경 여부를 요청.
+
+#### 예졔
+
+```swift
+var request = URLRequest(url: url)
+request.addValue("application/json", forHTTPHeaderField: "Accept")
+request.cachePolicy = .reloadIgnoringLocalCacheData // 캐시 무시하고 새 데이터 요청
+
+let task = URLSession.shared.dataTask(with: request) { data, response, error in
+    if let httpResponse = response as? HTTPURLResponse,
+       let etag = httpResponse.allHeaderFields["ETag"] as? String {
+        print("ETag:", etag)
+    }
+}
+
+task.resume()
+```
+
+<br>
+
+
+### 4. 캐시 정책 설정 옵션
+
+URLRequest.CachePolicy를 사용하여 요청의 캐싱 정책을 정의할 수 있습니다:
+
+- useProtocolCachePolicy (기본값): 서버의 캐싱 정책을 따릅니다.
+- reloadIgnoringLocalCacheData: 캐시를 무시하고 항상 네트워크 요청.
+- returnCacheDataElseLoad: 캐시가 있으면 캐시 사용, 없으면 네트워크 요청.
+- returnCacheDataDontLoad: 캐시가 없으면 요청하지 않음.
+
+<br>
+
+### 5. 서드파티 라이브러리 활용
+- Alamofire와 같은 라이브러리를 사용하여 캐싱을 보다 세밀하게 관리할 수 있습니다.
+
+#### 예제: Alamofire에서 캐싱
+
+```swift
+import Alamofire
+
+let url = "https://api.example.com/data"
+
+AF.request(url, cachePolicy: .returnCacheDataElseLoad)
+    .response { response in
+        if let data = response.data {
+            print("Data:", data)
+        }
+    }
+```
+
+<br>
+
+### 요약
+1. 기본적으로 URLSession과 URLCache를 활용하여 간단한 캐싱 구현 가능.
+2. Cache-Control 및 ETag와 같은 HTTP 헤더를 통해 서버와 클라이언트 간 캐싱 정책을 관리.
+3. 필요에 따라 URLCache를 직접 관리하거나 서드파티 라이브러리를 활용.
+
+
+<br>
+<br>
+
+## 14.1 URLCache는 어떤 역할을 하나요?
+
+
+<br>
+<br>
+
+## 14.2 응답 캐싱의 장단점은 무엇인가요?
+
+
+<br>
+<br>
+
+## 14.3 응답 캐싱을 커스터마이징하는 방법을 설명해주세요.
+
 
 <br>
 <br>
