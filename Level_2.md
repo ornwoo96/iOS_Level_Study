@@ -4151,27 +4151,347 @@ AF.request(url, cachePolicy: .returnCacheDataElseLoad)
 <br>
 
 ## 14.1 URLCache는 어떤 역할을 하나요?
+URLCache는 iOS 네트워크 요청의 응답 데이터를 캐싱하기 위해 사용됩니다.
+이는 네트워크 응답 데이터를 메모리와 디스크에 저장하여 동일한 요청이 반복될 때 네트워크 요청을 생략하고 캐싱된 데이터를 반환함으로써 성능을 최적화합니다.
+
+<br>
+
+### 주요 역할
+#### 1.	네트워크 응답 데이터 저장:
+- HTTP 요청/응답 헤더에 따라 캐싱 가능 여부와 유효 기간을 결정합니다.
+#### 2.	캐싱된 데이터 반환:
+- 동일한 요청이 있을 경우, 서버로 요청을 보내지 않고 로컬 캐시 데이터를 반환하여 성능을 향상시킵니다.
+#### 3.	메모리와 디스크 관리:
+- 메모리와 디스크 용량을 설정하여 캐싱 데이터를 효율적으로 관리합니다.
+
+<br>
+
+#### 예제 코드
+
+```swift
+let cache = URLCache(memoryCapacity: 10 * 1024 * 1024,  // 메모리 캐시 크기: 10MB
+                     diskCapacity: 50 * 1024 * 1024,   // 디스크 캐시 크기: 50MB
+                     diskPath: "urlCache")
+
+let config = URLSessionConfiguration.default
+config.urlCache = cache
+config.requestCachePolicy = .returnCacheDataElseLoad // 캐시 사용 정책
+
+let session = URLSession(configuration: config)
+
+let url = URL(string: "https://api.example.com/data")!
+let task = session.dataTask(with: url) { data, response, error in
+    if let data = data {
+        print("Received data: \(data)")
+    }
+}
+task.resume()
+```
 
 
 <br>
 <br>
 
 ## 14.2 응답 캐싱의 장단점은 무엇인가요?
+### 장점
+#### 1.	성능 향상:
+- 네트워크 요청 횟수를 줄여 응답 속도를 개선.
+- 사용자 경험(UX) 향상.
+#### 2.	네트워크 비용 절감:
+- 불필요한 네트워크 요청 제거로 데이터 전송량 감소.
+#### 3.	서버 부하 감소:
+- 서버로의 요청을 줄여 서버 리소스 절약.
+#### 4.	오프라인 사용 가능:
+- 네트워크가 끊긴 경우에도 캐싱된 데이터를 사용하여 기본적인 기능 제공.
 
+<br>
+
+### 단점
+
+#### 1.	데이터 최신성 문제:
+- 캐싱된 데이터가 오래된 경우, 최신 데이터가 아닌 잘못된 데이터를 반환할 수 있음.
+#### 2.	메모리 및 디스크 사용량 증가:
+- 캐시 데이터를 저장하기 위해 추가적인 저장 공간 필요.
+#### 3.	복잡한 캐싱 정책:
+- Cache-Control, ETag 등 캐싱 정책 설정이 올바르게 구현되지 않으면 비효율적일 수 있음.
 
 <br>
 <br>
 
 ## 14.3 응답 캐싱을 커스터마이징하는 방법을 설명해주세요.
 
+### 1. URLCache 설정 커스터마이징
+
+URLCache의 메모리 및 디스크 크기, 경로를 설정하여 캐싱 데이터를 효율적으로 관리할 수 있습니다.
+
+```swift
+let customCache = URLCache(memoryCapacity: 20 * 1024 * 1024,  // 메모리 캐시 크기: 20MB
+                           diskCapacity: 100 * 1024 * 1024, // 디스크 캐시 크기: 100MB
+                           diskPath: "customCachePath")
+
+URLCache.shared = customCache
+```
+
+<br>
+
+### 2. 요청 캐싱 정책 설정
+
+URLRequest의 cachePolicy를 사용하여 캐싱 동작을 제어할 수 있습니다.
+
+```swift
+var request = URLRequest(url: URL(string: "https://api.example.com/data")!)
+request.cachePolicy = .reloadIgnoringLocalCacheData // 캐시 무시하고 항상 네트워크 요청
+```
+
+<br>
+### 캐싱 정책 옵션:
+- .useProtocolCachePolicy: 기본값, 서버 정책을 따름.
+- .reloadIgnoringLocalCacheData: 캐시 무시하고 네트워크 요청.
+- .returnCacheDataElseLoad: 캐시가 있으면 캐시 사용, 없으면 네트워크 요청.
+- .returnCacheDataDontLoad: 캐시만 사용, 네트워크 요청하지 않음.
+
+<br>
+
+### 3. 수동 캐싱 관리
+캐싱 데이터를 수동으로 저장하거나 가져올 수 있습니다.
+
+```swift
+// 저장
+let cache = URLCache.shared
+let response = CachedURLResponse(response: response, data: data)
+cache.storeCachedResponse(response, for: request)
+
+// 가져오기
+if let cachedResponse = cache.cachedResponse(for: request) {
+    print("Cached Data:", cachedResponse.data)
+}
+```
+
+<br>
+
+### 4. 서버와 클라이언트의 캐싱 정책 협의
+
+서버에서 HTTP 헤더를 사용해 캐싱 정책을 설정하고 클라이언트는 이를 따릅니다.
+
+- Cache-Control: Cache-Control: public, max-age=3600
+- ETag: 데이터 고유 식별자를 사용하여 최신 여부 확인.
+- Last-Modified: 데이터 마지막 수정 시간 제공.
+
+<br>
+
+### 요약
+
+1. URLCache는 네트워크 요청의 성능 최적화를 위해 사용되며, 메모리 및 디스크 캐싱을 관리합니다.
+2. 응답 캐싱은 성능 향상 및 비용 절감의 장점이 있지만, 데이터 최신성 문제(와 추가 메모리 사용량의 단점이 있습니다.
+3. URLCache와 캐싱 정책을 커스터마이징하여 캐싱 동작을 세밀하게 제어할 수 있습니다.
+
+<br>
+<br>
+
+## 캐싱 최신데이터 관리는 어떻게 하나?
+iOS에서 데이터를 최신 상태로 유지하는 문제를 해결하기 위한 방법은 ETag뿐만 아니라 여러 전략이 존재합니다. 각각의 방법은 특정 상황과 요구 사항에 적합하며, 서버와의 효율적인 통신과 사용자 경험 향상을 목표로 합니다.
+
+<br>
+
+### 1. ETag를 사용하는 방법
+- ETag는 서버와 클라이언트가 데이터를 동기화하는 가장 일반적인 방식 중 하나입니다.
+- 변경되지 않은 데이터에 대해서는 304 Not Modified 응답을 통해 데이터 본문을 생략하므로 네트워크 트래픽 감소.
+
+<br>
+
+#### 장점:
+- 데이터 변경 여부만 확인 가능.
+- 모든 HTTP 기반 네트워크 요청에 적용 가능.
+
+<br>
+
+#### 단점:
+- 네트워크 요청은 여전히 필요.
+- 최신 데이터 여부 확인까지 지연 시간이 발생할 수 있음.
+
+<br>
+
+### 2. Last-Modified 헤더
+- Last-Modified 헤더는 데이터가 마지막으로 변경된 시간을 클라이언트에 전달합니다.
+- 클라이언트는 If-Modified-Since 헤더를 통해 서버에 마지막으로 확인한 시간을 전달합니다.
+
+#### 서버 응답:
+- 데이터가 변경되지 않은 경우: 304 Not Modified.
+- 데이터가 변경된 경우: 200 OK와 새로운 데이터.
+
+```http
+Request:
+GET /data HTTP/1.1
+If-Modified-Since: Tue, 03 Oct 2023 10:15:00 GMT
+
+Response:
+HTTP/1.1 304 Not Modified
+```
+
+#### 장점:
+- 구현이 간단하며 모든 HTTP 클라이언트에서 지원.
+- ETag와 동일한 최적화를 제공.
+
+#### 단점:
+- 시간 동기화 문제(서버-클라이언트 시간 차이 발생 가능).
+- 변경된 데이터인지 확인하는 정확도는 ETag보다 낮음.
+
+<br>
+
+### 3. HTTP 캐싱 정책 (Cache-Control)
+
+Cache-Control 헤더를 사용해 데이터의 유효 기간을 설정합니다.
+
+- max-age=N: 캐시 데이터가 유효한 최대 시간(초).
+- no-cache: 항상 서버에서 데이터를 유효성 검사 후 사용.
+- must-revalidate: 캐시 데이터가 만료되면 서버 확인 필요.
+
+#### 사용 예시:
+
+```http
+Cache-Control: max-age=3600, must-revalidate
+```
+
+<br>
+
+#### iOS에서 적용:
+- URLSession의 기본 캐시 동작은 서버에서 제공하는 Cache-Control 헤더를 따릅니다.
+
+#### 장점:
+- 특정 시간 동안 서버 요청을 생략 가능.
+- 사용자 경험 개선(빠른 응답).
+
+#### 단점:
+- 데이터가 만료되기 전까지는 최신 데이터가 보장되지 않음.
+
+<br>
+
+### 4. WebSocket을 활용한 실시간 업데이트
+- WebSocket은 서버-클라이언트 간 양방향 통신을 제공하여 실시간 데이터 업데이트를 지원합니다.
+- 데이터가 변경되면 서버에서 클라이언트로 즉시 푸시.
+
+#### iOS에서 구현 예시:
+```swift
+import Foundation
+
+let url = URL(string: "wss://example.com/socket")!
+let webSocketTask = URLSession.shared.webSocketTask(with: url)
+
+webSocketTask.resume()
+
+func listenForMessages() {
+    webSocketTask.receive { result in
+        switch result {
+        case .success(let message):
+            switch message {
+            case .string(let text):
+                print("Received text: \(text)")
+            default:
+                break
+            }
+        case .failure(let error):
+            print("Error: \(error)")
+        }
+        listenForMessages() // Keep listening
+    }
+}
+
+listenForMessages()
+```
+
+<br>
+
+### 5. 서버 푸시(Notification Center) -> 이건 쫌? 
+- 서버는 데이터가 변경될 때 클라이언트로 푸시 알림을 전송.
+- 푸시 알림을 통해 클라이언트는 최신 데이터 요청을 실행.
+
+#### 장점:
+- 불필요한 주기적 네트워크 요청 제거.
+- 실시간 데이터 갱신 가능.
+
+#### 단점:
+- 푸시 알림 설정 필요(Apple Push Notification Service 사용).
+- 푸시 알림이 사용자 환경(기기 상태, 네트워크)에 따라 수신되지 않을 수 있음.
+
+<br>
+
+### 6. GraphQL 구독(Subscriptions) -> 네트워크와 데이터를 아끼려다 WebSocket까지..??
+- GraphQL의 Subscription 기능을 사용하면, 데이터 변경 시 서버가 클라이언트로 실시간 데이터를 전송.
+- WebSocket 기반으로 동작.
+
+#### 장점:
+- 실시간 데이터 변경 전파.
+- 필요한 데이터만 요청(Over-fetching 방지).
+
+#### 단점:
+- GraphQL 서버 설정 필요.
+- WebSocket 유지 비용 발생.
+
+<br>
+
+### 7. 서버-클라이언트 동기화
+
+전략: 클라이언트에서 로컬 데이터를 저장(Core Data, SQLite 등)하고, 서버와 데이터를 정기적으로 동기화.
+
+```swift
+// 로컬 데이터 사용
+func fetchCachedData() -> [Model] {
+    // Core Data or SQLite에서 데이터 로드
+}
+
+// 서버 동기화
+func syncWithServer() {
+    fetchFromServer { serverData in
+        // 로컬 데이터와 비교 후 업데이트
+    }
+}
+```
+
+#### 장점:
+- 오프라인 모드에서도 데이터 제공.
+- 최신 데이터 동기화 가능.
+
+#### 단점:
+- 충돌 해결 로직 필요(서버와 로컬 데이터 차이 발생 시).
+
+<br>
+
+### 최신성 문제를 해결하는 가장 일반적인 방법
+
+#### 조합 전략
+- ETag + 로컬 캐싱: 불필요한 네트워크 트래픽 감소.
+- WebSocket or Push Notification: 실시간 데이터 업데이트.
+- HTTP 캐싱 정책: 유효 기간 동안 최신성 확인 생략.
+- 서버 동기화: 로컬 데이터 기반 오프라인 모드 지원.
+
+<br>
+
+#### 최적의 선택
+1. 정적 데이터: ETag 또는 Cache-Control로 효율적인 네트워크 사용.
+2. 자주 변경되는 데이터: WebSocket이나 Push Notification으로 실시간 동기화.
+3. 오프라인 지원: 로컬 캐싱(Core Data, SQLite)과 동기화 전략 결합.
+
+이 모든 전략은 상황에 따라 조합하여 사용하는 것이 일반적입니다. iOS에서는 URLSession과 URLCache를 활용한 기본 캐싱부터, WebSocket 및 로컬 데이터 동기화까지 다양한 방식으로 최신 데이터를 유지할 수 있습니다.
 
 <br>
 <br>
 
 ## 15. Combine 프레임워크란 무엇이며, 어떤 기능을 제공하나요?
-- Publisher와 Subscriber의 역할은 무엇인가요?
-- Operator의 종류와 사용 방법을 설명해주세요.
-- Combine과 RxSwift의 차이점은 무엇인가요?
+
+<br>
+<br>
+
+## 15.1 Publisher와 Subscriber의 역할은 무엇인가요?
+
+<br>
+<br>
+
+## 15.2 Operator의 종류와 사용 방법을 설명해주세요.
+
+<br>
+<br>
+
+## 15.3 Combine과 RxSwift의 차이점은 무엇인가요?
 
 <br>
 <br>
