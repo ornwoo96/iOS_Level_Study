@@ -5612,9 +5612,202 @@ func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive respo
 <br>
 
 ## 18. iOS 앱에서 SwiftUI와 UIKit을 함께 사용하는 방법은 무엇인가요?
-- SwiftUI 뷰에서 UIKit 뷰 컨트롤러를 사용하는 방법을 설명해주세요.
-- UIKit 뷰 컨트롤러에서 SwiftUI 뷰를 호스팅하는 방법은 무엇인가요?
-- SwiftUI와 UIKit을 함께 사용할 때 주의할 점은 무엇인가요?
+
+SwiftUI와 UIKit은 각기 다른 방식으로 UI를 구성하지만, 상호 운용이 가능하도록 설계되었습니다. 이를 통해 SwiftUI와 UIKit을 같은 프로젝트에서 혼합하여 사용할 수 있습니다.
+
+### 1. SwiftUI에서 UIKit 뷰를 사용하는 방법
+
+#### a. UIViewControllerRepresentable 사용
+- UIKit의 UIViewController를 SwiftUI에서 사용하기 위한 프로토콜.
+
+#### 예시: UIImagePickerController를 SwiftUI에서 사용
+
+```swift
+import SwiftUI
+import UIKit
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var selectedImage: UIImage?
+    @Environment(\.presentationMode) var presentationMode
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.selectedImage = image
+            }
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+    }
+}
+```
+
+#### SwiftUI에서 사용
+
+```swift
+struct ContentView: View {
+    @State private var selectedImage: UIImage?
+
+    var body: some View {
+        VStack {
+            if let image = selectedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+            }
+            Button("Pick an Image") {
+                // Show the image picker
+            }
+            .sheet(isPresented: .constant(true)) {
+                ImagePicker(selectedImage: $selectedImage)
+            }
+        }
+    }
+}
+```
+
+<br>
+
+#### b. UIViewRepresentable 사용
+- UIKit의 UIView를 SwiftUI에서 사용하기 위한 프로토콜.
+
+#### 예시: UIActivityIndicatorView 사용
+
+```swift
+import SwiftUI
+
+struct ActivityIndicator: UIViewRepresentable {
+    var isAnimating: Bool
+
+    func makeUIView(context: Context) -> UIActivityIndicatorView {
+        return UIActivityIndicatorView(style: .large)
+    }
+
+    func updateUIView(_ uiView: UIActivityIndicatorView, context: Context) {
+        if isAnimating {
+            uiView.startAnimating()
+        } else {
+            uiView.stopAnimating()
+        }
+    }
+}
+```
+
+#### SwiftUI에서 사용
+
+```swift
+struct ContentView: View {
+    @State private var isLoading = false
+
+    var body: some View {
+        VStack {
+            ActivityIndicator(isAnimating: isLoading)
+            Button("Toggle Loading") {
+                isLoading.toggle()
+            }
+        }
+    }
+}
+```
+
+<br>
+
+### 2. UIKit에서 SwiftUI를 사용하는 방법
+
+#### a. UIHostingController 사용
+- SwiftUI의 뷰를 UIKit에서 사용하는 컨테이너.
+
+#### 예시: UIKit 프로젝트에서 SwiftUI 뷰 사용
+
+```swift
+import SwiftUI
+import UIKit
+
+struct SwiftUIView: View {
+    var body: some View {
+        Text("This is a SwiftUI View")
+            .font(.largeTitle)
+            .padding()
+    }
+}
+
+class ViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let swiftUIView = SwiftUIView()
+        let hostingController = UIHostingController(rootView: swiftUIView)
+
+        addChild(hostingController)
+        hostingController.view.frame = view.bounds
+        view.addSubview(hostingController.view)
+        hostingController.didMove(toParent: self)
+    }
+}
+```
+
+<br>
+
+### 3. SwiftUI와 UIKit의 혼합 사용 사례
+
+#### a. 프로젝트의 점진적 전환
+- 기존 UIKit 프로젝트에 SwiftUI를 도입하거나, SwiftUI 프로젝트에서 특정 기능에 UIKit을 사용.
+
+#### b. 고급 사용자 인터페이스
+- SwiftUI에서 구현하기 어려운 복잡한 UIKit 뷰를 SwiftUI에 통합.
+
+#### c. 기존 서드파티 라이브러리
+- UIKit 기반 라이브러리를 활용할 때 UIViewRepresentable 또는 UIViewControllerRepresentable로 통합.
+
+<br>
+
+### 4. 주의 사항
+#### 1.	상태 관리:
+- SwiftUI의 @State나 @Binding과 UIKit의 데이터 모델 간 동기화를 신경 써야 함.
+#### 2.	생명 주기 차이:
+- SwiftUI와 UIKit의 생명 주기가 다르므로 이벤트 및 상태 변화를 조율해야 함.
+#### 3.	애니메이션:
+- SwiftUI와 UIKit에서 제공하는 애니메이션 API가 다르므로 혼합 사용 시 일관성을 유지해야 함.
+
+SwiftUI와 UIKit을 함께 사용하면 기존 코드 재사용 및 점진적 전환이 가능하며, 각 기술의 강점을 살려 유연한 UI 개발을 할 수 있습니다.
+
+<br>
+<br>
+
+## 18.1 SwiftUI 뷰에서 UIKit 뷰 컨트롤러를 사용하는 방법을 설명해주세요.
+
+
+
+<br>
+<br>
+
+## 18.2 UIKit 뷰 컨트롤러에서 SwiftUI 뷰를 호스팅하는 방법은 무엇인가요?
+
+
+
+<br>
+<br>
+
+## 18.3 SwiftUI와 UIKit을 함께 사용할 때 주의할 점은 무엇인가요?
+
+
 
 <br>
 <br>
