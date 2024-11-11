@@ -5141,9 +5141,181 @@ observable
 <br>
 
 ## 16. Swift의 제네릭(Generic)에 대해 설명해주세요.
-- 제네릭을 사용하는 이유는 무엇인가요?
-- 제네릭 타입 파라미터(Generic Type Parameter)와 제네릭 타입 제약(Generic Type Constraint)은 무엇인가요?
-- 제네릭을 사용할 때 주의할 점은 무엇인가요?
+
+### 개념
+
+제네릭은 특정 타입에 의존하지 않고, 여러 타입에서 동작할 수 있는 코드 작성 방법입니다. 코드 중복을 줄이고, 타입 안정성을 보장하며, 더 유연하고 재사용 가능한 코드를 작성할 수 있게 합니다.
+
+### 장점
+1. 코드 중복 제거: 같은 로직을 여러 타입에 대해 작성할 필요가 없습니다.
+2. 타입 안정성: 컴파일러가 타입 체크를 수행하여 런타임 오류를 줄입니다.
+3. 유연성: 다양한 타입에서 동작 가능.
+
+#### 예시
+
+#### 제네릭 사용 전
+```swift
+func swapTwoInts(_ a: inout Int, _ b: inout Int) {
+    let temp = a
+    a = b
+    b = temp
+}
+
+func swapTwoStrings(_ a: inout String, _ b: inout String) {
+    let temp = a
+    a = b
+    b = temp
+}
+
+// 두 함수는 로직이 동일하지만 타입이 달라 중복 코드 발생.
+```
+
+#### 제네릭 사용 후
+```swift
+// 제네릭으로 하나의 함수로 다양한 타입을 처리
+func swapTwoValues<T>(_ a: inout T, _ b: inout T) {
+    let temp = a
+    a = b
+    b = temp
+}
+
+var int1 = 10, int2 = 20
+swapTwoValues(&int1, &int2)
+print("int1: \(int1), int2: \(int2)") // 출력: int1: 20, int2: 10
+
+var str1 = "Hello", str2 = "World"
+swapTwoValues(&str1, &str2)
+print("str1: \(str1), str2: \(str2)") // 출력: str1: World, str2: Hello
+```
+
+
+<br>
+<br>
+
+## 16.1 제네릭 타입 파라미터(Generic Type Parameter)와 제네릭 타입 제약(Generic Type Constraint)은 무엇인가요?
+
+### 1. 제네릭 타입 파라미터
+- 함수, 구조체, 클래스 등에서 사용할 수 있는 임의의 타입을 나타냅니다.
+- 제네릭 타입 파라미터는 보통 T로 표기하지만, 의미를 나타내기 위해 더 구체적인 이름도 사용 가능합니다.
+
+#### 예시:
+```swift
+func display<T>(value: T) {
+    print("Value: \(value)")
+}
+
+display(value: 42)         // 정수 전달
+display(value: "Swift")    // 문자열 전달
+```
+
+<br>
+
+### 2. 제네릭 타입 제약
+- 제네릭 타입에 특정 프로토콜이나 타입을 만족해야 한다는 조건을 설정합니다.
+- where 문을 사용해 추가 제약을 설정할 수도 있습니다.
+
+#### 예시: Comparable 프로토콜 제약
+
+```swift
+func findMaximum<T: Comparable>(in array: [T]) -> T? {
+    guard let first = array.first else { return nil }
+    return array.reduce(first) { $0 > $1 ? $0 : $1 }
+}
+
+let numbers = [1, 3, 2, 5, 4]
+if let max = findMaximum(in: numbers) {
+    print("Maximum: \(max)") // 출력: Maximum: 5
+}
+
+let strings = ["apple", "banana", "cherry"]
+if let max = findMaximum(in: strings) {
+    print("Maximum: \(max)") // 출력: Maximum: cherry
+}
+```
+
+<br>
+
+#### 예시: where 절로 추가 제약
+```swift
+// where 절로 제네릭 타입을 Equatable로 제약 사항 추가 함.
+func areAllEqual<T>(array: [T]) -> Bool where T: Equatable { 
+    guard let first = array.first else { return true }
+    return array.allSatisfy { $0 == first }
+}
+
+print(areAllEqual(array: [1, 1, 1]))       // 출력: true
+print(areAllEqual(array: [1, 2, 1]))       // 출력: false
+```
+
+
+<br>
+<br>
+
+## 16.2 제네릭을 사용할 때 주의할 점은 무엇인가요?
+
+### 1.	불필요한 제네릭 사용 피하기
+- 제네릭을 사용할 필요가 없는 경우에는 오히려 코드가 복잡해질 수 있습니다.
+- 예시:
+
+```swift
+// 불필요한 제네릭 사용
+func printValue<T>(_ value: T) {
+    print(value)
+}
+// 단순 타입으로 작성 가능
+func printValue(_ value: Any) {
+    print(value)
+}
+```
+
+<br>
+
+### 2.	제네릭 타입 제약 설정
+- 제네릭으로 모든 타입을 허용하면 런타임 오류 가능성이 커질 수 있습니다. 타입 제약을 설정해 컴파일 타임에 체크하도록 설계.
+
+<br>
+
+### 3.	코드 가독성
+- 지나치게 복잡한 제네릭 타입 설계는 코드의 이해를 어렵게 할 수 있습니다.
+
+<br>
+
+### 4.	타입 추론 오류
+- 제네릭을 사용할 때 Swift의 타입 추론이 실패하는 경우, 명시적으로 타입을 지정해야 합니다.
+
+<br>
+
+### 주의점 예시
+
+#### 제네릭 타입 제약 없이 잘못된 코드
+```swift
+func add<T>(_ a: T, _ b: T) -> T {
+    return a + b // 오류: '+' 연산자가 정의되지 않음
+}
+```
+
+<br>
+
+#### 타입 제약 추가 후
+
+```swift
+func add<T: Numeric>(_ a: T, _ b: T) -> T {
+    return a + b
+}
+
+let intSum = add(5, 3)         // 8
+let doubleSum = add(3.5, 2.5)  // 6.0
+```
+
+<br>
+
+### 제네릭 사용 요약
+1. 제네릭 타입 파라미터로 다양한 타입을 처리.
+2. 제네릭 타입 제약으로 안전하고 유연한 설계.
+3. 필요 이상의 제네릭 사용은 피하고, 가독성을 고려해 작성.
+
+Swift의 제네릭은 코드 재사용성과 타입 안전성을 높이며, 다양한 상황에서 유연하게 활용됩니다.
+
 
 <br>
 <br>
