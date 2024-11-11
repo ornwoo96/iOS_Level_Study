@@ -5318,12 +5318,174 @@ Swift의 제네릭은 코드 재사용성과 타입 안전성을 높이며, 다�
 
 
 <br>
+
+### 제네릭 선언부에서 제약 VS where 절을 사용하는 경우 
+- 간결함과 가독성을 위해 단일 제약 조건은 제네릭 선언부에 작성.
+- 확장성과 복잡성을 고려해야 한다면 where 절 사용.
+- 두 방식 모두 Swift에서 기능적으로 동일하며, 상황에 맞게 선택하면 됩니다.
+
+<br>
 <br>
 
 ## 17. iOS 앱에서 로컬 푸시 알림(Local Push Notification)을 구현하는 방법은 무엇인가요?
-- 로컬 푸시 알림과 원격 푸시 알림(Remote Push Notification)의 차이점은 무엇인가요?
-- 푸시 알림의 콘텐츠(Content)와 트리거(Trigger)는 어떤 역할을 하나요?
-- 사용자가 푸시 알림을 탭했을 때 앱의 동작을 처리하는 방법을 설명해주세요.
+로컬 푸시 알림은 서버를 사용하지 않고 사용자 디바이스에서 직접 알림을 예약 및 전송하는 방식입니다. 로컬 푸시 알림은 주로 리마인더, 일정 알림, 타이머 알림 등에 사용됩니다.
+
+### 1. 로컬 푸시 알림의 주요 단계
+1. 권한 요청: 사용자가 알림을 받을 수 있도록 권한을 요청.
+2. 알림 생성: UNNotificationRequest 객체로 알림을 구성.
+3. 알림 스케줄링: UNUserNotificationCenter를 사용해 알림 예약.
+4. 알림 처리: 알림을 클릭하거나 수신했을 때 처리하는 동작 정의.
+
+<br>
+
+### 2. 구현 방법
+#### a. 권한 요청
+```swift
+import UserNotifications
+
+func requestNotificationPermission() {
+    let center = UNUserNotificationCenter.current()
+    center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+        if let error = error {
+            print("Notification permission error: \(error.localizedDescription)")
+        } else {
+            print("Permission granted: \(granted)")
+        }
+    }
+}
+
+// 앱 실행 시 호출
+requestNotificationPermission()
+```
+
+<br>
+
+#### b. 로컬 푸시 알림 생성 및 스케줄링
+
+```swift
+func scheduleLocalNotification() {
+    // 1. 알림 콘텐츠 생성
+    let content = UNMutableNotificationContent()
+    content.title = "로컬 푸시 알림"
+    content.body = "알림 내용을 여기에 작성합니다."
+    content.sound = .default
+    content.badge = 1
+
+    // 2. 알림 트리거 설정 (예: 5초 뒤에 알림)
+    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+
+    // 3. 알림 요청 생성
+    let request = UNNotificationRequest(identifier: "LocalNotification", content: content, trigger: trigger)
+
+    // 4. 요청을 UNUserNotificationCenter에 추가
+    UNUserNotificationCenter.current().add(request) { error in
+        if let error = error {
+            print("Error scheduling notification: \(error.localizedDescription)")
+        } else {
+            print("Notification scheduled successfully!")
+        }
+    }
+}
+
+// 로컬 푸시 알림 스케줄링
+scheduleLocalNotification()
+```
+
+<br>
+
+#### c. 알림 클릭 처리
+
+```swift
+import UserNotifications
+
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // UNUserNotificationCenter 델리게이트 설정
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
+
+    // 알림을 클릭했을 때 호출되는 메서드
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        print("User clicked the notification: \(response.notification.request.identifier)")
+        completionHandler()
+    }
+}
+```
+<br>
+
+### 3. 코드 설명
+#### UNUserNotificationCenter:
+- 로컬 및 원격 알림을 관리하는 주요 API.
+- 알림 권한 요청, 알림 추가 및 제거, 알림 처리 등 수행.
+
+<br>
+
+#### UNNotificationRequest:
+- 알림 요청을 나타내는 객체.
+- content와 trigger를 포함.
+
+<br>
+
+#### UNMutableNotificationContent:
+- 알림의 제목, 본문, 소리, 배지 등을 정의.
+
+<br>
+
+#### Trigger 종류:
+- UNTimeIntervalNotificationTrigger: 특정 시간 간격 뒤에 알림을 트리거.
+- UNCalendarNotificationTrigger: 날짜/시간 기반 알림.
+- UNLocationNotificationTrigger: 위치 기반 알림 (사용자 위치 도달 시).
+
+<br>
+
+### 4. 사용 사례
+#### 리마인더 알림
+- 사용자가 설정한 일정에 따라 알림을 스케줄링.
+
+<br>
+
+#### 타이머 알림
+- 타이머 종료 후 사용자에게 알림.
+
+<br>
+
+
+#### 위치 기반 알림
+- 특정 장소 근처에 도달했을 때 알림.
+
+```swift
+let triggerDate = DateComponents(calendar: Calendar.current, hour: 8, minute: 0)
+let calendarTrigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: true)
+```
+
+<br>
+
+### 5. 주의 사항
+1. 권한 확인: 사용자가 알림 권한을 거부하면 알림을 보낼 수 없습니다.
+2. 알림 식별자 관리: 동일한 식별자를 사용하면 이전 알림이 대체됩니다.
+3. 백그라운드 실행 제한: 앱이 종료되어도 스케줄링된 알림은 시스템에서 관리합니다.
+4. 배터리 및 리소스 사용: 너무 잦은 알림은 사용자 경험을 해칠 수 있습니다.
+
+로컬 푸시 알림은 서버와 통신하지 않아 네트워크가 필요 없는 간단한 알림 작업에 유용합니다.
+
+<br>
+<br>
+
+## 17.1 로컬 푸시 알림과 원격 푸시 알림(Remote Push Notification)의 차이점은 무엇인가요?
+
+
+<br>
+<br>
+
+## 17.2 푸시 알림의 콘텐츠(Content)와 트리거(Trigger)는 어떤 역할을 하나요?
+
+
+<br>
+<br>
+
+## 17.3 사용자가 푸시 알림을 탭했을 때 앱의 동작을 처리하는 방법을 설명해주세요.
+
 
 <br>
 <br>
