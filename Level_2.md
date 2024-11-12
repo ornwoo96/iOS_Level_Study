@@ -6130,6 +6130,63 @@ observation.invalidate()
 <br>
 
 ## 20.1 Deep Link를 구현하는 방법과 주의 사항을 설명해주세요.
+### 구현 방법
+#### 1.	URL Scheme 등록:
+- 앱의 Info.plist 파일에 URL Scheme을 등록:
+
+```swift
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>myapp</string>
+        </array>
+    </dict>
+</array>
+```
+
+<br>
+
+#### 2.	AppDelegate에서 URL 처리:
+- application(_:open:options:) 메서드에서 URL을 처리:
+
+```swift
+func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+    if url.scheme == "myapp" {
+        print("Deep Link URL: \(url)")
+        // URL Path로 화면 이동 처리
+        return true
+    }
+    return false
+}
+```
+
+<br>
+
+#### 3.	특정 화면으로 이동:
+- URL의 Path와 Query Parameters를 파싱하여 적절한 화면으로 이동:
+
+```swift
+if url.host == "product" {
+    let productID = url.queryParameters?["id"]
+    navigateToProductPage(with: productID)
+}
+```
+
+<br>
+
+### 주의 사항
+
+#### 보안 문제:
+- URL Scheme은 고유하지 않으므로 다른 앱이 동일한 Scheme을 사용할 수 있음.
+- URL Scheme 충돌 방지를 위해 고유한 이름을 사용해야 함.
+
+#### 앱 설치 여부:
+- 앱이 설치되지 않으면 URL Scheme을 처리할 수 없음.
+
+
+
 
 <br>
 <br>
