@@ -7656,24 +7656,260 @@ viewModel.fetchData()
 
 
 ## 28. UIKit의 `UIView`는 클래스 기반으로 구현되어 있지만, SwiftUI에서 `View` 프로토콜을 준수하는 타입은 보통 구조체를 사용합니다. 그 이유는 무엇일까요?
+SwiftUI의 View가 구조체로 구현된 이유는 **값 타입(Value Type)**의 특성을 활용하여 성능을 최적화하고 선언적 UI 스타일을 지원하기 위해서입니다.
 
+- 구조체는 값 복사를 통해 불변성을 유지하며, 스냅샷 형태로 UI 상태를 안전하게 관리할 수 있습니다.
+- UIView는 클래스 기반으로 참조 타입이며, 수동으로 상태를 관리하고 업데이트해야 합니다.
 
 <br>
 <br>
 
 ## 28.1 `View` 프로토콜을 준수하는 구조체의 주요 특징은 무엇이며, 이는 어떻게 SwiftUI의 성능 및 사용성에 영향을 미치나요?
+### 특징:
+#### 1. 값 타입(Value Type)
+- View는 구조체로 설계되어 불변성(Immutability)을 유지하며, 뷰 상태를 복사해서 안전하게 관리할 수 있습니다.
+#### 2. 렌더링 최적화
+- SwiftUI는 상태 변경 시 새로운 뷰 트리를 생성하고, 변경된 부분만 효율적으로 렌더링합니다. 구조체의 값 비교는 빠르기 때문에 성능이 향상됩니다.
+#### 3.	데이터 드리븐(Data-Driven) 구조
+- 구조체 뷰는 데이터 상태가 변경되었을 때 새로 생성되며, 변경된 데이터 기반으로 UI가 다시 그려집니다.
 
+<br>
+
+### SwiftUI의 성능에 미치는 영향:
+- 뷰의 재사용: SwiftUI는 기존 뷰를 다시 사용하는 대신, 새로운 뷰를 생성하여 상태 업데이트를 처리하므로, 구조체 기반이 성능 최적화에 유리합니다.
+- 변경된 부분만 업데이트: 값 비교를 통해 변경된 부분만 효율적으로 렌더링합니다.
 
 <br>
 <br>
 
 ## 28.2 SwiftUI의 `View`가 구조체임에도 불구하고, 상태(state)를 어떻게 관리하고 업데이트하나요?
+### SwiftUI에서 상태 관리 기법
 
+### 1.	@State
+- 값 타입 구조체 내부에서 로컬 상태를 저장하고 관리하기 위한 방법.
+- SwiftUI가 상태 변경을 감지하고 뷰를 다시 렌더링.
+
+```swift
+struct CounterView: View {
+    @State private var count = 0
+    
+    var body: some View {
+        VStack {
+            Text("Count: \(count)")
+            Button("Increment") {
+                count += 1
+            }
+        }
+    }
+}
+```
+
+<br>
+
+### 2.	@Binding
+- 부모 뷰로부터 상태를 전달받아 하위 뷰에서 상태를 공유.
+
+```swift
+struct ParentView: View {
+    @State private var count = 0
+    
+    var body: some View {
+        ChildView(count: $count)
+    }
+}
+
+struct ChildView: View {
+    @Binding var count: Int
+    
+    var body: some View {
+        Button("Increment") {
+            count += 1
+        }
+    }
+}
+```
+
+<br>
+
+### 3.	@StateObject와 @ObservedObject
+
+#### 특징
+#### @StateObject:
+- SwiftUI에서 처음으로 객체를 생성하고, 해당 뷰의 수명 동안 객체를 유지할 때 사용.
+- 객체의 상태가 변할 때, 뷰를 다시 렌더링합니다.
+
+#### @ObservedObject:
+- 이미 생성된 객체를 관찰하고, 객체의 상태가 변경될 때 뷰를 업데이트.
+- 부모 뷰에서 객체를 전달받아 사용.
+
+<br>
+
+#### 차이점
+
+<img src="https://github.com/user-attachments/assets/718d07dc-da5e-4d4d-be10-6807cc256b5a">
+
+#### 예시 코드
+
+```swift
+// 모델 클래스
+class CounterModel: ObservableObject {
+    @Published var count = 0
+}
+
+// 부모 뷰
+struct ParentView: View {
+    @StateObject private var model = CounterModel() // 처음 생성 및 관리
+    
+    var body: some View {
+        ChildView(model: model) // 자식 뷰에 전달
+    }
+}
+
+// 자식 뷰
+struct ChildView: View {
+    @ObservedObject var model: CounterModel // 전달받은 객체를 관찰
+    
+    var body: some View {
+        VStack {
+            Text("Count: \(model.count)")
+            Button("Increment") {
+                model.count += 1
+            }
+        }
+    }
+}
+```
+
+
+
+
+<br>
+
+### 4.	EnvironmentObject와 @Environment
+#### 특징
+#### EnvironmentObject:
+- 뷰 계층 전반에 걸쳐 상태를 공유.
+- 부모 뷰에서 상태를 설정하면, 모든 하위 뷰가 해당 상태를 사용할 수 있습니다.
+- 뷰 계층에서 특정 상태를 의존적으로 전달할 필요 없이 접근 가능.
+#### @Environment:
+- SwiftUI가 제공하는 환경값(예: colorScheme, locale)에 접근.
+- 사용자 환경(다크 모드, 언어 설정 등)에 따라 뷰를 동적으로 변경.
+
+#### 차이점
+<img src="https://github.com/user-attachments/assets/0cb97ca4-6481-4e58-862c-b49e56e8b9d4">
+
+#### 예시 코드
+#### EnvironmentObject 사용
+
+```swift
+// 모델 클래스
+class CounterModel: ObservableObject {
+    @Published var count = 0
+}
+
+// 부모 뷰
+struct ParentView: View {
+    @StateObject private var model = CounterModel() // 상태 객체 생성 및 설정
+    
+    var body: some View {
+        ChildView() // 자식 뷰 호출
+            .environmentObject(model) // 환경 객체로 설정
+    }
+}
+
+// 자식 뷰
+struct ChildView: View {
+    @EnvironmentObject var model: CounterModel // 환경 객체 관찰
+    
+    var body: some View {
+        VStack {
+            Text("Count: \(model.count)")
+            Button("Increment") {
+                model.count += 1
+            }
+        }
+    }
+}
+```
+#### @Environment 사용
+
+```swift
+struct EnvironmentView: View {
+    @Environment(\.colorScheme) var colorScheme // 현재 색상 모드 (라이트/다크)
+    @Environment(\.locale) var locale           // 현재 로케일(언어 설정)
+
+    var body: some View {
+        VStack {
+            Text("Current Mode: \(colorScheme == .dark ? "Dark" : "Light")")
+            Text("Current Locale: \(locale.identifier)")
+        }
+        .padding()
+    }
+}
+```
+
+<br>
+
+### 주요 사용 시기
+
+<img src="https://github.com/user-attachments/assets/63bc167f-cca3-4290-a209-008cbebf6bed">
 
 <br>
 <br>
 
 ## 28.3 SwiftUI의 구조체 기반 `View` 생성과 업데이트 사이클은 어떻게 UIKit의 클래스 기반 `UIView`와 다른가요?
+### UIKit의 UIView와 업데이트 사이클
+
+#### 1.	클래스 기반
+- UIView는 참조 타입이며, 메모리에서 뷰가 생성된 이후 수동으로 상태를 변경하고 업데이트해야 합니다.
+- 업데이트 프로세스:
+	- 수동으로 상태 변경: setNeedsLayout() 또는 layoutSubviews() 호출.
+	- 뷰의 상태를 직접 조작.
+- 예시:
+
+```swift
+class CounterViewController: UIViewController {
+    private var count = 0
+    private let label = UILabel()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        label.text = "Count: \(count)"
+    }
+
+    func increment() {
+        count += 1
+        label.text = "Count: \(count)"
+    }
+}
+```
+
+### SwiftUI의 구조체 기반 업데이트 사이클
+#### 1.	구조체 기반
+- SwiftUI는 뷰가 변경되지 않는 상태를 가정하며, 상태 변경 시 전체 뷰를 재생성.
+- 데이터 중심: 상태를 기반으로 뷰 트리를 선언.
+- 변경된 데이터만 렌더링.
+- 예시:
+
+```swift
+struct CounterView: View {
+    @State private var count = 0
+
+    var body: some View {
+        VStack {
+            Text("Count: \(count)")
+            Button("Increment") {
+                count += 1
+            }
+        }
+    }
+}
+```
+
+<br>
+
+### 비교
+<img src="https://github.com/user-attachments/assets/bb74f961-448c-4bf1-8dd1-837a490daeb0">
 
 
 <br>
