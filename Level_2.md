@@ -6404,11 +6404,121 @@ print(data)
 <br>
 
 ## 21.1 Result 타입을 사용하는 이유와 장점은 무엇인가요?
+### 이유 
+#### 가독성 증가:
+- do-catch 블록 없이 성공과 실패를 명확히 표현.
+#### 비동기 코드 간결화:
+- 클로저로 처리 시 코드 구조를 단순화.
+#### 에러 처리 일관성:
+- 함수와 클로저 모두 동일한 방식으로 성공/실패를 관리.
+
+<br>
+
+### 장점:
+#### 1. 타입 안정성:
+- 성공 값(Success)과 실패 값(Failure)에 대해 타입 안정성을 보장.
+#### 2.	명확한 제어 흐름:
+- 결과를 switch문으로 처리 가능.
+#### 3.	중첩된 클로저 최소화:
+- 비동기 작업에서 결과를 처리할 때 콜백 지옥 방지.
+
+```swift
+func fetchData(completion: (Result<String, Error>) -> Void) {
+    let success = true
+    if success {
+        completion(.success("Data fetched successfully"))
+    } else {
+        completion(.failure(NSError(domain: "NetworkError", code: 1, userInfo: nil)))
+    }
+}
+
+fetchData { result in
+    switch result {
+    case .success(let data):
+        print(data) // 성공 처리
+    case .failure(let error):
+        print("Error: \(error.localizedDescription)") // 실패 처리
+    }
+}
+```
+
+
 
 <br>
 <br>
 
 ## 21.2 에러 처리 시 do-catch 문과 Result 타입을 함께 사용하는 방법을 설명해주세요.
+
+### do-catch와 함께 사용하는 이유:
+- do-catch는 동기 작업에서 예외를 처리.
+- Result는 비동기 작업의 성공/실패를 포착.
+- 두 방식을 함께 사용하면 동기와 비동기 에러 처리를 모두 수용.
+
+#### 구현 예시:
+```swift
+// 동기 작업에서 Result를 생성
+func processData() -> Result<String, Error> {
+    do {
+        let data = try fetchDataFromDisk() // 성공 시 데이터 반환
+        return .success(data)
+    } catch {
+        return .failure(error) // 에러 반환
+    }
+}
+
+func fetchDataFromDisk() throws -> String {
+    // 예외를 발생시키거나 데이터를 반환
+    throw NSError(domain: "DiskError", code: 1, userInfo: nil)
+}
+
+// 처리 예시
+let result = processData()
+
+switch result {
+case .success(let data):
+    print("Data: \(data)")
+case .failure(let error):
+    print("Error: \(error.localizedDescription)")
+}
+```
+
+#### 비동기 작업에서 Result와 do-catch 활용:
+
+```swift
+func fetchRemoteData(completion: (Result<String, Error>) -> Void) {
+    DispatchQueue.global().async {
+        do {
+            let data = try fetchDataFromServer() // 성공 시 데이터 반환
+            completion(.success(data))
+        } catch {
+            completion(.failure(error)) // 에러 반환
+        }
+    }
+}
+
+func fetchDataFromServer() throws -> String {
+    // 서버 작업 중 에러를 발생시키거나 데이터 반환
+    throw NSError(domain: "ServerError", code: 2, userInfo: nil)
+}
+
+// 비동기 호출
+fetchRemoteData { result in
+    switch result {
+    case .success(let data):
+        print("Fetched Data: \(data)")
+    case .failure(let error):
+        print("Failed with error: \(error.localizedDescription)")
+    }
+}
+```
+
+<br>
+
+### 요약:
+- do-catch는 동기 작업에서 직접 에러를 처리.
+- Result는 성공/실패를 캡슐화하여 비동기 작업에 적합.
+- 두 가지를 함께 사용하면 모든 상황에서 에러 처리가 명확하고 일관성 있게 동작.
+
 
 <br>
 <br>
