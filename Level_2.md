@@ -7604,8 +7604,8 @@ let publisher = Just("Hello, Combine!")
 let backgroundQueue = DispatchQueue(label: "com.example.backgroundQueue")
 
 publisher
-    .subscribe(on: backgroundQueue) // 백그라운드에서 실행
-    .receive(on: DispatchQueue.main) // 메인 큐에서 결과 전달
+    .subscribe(on: backgroundQueue) // 1. 구독 시작 - 데이터 생성 작업은 백그라운드 큐에서 실행
+    .receive(on: DispatchQueue.main) // 2. 데이터가 전달되면 메인 큐로 이동
     .sink { value in
         print("Received '\(value)' on \(Thread.isMainThread ? "Main Thread" : "Background Thread")")
     }
