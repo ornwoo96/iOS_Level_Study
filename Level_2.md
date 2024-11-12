@@ -7365,12 +7365,195 @@ print(process) // 출력: "Start flows to Middle flows to End"
 
 ## 26.1 지정 생성자(Designated Initializer)와 편의 생성자(Convenience Initializer)의 차이점은 무엇인가요?
 
+### 개념
+#### 지정 생성자 (Designated Initializer):
+- 클래스의 모든 프로퍼티를 초기화하는 주요 생성자.
+- 부모 클래스의 지정 생성자를 호출해야 합니다.
+#### 편의 생성자 (Convenience Initializer):
+- 보조 생성자로, 다른 생성자를 호출하여 초기화 작업을 단순화.
+- 자기 클래스의 다른 생성자(지정 또는 편의 생성자)를 호출해야 합니다.
+
+#### 예시 코드
+```swift
+class Person {
+    var name: String
+    var age: Int
+
+    // 지정 생성자
+    init(name: String, age: Int) {
+        self.name = name
+        self.age = age
+    }
+
+    // 편의 생성자
+    convenience init(name: String) {
+        self.init(name: name, age: 0) // 다른 생성자 호출
+    }
+}
+
+// 사용 예시
+let person1 = Person(name: "Alice", age: 30) // 지정 생성자 사용
+let person2 = Person(name: "Bob")            // 편의 생성자 사용
+```
+
+<br>
+
+### 차이점
+
+<img src="https://github.com/user-attachments/assets/20a4c0b6-a81b-4b93-a4f9-d5c5968bf871">
+
+
 
 <br>
 <br>
 
 ## 26.2 필수 생성자(Required Initializer)와 실패 가능한 생성자(Failable Initializer)는 어떤 경우에 사용하나요?
+### 개념
+#### 필수 생성자 (Required Initializer):
+- 자식 클래스에서 반드시 구현해야 하는 생성자.
+- required 키워드로 선언.
+#### 실패 가능한 생성자 (Failable Initializer):
+- 초기화가 실패할 가능성이 있는 생성자.
+- 반환 타입이 옵셔널(?)이며, nil을 반환하여 초기화 실패를 나타냅니다.
 
+#### 예시 코드
+
+#### 필수 생성자
+
+```swift
+class Animal {
+    var name: String
+
+    // 필수 생성자
+    required init(name: String) {
+        self.name = name
+    }
+}
+
+class Dog: Animal {
+    required init(name: String) {
+        super.init(name: name)
+    }
+}
+
+// 사용 예시
+let dog = Dog(name: "Buddy")
+```
+
+#### 실패 가능한 생성자
+
+```swift
+struct Number {
+    let value: Int
+
+    // 실패 가능한 생성자
+    init?(value: Int) {
+        guard value > 0 else { return nil }
+        self.value = value
+    }
+}
+
+// 사용 예시
+if let positiveNumber = Number(value: 10) {
+    print("Number is \(positiveNumber.value)") // 출력: Number is 10
+} else {
+    print("Initialization failed")
+}
+
+if let negativeNumber = Number(value: -5) {
+    print("Number is \(negativeNumber.value)")
+} else {
+    print("Initialization failed") // 출력: Initialization failed
+}
+```
+
+<br>
+
+### 차이점
+
+<img src="https://github.com/user-attachments/assets/11ebdce7-0477-48c0-81d2-395fae0cf13f">
+
+### 사용 시기
+- 필수 생성자: 특정 부모 클래스를 상속받는 모든 자식 클래스에서 동일한 초기화 패턴을 강제하고 싶을 때.
+- 실패 가능한 생성자: 초기화 조건이 복잡하거나 유효성 검사가 필요한 경우.
+
+<br>
+
+### 유효성 검사가 필요한 실패 가능한 생성자 예시
+
+#### 설명
+- **유효성 검사(Validation)** 란 객체를 초기화하기 전에 특정 조건을 만족하는지 확인하는 작업입니다.
+- 만약 조건을 만족하지 못하면 객체 초기화에 실패하도록 설계할 수 있습니다.
+
+#### 예시 코드: 이메일 주소 유효성 검사
+
+```swift
+struct Email {
+    let address: String
+
+    // 실패 가능한 생성자
+    init?(address: String) {
+        // 유효성 검사: 이메일 주소에 '@' 포함 여부 확인
+        guard address.contains("@") else {
+            print("Invalid email address: \(address)")
+            return nil // 초기화 실패
+        }
+        self.address = address
+    }
+}
+
+// 유효한 이메일
+if let validEmail = Email(address: "user@example.com") {
+    print("Successfully created email: \(validEmail.address)") // 출력: Successfully created email: user@example.com
+} else {
+    print("Failed to create email.")
+}
+
+// 유효하지 않은 이메일
+if let invalidEmail = Email(address: "userexample.com") {
+    print("Successfully created email: \(invalidEmail.address)")
+} else {
+    print("Failed to create email.") // 출력: Failed to create email.
+}
+```
+
+#### 예시 코드: 나이 유효성 검사
+
+```swift
+struct Person {
+    let name: String
+    let age: Int
+
+    // 실패 가능한 생성자
+    init?(name: String, age: Int) {
+        // 나이가 0 이상이어야만 초기화 성공
+        guard age >= 0 else {
+            print("Invalid age: \(age)")
+            return nil // 초기화 실패
+        }
+        self.name = name
+        self.age = age
+    }
+}
+
+// 유효한 나이
+if let validPerson = Person(name: "John", age: 25) {
+    print("Successfully created person: \(validPerson.name), Age: \(validPerson.age)")
+} else {
+    print("Failed to create person.")
+}
+
+// 유효하지 않은 나이
+if let invalidPerson = Person(name: "Jane", age: -5) {
+    print("Successfully created person: \(invalidPerson.name), Age: \(invalidPerson.age)")
+} else {
+    print("Failed to create person.") // 출력: Failed to create person.
+}
+```
+
+#### 포인트
+- **guard**를 사용해 조건을 명확하게 검사하고 실패 시 **return nil**을 통해 초기화를 중단.
+- 실패 가능한 생성자는 객체를 안전하게 초기화하고, 잘못된 입력을 처리할 수 있는 유용한 도구입니다.
 
 <br>
 <br>
