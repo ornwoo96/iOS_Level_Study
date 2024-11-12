@@ -6529,46 +6529,106 @@ fetchRemoteData { result in
 <br>
 
 ## 23. Swift의 Sequence와 Collection 프로토콜에 대해 설명해주세요.
-- Sequence와 Collection 프로토콜의 차이점과 요구 사항을 설명해주세요.
-- 사용자 정의 Sequence와 Collection을 구현하는 방법과 사용 예시를 들어주세요.
+
+
+<br>
+<br>
+
+## 23.1 Sequence와 Collection 프로토콜의 차이점과 요구 사항을 설명해주세요.
+
+
+<br>
+<br>
+
+## 23.2 사용자 정의 Sequence와 Collection을 구현하는 방법과 사용 예시를 들어주세요.
 
 <br>
 <br>
 
 ## 24. UIKit의 AdaptiveLayout과 Size Classes에 대해 설명해주세요.
-- AdaptiveLayout의 개념과 사용 목적을 설명해주세요.
-- Size Classes를 활용하여 다양한 기기에 적응적인 UI를 구현하는 방법을 예시와 함께 설명해주세요.
+
+<br>
+<br>
+
+## 24.1 AdaptiveLayout의 개념과 사용 목적을 설명해주세요.
+
+<br>
+<br>
+
+## 24. Size Classes를 활용하여 다양한 기기에 적응적인 UI를 구현하는 방법을 예시와 함께 설명해주세요.
 
 <br>
 <br>
 
 ## 25. Swift의 커스텀 연산자(Custom Operator)에 대해 설명해주세요.
-- 커스텀 연산자를 정의하는 방법과 주의 사항은 무엇인가요?
-- 커스텀 연산자를 활용한 코드 가독성 향상 방안을 제시해주세요.
+
+<br>
+<br>
+
+## 25.1 커스텀 연산자를 정의하는 방법과 주의 사항은 무엇인가요?
+
+<br>
+<br>
+
+## 25.2 커스텀 연산자를 활용한 코드 가독성 향상 방안을 제시해주세요.
 
 <br>
 <br>
 
 ## 26. Swift의 생성자(Initializer)와 관련된 고급 개념에 대해 설명해주세요.
-- 지정 생성자(Designated Initializer)와 편의 생성자(Convenience Initializer)의 차이점은 무엇인가요?
-- 필수 생성자(Required Initializer)와 실패 가능한 생성자(Failable Initializer)는 어떤 경우에 사용하나요?
+
+<br>
+<br>
+
+## 26.1 지정 생성자(Designated Initializer)와 편의 생성자(Convenience Initializer)의 차이점은 무엇인가요?
+
+
+<br>
+<br>
+
+## 26.2 필수 생성자(Required Initializer)와 실패 가능한 생성자(Failable Initializer)는 어떤 경우에 사용하나요?
 
 
 <br>
 <br>
 
 ## 27. Combine 프레임워크에서 Scheduler의 역할과 종류에 대해 설명해주세요.
-- Scheduler를 사용하여 작업을 특정 큐(DispatchQueue)에서 실행하는 방법을 설명해주세요.
-- 백그라운드에서 작업을 수행하고 메인 큐에서 UI를 업데이트하는 패턴을 Combine으로 구현하는 방법을 설명해주세요.
+
+
+<br>
+<br>
+
+## 27.1 Scheduler를 사용하여 작업을 특정 큐(DispatchQueue)에서 실행하는 방법을 설명해주세요.
+
+
+<br>
+<br>
+
+## 27.2 백그라운드에서 작업을 수행하고 메인 큐에서 UI를 업데이트하는 패턴을 Combine으로 구현하는 방법을 설명해주세요.
 
 <br>
 <br>
 
 
 ## 28. UIKit의 `UIView`는 클래스 기반으로 구현되어 있지만, SwiftUI에서 `View` 프로토콜을 준수하는 타입은 보통 구조체를 사용합니다. 그 이유는 무엇일까요?
-- `View` 프로토콜을 준수하는 구조체의 주요 특징은 무엇이며, 이는 어떻게 SwiftUI의 성능 및 사용성에 영향을 미치나요?
-- SwiftUI의 `View`가 구조체임에도 불구하고, 상태(state)를 어떻게 관리하고 업데이트하나요?
-- SwiftUI의 구조체 기반 `View` 생성과 업데이트 사이클은 어떻게 UIKit의 클래스 기반 `UIView`와 다른가요?
+
+
+<br>
+<br>
+
+## 28.1 `View` 프로토콜을 준수하는 구조체의 주요 특징은 무엇이며, 이는 어떻게 SwiftUI의 성능 및 사용성에 영향을 미치나요?
+
+
+<br>
+<br>
+
+## 28.2 SwiftUI의 `View`가 구조체임에도 불구하고, 상태(state)를 어떻게 관리하고 업데이트하나요?
+
+
+<br>
+<br>
+
+## 28.3 SwiftUI의 구조체 기반 `View` 생성과 업데이트 사이클은 어떻게 UIKit의 클래스 기반 `UIView`와 다른가요?
 
 
 <br>
