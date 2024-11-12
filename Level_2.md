@@ -7559,20 +7559,97 @@ if let invalidPerson = Person(name: "Jane", age: -5) {
 <br>
 
 ## 27. Combine 프레임워크에서 Scheduler의 역할과 종류에 대해 설명해주세요.
+### Scheduler의 역할
+- Combine에서 작업을 실행할 스레드와 큐를 결정합니다.
+- 데이터 처리를 특정 스레드에서 수행하거나, UI 업데이트를 메인 스레드에서 수행하도록 제어.
 
+<br>
+
+### Scheduler의 종류
+<img src="https://github.com/user-attachments/assets/88b4920e-16db-4524-8c06-a979de128a9f">
+
+#### 사용 예시
+
+```swift
+import Combine
+import Foundation
+
+let backgroundQueue = DispatchQueue(label: "com.example.backgroundQueue")
+let publisher = [1, 2, 3].publisher
+
+publisher
+    .subscribe(on: backgroundQueue) // 작업 시작 시 백그라운드 큐에서 실행
+    .receive(on: DispatchQueue.main) // UI 작업을 위해 메인 큐로 전달
+    .sink { value in
+        print("Received value: \(value) on \(Thread.isMainThread ? "Main Thread" : "Background Thread")")
+    }
+```
 
 <br>
 <br>
 
 ## 27.1 Scheduler를 사용하여 작업을 특정 큐(DispatchQueue)에서 실행하는 방법을 설명해주세요.
+### 설명
+#### subscribe(on:):
+- 작업이 시작될 큐를 지정.
+- 데이터 처리와 같은 무거운 작업은 백그라운드 큐에서 실행.
+#### receive(on:):
+- 작업이 완료된 데이터를 전달받는 큐를 지정.
+- UI 업데이트는 반드시 메인 큐에서 실행.
 
+#### 예시 코드
+
+```swift
+let publisher = Just("Hello, Combine!")
+let backgroundQueue = DispatchQueue(label: "com.example.backgroundQueue")
+
+publisher
+    .subscribe(on: backgroundQueue) // 백그라운드에서 실행
+    .receive(on: DispatchQueue.main) // 메인 큐에서 결과 전달
+    .sink { value in
+        print("Received '\(value)' on \(Thread.isMainThread ? "Main Thread" : "Background Thread")")
+    }
+```
 
 <br>
 <br>
 
 ## 27.2 백그라운드에서 작업을 수행하고 메인 큐에서 UI를 업데이트하는 패턴을 Combine으로 구현하는 방법을 설명해주세요.
+### 설명
+- 백그라운드 스레드에서 데이터를 처리한 뒤, 결과를 메인 스레드로 전달하여 UI를 업데이트.
+- Combine의 subscribe(on:)과 receive(on:)을 조합.
 
+#### 예시 코드
+```swift
+import Combine
+import UIKit
 
+class ViewModel {
+    private var cancellables = Set<AnyCancellable>()
+
+    func fetchData() {
+        let backgroundQueue = DispatchQueue(label: "com.example.backgroundQueue")
+        
+        Just("Fetched Data")
+            .subscribe(on: backgroundQueue) // 백그라운드에서 데이터 처리
+            .map { $0.uppercased() } // 데이터 가공
+            .receive(on: DispatchQueue.main) // 메인 스레드로 전달
+            .sink { data in
+                print("Updating UI with: \(data) on \(Thread.isMainThread ? "Main Thread" : "Background Thread")")
+            }
+            .store(in: &cancellables)
+    }
+}
+
+// 사용 예시
+let viewModel = ViewModel()
+viewModel.fetchData()
+```
+
+### 주요 포인트
+- subscribe(on:): 데이터를 처리할 스레드 지정.
+- receive(on:): 결과를 전달받을 스레드 지정(UI 작업은 메인 스레드에서 수행).
+- Combine의 스케줄러를 사용하면 동시성을 간단하게 관리할 수 있습니다.
 
 <br>
 <br>
