@@ -7204,18 +7204,154 @@ class AdaptiveViewController: UIViewController {
 <br>
 
 ## 25. Swift의 커스텀 연산자(Custom Operator)에 대해 설명해주세요.
-
+**커스텀 연산자(Custom Operator)** 는 기존 연산자(+, -, *, / 등) 외에, 개발자가 직접 연산자를 정의하여 사용할 수 있는 Swift의 기능입니다. 이를 통해 코드를 간결하게 만들고 특정 도메인에 특화된 표현식을 지원할 수 있습니다.
 
 <br>
 <br>
 
 ## 25.1 커스텀 연산자를 정의하는 방법과 주의 사항은 무엇인가요?
+### 커스텀 연산자 종류
+1. Prefix 연산자: 피연산자의 앞에 위치하는 연산자.
+2. Postfix 연산자: 피연산자의 뒤에 위치하는 연산자.
+3. Infix 연산자: 두 피연산자 사이에 위치하는 연산자.
+
+<br>
+
+### 정의 방법
+1. 연산자 선언: prefix, postfix, infix를 사용하여 새로운 연산자를 선언합니다.
+2. 연산자 구현: 연산자에 연결할 함수 또는 메서드를 구현합니다.
+
+
+#### Prefix 연산자 예시:
+```swift
+// Prefix 연산자 정의
+prefix operator ++
+
+prefix func ++ (value: inout Int) -> Int {
+    value += 1
+    return value
+}
+
+// 사용 예시
+var number = 5
+print(++number) // 출력: 6
+```
+
+#### Postfix 연산자 예시:
+```swift
+// Postfix 연산자 정의
+postfix operator ++
+
+postfix func ++ (value: inout Int) -> Int {
+    defer { value += 1 }
+    return value
+}
+
+// 사용 예시
+var number = 5
+print(number++) // 출력: 5 (먼저 현재 값을 반환하고 이후 1 증가)
+print(number)   // 출력: 6
+```
+
+
+#### Infix 연산자 예시:
+```swift
+// 1. infix(중위 연산자) 선언
+infix operator ** : MultiplicationPrecedence
+
+// 2. 중위 연산자 구현
+func ** (base: Int, power: Int) -> Int {
+    return Int(pow(Double(base), Double(power)))
+}
+
+// 사용 예시
+let result = 2 ** 3 // 2의 3승, 출력: 8
+print(result)
+```
+
+<br>
+
+### 주의 사항
+1. 기존 연산자와 충돌 주의:
+- 커스텀 연산자가 기존 연산자와 비슷하거나 혼동을 줄 수 있으면 코드 가독성을 해칠 수 있습니다.
+2. 적절한 우선순위와 결합성 설정:
+- precedencegroup 키워드를 사용해 연산자의 우선순위와 결합성을 설정해야 합니다.
+- 우선순위를 잘못 설정하면 의도치 않은 동작이 발생할 수 있습니다.
+
+```swift
+// 우선순위 정의
+precedencegroup PowerPrecedence {
+    higherThan: MultiplicationPrecedence
+    associativity: left
+}
+
+// 중위 연산자 정의
+infix operator ^^ : PowerPrecedence
+
+func ^^ (base: Int, power: Int) -> Int {
+    return Int(pow(Double(base), Double(power)))
+}
+```
 
 
 <br>
 <br>
 
 ## 25.2 커스텀 연산자를 활용한 코드 가독성 향상 방안을 제시해주세요.
+
+### 가독성 향상을 위한 사용 예시
+
+#### 1. 벡터 연산을 간결하게 표현
+
+```swift
+struct Vector {
+    var x: Double
+    var y: Double
+
+    // 커스텀 연산자 정의 (+)
+    static func + (lhs: Vector, rhs: Vector) -> Vector {
+        return Vector(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+    }
+
+    // 커스텀 연산자 정의 (-)
+    static func - (lhs: Vector, rhs: Vector) -> Vector {
+        return Vector(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+    }
+}
+
+// 사용 예시
+let vector1 = Vector(x: 2.0, y: 3.0)
+let vector2 = Vector(x: 1.0, y: 4.0)
+let result = vector1 + vector2 // (3.0, 7.0)
+```
+
+<br>
+
+#### 2. 도메인 특화 언어(DSL) 표현
+커스텀 연산자를 사용하여 특정 도메인에 적합한 코드를 작성할 수 있습니다.
+```swift
+infix operator --> : AdditionPrecedence
+
+func --> (lhs: String, rhs: String) -> String {
+    return "\(lhs) flows to \(rhs)"
+}
+
+// 사용 예시
+let process = "Start" --> "Middle" --> "End"
+print(process) // 출력: "Start flows to Middle flows to End"
+```
+
+<br>
+
+#### 장점
+- 특정 작업을 간결하게 표현할 수 있습니다.
+- 수학적 또는 도메인 특화 연산의 가독성을 높입니다.
+
+#### 단점
+- 남용하면 코드 가독성을 해칠 수 있습니다.
+- 팀원들이 커스텀 연산자의 의미를 이해하지 못하면 유지보수가 어려워질 수 있습니다.
+
+커스텀 연산자는 강력한 도구지만, 꼭 필요할 때만 신중히 사용하는 것이 중요합니다.
 
 
 <br>
