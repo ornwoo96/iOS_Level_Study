@@ -6192,19 +6192,80 @@ if url.host == "product" {
 <br>
 
 ## 20.2 Universal Link의 동작 원리와 설정 방법은 무엇인가요?
+### 동작 원리
+- HTTPS 기반의 URL을 통해 앱과 웹 간의 연속성을 제공.
+- 사용자가 앱이 설치되어 있으면 앱에서 열리고, 설치되지 않았으면 웹 브라우저에서 열림.
 
+### 설정 방법
+#### 1. Associated Domains 설정:
+- Signing & Capabilities에서 Associated Domains 추가:
+
+```
+applinks:www.example.com
+```
+
+<br>
+
+#### 2.	apple-app-site-association 파일 생성:
+- 서버의 루트 디렉토리에 apple-app-site-association 파일 추가:
+
+```swift
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.example.myapp",
+        "paths": [ "/example/*" ]
+      }
+    ]
+  }
+}
+```
+
+<br>
+
+#### 3.	AppDelegate에서 URL 처리:
+
+```swift
+func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+    if userActivity.activityType == NSUserActivityTypeBrowsingWeb, let url = userActivity.webpageURL {
+        print("Universal Link URL: \(url)")
+        // URL Path로 화면 이동 처리
+        return true
+    }
+    return false
+}
+```
+
+<br>
+
+### 주의 사항
+- HTTPS 요구: Universal Link는 반드시 HTTPS 프로토콜을 사용해야 함.
+- 도메인 소유: 설정된 도메인에 대한 소유권이 필요.
 
 <br>
 <br>
 
 ## 20.3 Deep Link와 Universal Link를 함께 사용하는 경우의 장점은 무엇인가요?
+### 장점
+
+#### 1.	최대 호환성:
+- Universal Link는 iOS 9 이상에서 동작하며, Deep Link는 그 이하 버전에서 동작.
+#### 2.	웹과 앱의 연속성 제공:
+- Universal Link를 통해 앱이 설치되지 않은 경우에도 웹으로 연결 가능.
+#### 3.	백업 및 보안성:
+- Universal Link가 실패하거나 작동하지 않는 경우 Deep Link로 대체 가능.
+#### 4.	다양한 사용자 경험 제공:
+- Deep Link를 통해 기존 URL Scheme을 활용한 앱 간 이동.
+- Universal Link로 안전하고 매끄러운 웹-앱 전환.
 
 <br>
 <br>
 
 ## 21. Swift의 Result 타입과 에러 처리 방식에 대해 설명해주세요.
-- Result 타입을 사용하는 이유와 장점은 무엇인가요?
-- 에러 처리 시 do-catch 문과 Result 타입을 함께 사용하는 방법을 설명해주세요.
+## 21.1 Result 타입을 사용하는 이유와 장점은 무엇인가요?
+## 21.2 에러 처리 시 do-catch 문과 Result 타입을 함께 사용하는 방법을 설명해주세요.
 
 <br>
 <br>
