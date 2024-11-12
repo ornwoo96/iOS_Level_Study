@@ -6524,11 +6524,216 @@ fetchRemoteData { result in
 <br>
 
 ## 22. iOS 앱에서 Thread Sanitizer를 사용하여 동시성 문제를 탐지하고 해결하는 방법을 설명해주세요.
+### Thread Sanitizer란?
+- **Thread Sanitizer (TSan)** 는 Xcode에서 제공하는 동시성(Concurrency) 문제를 탐지하기 위한 디버깅 도구.
+- 경쟁 상태(Race Condition), 데드락(Deadlock), 잘못된 메모리 접근 등 멀티스레드와 관련된 문제를 감지.
+- 특징:
+	- 런타임에 동시성 문제를 감지.
+	- 경고 메시지와 스택 트레이스를 제공하여 문제 위치를 추적 가능.
+
+<br>
+
+### Thread Sanitizer 활성화 방법
+#### 1. Xcode에서 활성화:
+- Product > Scheme > Edit Scheme로 이동.
+- Run 탭 선택.
+- Diagnostics 섹션에서 Thread Sanitizer 체크.
+#### 2.	명령어 활성화:
+- swiftc 또는 clang 컴파일러 사용 시 -fsanitize=thread 플래그 추가.
+
+<br>
+
+### 동시성 문제의 종류
+#### 1. Race Condition (경쟁 상태):
+- 두 스레드가 동시에 동일한 변수에 접근하고, 최소 하나의 스레드가 이를 수정할 때 발생.
+#### 2.	Deadlock (교착 상태):
+- 두 개 이상의 스레드가 서로가 필요로 하는 리소스를 기다리며 멈추는 상태.
+#### 3.	메모리 문제:
+- 잘못된 메모리 접근으로 인해 크래시가 발생할 수 있음.
+
+#### 예제: Race Condition
+#### 코드 예시:
+
+```swift
+var sharedCounter = 0
+
+func incrementCounter() {
+    DispatchQueue.global().async {
+        for _ in 0..<1000 {
+            sharedCounter += 1
+        }
+    }
+    
+    DispatchQueue.global().async {
+        for _ in 0..<1000 {
+            sharedCounter += 1
+        }
+    }
+}
+
+incrementCounter()
+print("Final Counter: \(sharedCounter)") // 예상치 못한 값 출력
+```
+
+#### 문제:
+- sharedCounter에 동시에 여러 스레드가 접근하여 예기치 않은 값이 출력.
+
+#### Thread Sanitizer 메시지:
+- “Data race detected on variable sharedCounter.”
+
+<br>
+
+### 해결 방법
+#### 1. 동기화(Synchronization):
+- 동기화를 통해 변수에 한 번에 하나의 스레드만 접근하도록 제한.
+
+#### 코드 수정:
+
+```swift
+var sharedCounter = 0 // 공유 자원으로, 여러 스레드가 동시에 접근 가능
+
+func incrementCounter() {
+    // 첫 번째 비동기 작업을 글로벌 큐에 추가
+    DispatchQueue.global().async {
+        for _ in 0..<1000 {
+            sharedCounter += 1 // sharedCounter에 접근하여 값을 증가
+            // 동시에 다른 스레드에서도 sharedCounter를 변경하고 있어 Race Condition 발생 가능
+        }
+    }
+    
+    // 두 번째 비동기 작업을 글로벌 큐에 추가
+    DispatchQueue.global().async {
+        for _ in 0..<1000 {
+            sharedCounter += 1 // sharedCounter에 접근하여 값을 증가
+            // 두 스레드가 동시에 sharedCounter를 읽고 쓰기 때문에 데이터 충돌 가능
+        }
+    }
+}
+
+incrementCounter()
+
+// Final Counter 값은 예상치 못한 결과를 출력
+// 이 코드는 Race Condition(경쟁 상태) 문제를 일으킴.
+// 두 스레드가 동시에 sharedCounter에 접근하여 읽고 쓰기 작업을 수행하면서 데이터 불일치 발생
+print("Final Counter: \(sharedCounter)") 
+```
+
+
+<br>
+
+#### 2.	Serial Queue 사용:
+- DispatchQueue의 직렬 큐를 사용하여 순차적으로 실행.
+
+#### 코드 수정:
+
+```swift
+var sharedCounter = 0 // 공유 자원으로, 여러 스레드가 접근 가능
+let serialQueue = DispatchQueue(label: "com.example.serialQueue") // Serial Queue를 생성하여 동기화
+
+func incrementCounter() {
+    // 첫 번째 비동기 작업을 글로벌 큐에 추가
+    DispatchQueue.global().async {
+        for _ in 0..<1000 {
+            serialQueue.sync { // Serial Queue를 사용하여 작업을 순차적으로 처리
+                sharedCounter += 1 // 순서대로 sharedCounter에 접근 및 값 증가
+            }
+        }
+    }
+    
+    // 두 번째 비동기 작업을 글로벌 큐에 추가
+    DispatchQueue.global().async {
+        for _ in 0..<1000 {
+            serialQueue.sync { // Serial Queue를 사용하여 작업을 순차적으로 처리
+                sharedCounter += 1 // 순서대로 sharedCounter에 접근 및 값 증가
+            }
+        }
+    }
+}
+
+incrementCounter()
+
+// Serial Queue를 사용하여 경쟁 상태(Race Condition)를 방지
+// 여러 스레드가 동시에 sharedCounter에 접근하지 못하고, 순차적으로 작업을 처리
+// 결과적으로 Final Counter 값은 2000으로 예상한 값 출력
+print("Final Counter: \(sharedCounter)") 
+```
+
+- Serial Queue는 동기적(sync) 작업을 순차적으로 실행합니다.
+- 즉, 하나의 작업이 끝나야만 다음 작업이 실행됩니다.
+- serialQueue.sync 블록 안의 코드가 실행되는 동안, 다른 작업은 대기합니다.
+
+#### 예제: Deadlock
+```swift
+let lockA = NSLock() // 첫 번째 잠금을 위한 객체
+let lockB = NSLock() // 두 번째 잠금을 위한 객체
+
+func taskA() {
+    lockA.lock() // lockA를 잠금
+    sleep(1) // 1초 동안 대기 -> taskB가 lockB를 잠글 시간을 줌
+    lockB.lock() // lockB를 잠그려고 시도하지만 taskB가 이미 잠금 상태라 대기
+    lockB.unlock() // lockB 잠금 해제
+    lockA.unlock() // lockA 잠금 해제
+}
+
+func taskB() {
+    lockB.lock() // lockB를 잠금
+    sleep(1) // 1초 동안 대기 -> taskA가 lockA를 잠글 시간을 줌
+    lockA.lock() // lockA를 잠그려고 시도하지만 taskA가 이미 잠금 상태라 대기
+    lockA.unlock() // lockA 잠금 해제
+    lockB.unlock() // lockB 잠금 해제
+}
+
+// Deadlock 발생 시나리오
+DispatchQueue.global().async { taskA() } // taskA 실행
+DispatchQueue.global().async { taskB() } // taskB 실행
+```
+
+
+#### 문제:
+- lockA와 lockB가 서로 다른 스레드에서 잠금 상태로 대기하며 교착 상태 발생.
+
+#### Thread Sanitizer 메시지:
+- “Deadlock detected involving locks: lockA and lockB.”
+
+<br>
+
+#### 해결 방법
+1. 잠금 순서 일관성 유지:
+- 항상 같은 순서로 잠금을 획득.
+
+#### 코드 수정:
+
+```swift
+func taskA() {
+    lockA.lock()
+    lockB.lock()
+    // 작업 수행
+    lockB.unlock()
+    lockA.unlock()
+}
+
+func taskB() {
+    lockA.lock()
+    lockB.lock()
+    // 작업 수행
+    lockB.unlock()
+    lockA.unlock()
+}
+```
+
+<br>
+
+### 결론
+- Thread Sanitizer는 멀티스레딩 문제를 조기에 발견하고 디버깅하는 데 유용.
+- 문제를 해결하기 위해 동기화, 직렬 큐 사용, 또는 잠금 순서 일관성 유지와 같은 방법을 적용.
+- Thread Sanitizer를 적극 활용하면 앱의 동시성 문제를 효과적으로 관리하고 안정성을 높일 수 있음.
+
 
 <br>
 <br>
 
 ## 23. Swift의 Sequence와 Collection 프로토콜에 대해 설명해주세요.
+Sequence와 Collection은 Swift의 핵심 프로토콜로, 데이터를 반복(iterate)하거나 구조화된 데이터에 접근하는 방법을 제공합니다.
 
 
 <br>
@@ -6536,46 +6741,278 @@ fetchRemoteData { result in
 
 ## 23.1 Sequence와 Collection 프로토콜의 차이점과 요구 사항을 설명해주세요.
 
+<img src="https://github.com/user-attachments/assets/0ca465af-fe86-41ef-a8fe-f65cf90b4989">
+
+### 알고리즘 문제에서 Sequence와 Collection의 활용
+
+#### 1.	Sequence:
+- 순차적 접근만 필요하고, 중간 결과를 저장할 필요가 없는 경우 사용.
+- 예를 들어, **게으른 계산(Lazy Evaluation)** 을 활용하여 데이터 처리량을 줄이거나 성능을 최적화할 수 있음.
+- 예시:
+	- 무한 수열 생성.
+	- 게으른 계산으로 큰 데이터 스트림 처리.
+
+<br>
+
+#### 2.	Collection:
+- 랜덤 접근(random access), 인덱스 기반 작업, 또는 크기를 알고 있어야 하는 경우 적합.
+- 예시:
+	- 특정 인덱스에 빠르게 접근해야 하는 문제.
+	- 정렬, 슬라이싱, 특정 패턴에 맞는 데이터 조작.
+	- 알고리즘 문제에서 자주 사용하는 배열, 스택, 큐, 링크드 리스트 같은 자료구조를 구현 가능.
+
+
+<br>
+
+### Sequence 프로토콜의 요구 사항
+- makeIterator() -> Iterator
+	- Iterator는 next() 메서드를 통해 각 요소를 반환.
+	- 마지막 요소 이후에는 nil 반환.
+
+```swift
+// Sequence 프로토콜의 요구 사항을 구현한 간단한 예시
+struct SimpleSequence: Sequence {
+    private let data: [Int] // 데이터를 저장할 배열
+
+    // Sequence 프로토콜의 요구 사항: makeIterator()
+    func makeIterator() -> Array<Int>.Iterator {
+	// MARK: 여기서 비즈니스 로직 처리 가능 예) 짝수만 반환 (필터 처리)
+        return data.makeIterator() // 내부 배열의 Iterator를 반환
+    }
+}
+
+// 사용 예시
+let sequence = SimpleSequence(data: [1, 2, 3, 4, 5])
+for element in sequence {
+    print(element) // 1, 2, 3, 4, 5
+}
+/*
+1. `SimpleSequence`는 Sequence 프로토콜을 채택.
+2. `makeIterator()`에서 내부 배열의 Iterator를 반환.
+3. for-in 구문에서 Iterator의 next() 메서드를 반복적으로 호출하여 요소를 순회.
+*/
+```
+
+<br>
+
+### Collection 프로토콜의 요구 사항
+- startIndex와 endIndex:
+	- startIndex는 컬렉션의 첫 번째 요소 인덱스.
+	- endIndex는 마지막 요소 다음을 가리킴.
+- index(after:):
+	- 특정 인덱스의 다음 요소 인덱스를 반환.
+- subscript:
+	- 인덱스를 통해 요소를 직접 접근 가능.
+
+```swift
+// Collection 프로토콜의 요구 사항을 구현한 간단한 예시
+struct SimpleCollection: Collection {
+    private let data: [Int] // 데이터를 저장할 배열
+
+    // Collection 프로토콜의 요구 사항: startIndex와 endIndex
+    var startIndex: Int { data.startIndex } // 시작 인덱스 반환
+    var endIndex: Int { data.endIndex }     // 끝 인덱스 반환 (마지막 요소 다음 인덱스)
+
+    // Collection 프로토콜의 요구 사항: index(after:)
+    func index(after i: Int) -> Int {
+        return data.index(after: i) // 주어진 인덱스의 다음 인덱스 반환
+    }
+
+    // Collection 프로토콜의 요구 사항: subscript
+    subscript(position: Int) -> Int {
+        return data[position] // 인덱스를 통해 데이터에 접근
+    }
+}
+
+// 사용 예시
+let collection = SimpleCollection(data: [10, 20, 30, 40, 50])
+
+// for-in 구문으로 순회
+for element in collection {
+    print(element) // 10, 20, 30, 40, 50
+}
+
+// 특정 인덱스에 직접 접근
+print(collection[2]) // 30
+
+/*
+1. `SimpleCollection`은 Collection 프로토콜을 채택.
+2. startIndex와 endIndex를 통해 컬렉션의 범위를 정의.
+3. index(after:)는 현재 인덱스의 다음 인덱스를 반환.
+4. subscript를 통해 배열처럼 특정 요소에 접근 가능.
+5. for-in 구문에서는 Collection이 자동으로 Sequence를 준수하므로 요소를 순회할 수 있음.
+*/
+```
 
 <br>
 <br>
 
 ## 23.2 사용자 정의 Sequence와 Collection을 구현하는 방법과 사용 예시를 들어주세요.
+### 사용자 정의 Sequence 구현
+```swift
+// 사용자 정의 Sequence 타입
+struct FibonacciSequence: Sequence {
+    let maxCount: Int // 생성할 피보나치 수열의 최대 개수
+
+    // Sequence 프로토콜 요구 사항인 makeIterator() 구현
+    func makeIterator() -> FibonacciIterator {
+        return FibonacciIterator(maxCount: maxCount) // FibonacciIterator를 반환
+    }
+}
+
+// Iterator 타입 정의
+struct FibonacciIterator: IteratorProtocol {
+    let maxCount: Int // 생성할 피보나치 수열의 최대 개수
+    private var currentIndex = 0 // 현재 생성된 피보나치 수의 인덱스
+    private var previousValue = 0 // 직전 피보나치 수
+    private var currentValue = 1 // 현재 피보나치 수
+
+    // IteratorProtocol의 요구 사항인 next() 메서드 구현
+    mutating func next() -> Int? {
+        // 현재 인덱스가 최대 개수를 초과하면 nil 반환 (반복 종료)
+        guard currentIndex < maxCount else { return nil }
+
+        // defer 블록: 현재 피보나치 값을 반환한 후에 상태를 업데이트
+        defer {
+            let nextValue = previousValue + currentValue // 다음 피보나치 수 계산
+            previousValue = currentValue // 현재 값을 이전 값으로 이동
+            currentValue = nextValue // 다음 값을 현재 값으로 이동
+            currentIndex += 1 // 인덱스 증가
+        }
+
+        // 현재 피보나치 수 반환
+        return previousValue
+    }
+}
+
+// 사용 예시
+let fibonacci = FibonacciSequence(maxCount: 10) // 최대 10개의 피보나치 수열 생성
+for value in fibonacci {
+    print(value) // 결과: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34
+}
+
+/*
+1. `FibonacciSequence`:
+   - Sequence 프로토콜을 준수하는 타입.
+   - makeIterator()를 통해 Iterator 객체를 반환하여 for-in 구문에서 사용할 수 있도록 함.
+
+2. `FibonacciIterator`:
+   - 실제로 피보나치 수를 생성하는 Iterator 타입.
+   - IteratorProtocol을 준수하여 next() 메서드를 구현.
+   - next() 메서드는 호출될 때마다 다음 피보나치 값을 반환하고 내부 상태를 업데이트.
+
+3. 동작 원리:
+   - `for value in fibonacci`를 실행하면 `fibonacci`가 Sequence로 동작하며 Iterator를 생성.
+   - Iterator의 next()가 반복 호출되면서 피보나치 수열을 순차적으로 반환.
+   - 최대 `maxCount`에 도달하면 next()가 nil을 반환하여 반복 종료.
+
+4. 주요 포인트:
+   - Sequence와 Iterator의 분리를 통해 유연성과 재사용성을 높임.
+   - next() 호출마다 상태를 업데이트하여 다음 피보나치 값을 계산.
+   - defer를 사용해 반환 전에 상태를 미리 계산하고 업데이트.
+*/
+```
+
+<br>
+
+### 사용자 정의 Collection 구현
+
+```swift
+// 사용자 정의 Collection 타입
+struct MyCollection: Collection {
+    // 데이터를 저장할 배열
+    private let data: [Int]
+
+    // 생성자: 데이터 배열을 초기화
+    init(_ data: [Int]) {
+        self.data = data
+    }
+
+    // Collection 프로토콜 필수 요구 사항 구현
+
+    // 컬렉션의 시작 인덱스 반환
+    var startIndex: Int { 
+        data.startIndex // 내부 배열의 시작 인덱스를 반환
+    }
+
+    // 컬렉션의 끝 인덱스 반환
+    var endIndex: Int { 
+        data.endIndex // 내부 배열의 끝 인덱스를 반환
+    }
+
+    // 주어진 인덱스의 다음 인덱스를 반환
+    func index(after i: Int) -> Int {
+        return data.index(after: i) // 내부 배열의 다음 인덱스를 반환
+    }
+
+    // 특정 인덱스에 있는 요소를 반환 (서브스크립트)
+    subscript(position: Int) -> Int {
+        return data[position] // 내부 배열에서 해당 위치의 요소를 반환
+    }
+}
+
+// 사용 예시
+let customCollection = MyCollection([10, 20, 30, 40, 50]) // 데이터 배열 초기화
+
+// for-in 구문으로 순회
+for element in customCollection {
+    print(element) // 10, 20, 30, 40, 50
+    // Collection 타입을 준수하므로 for-in을 사용해 요소를 순회할 수 있음
+}
+
+// 특정 인덱스의 값에 접근
+print(customCollection[2]) // 30
+// subscript 구현 덕분에 특정 인덱스의 값을 읽을 수 있음
+```
+
+
+<br>
+<br>
+
+## 23.3 Sequence와 Collection의 차이점과 사용용도를 설명해주세요.
+<img src="https://github.com/user-attachments/assets/0cd866d6-b043-471a-9a58-884096f8fbd2">
 
 <br>
 <br>
 
 ## 24. UIKit의 AdaptiveLayout과 Size Classes에 대해 설명해주세요.
 
+
 <br>
 <br>
 
 ## 24.1 AdaptiveLayout의 개념과 사용 목적을 설명해주세요.
+
 
 <br>
 <br>
 
 ## 24. Size Classes를 활용하여 다양한 기기에 적응적인 UI를 구현하는 방법을 예시와 함께 설명해주세요.
 
+
 <br>
 <br>
 
 ## 25. Swift의 커스텀 연산자(Custom Operator)에 대해 설명해주세요.
+
 
 <br>
 <br>
 
 ## 25.1 커스텀 연산자를 정의하는 방법과 주의 사항은 무엇인가요?
 
+
 <br>
 <br>
 
 ## 25.2 커스텀 연산자를 활용한 코드 가독성 향상 방안을 제시해주세요.
 
+
 <br>
 <br>
 
 ## 26. Swift의 생성자(Initializer)와 관련된 고급 개념에 대해 설명해주세요.
+
 
 <br>
 <br>
@@ -6605,6 +7042,8 @@ fetchRemoteData { result in
 <br>
 
 ## 27.2 백그라운드에서 작업을 수행하고 메인 큐에서 UI를 업데이트하는 패턴을 Combine으로 구현하는 방법을 설명해주세요.
+
+
 
 <br>
 <br>
