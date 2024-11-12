@@ -7102,18 +7102,102 @@ print(customCollection[2]) // 30
 <br>
 
 ## 24. UIKit의 AdaptiveLayout과 Size Classes에 대해 설명해주세요.
-
+Adaptive Layout과 Size Classes는 iOS 앱이 다양한 화면 크기와 방향(세로/가로)에 적응하도록 설계된 도구입니다. 이를 통해 여러 디바이스에서 일관된 사용자 경험을 제공하며, Auto Layout 및 Size Classes를 사용하여 구현됩니다.
 
 <br>
 <br>
 
 ## 24.1 AdaptiveLayout의 개념과 사용 목적을 설명해주세요.
+### Adaptive Layout의 개념
 
+Adaptive Layout은 다양한 화면 크기와 방향을 지원하기 위해 UI를 동적으로 변경하거나 조정하는 방법입니다. iPhone, iPad, Mac 등 다양한 기기에서 동일한 레이아웃 코드를 유지하면서 각 기기에 적합한 UI를 제공하는 것이 목표입니다.
+
+<br>
+
+### 사용 목적
+1. 다양한 디바이스 지원: 여러 기기에서 동일한 앱을 사용할 수 있도록 지원.
+2. 효율적인 유지보수: UI 변경을 최소화하여 코드 재사용성 증가.
+3. 일관된 사용자 경험: 화면 크기와 방향에 따른 적응형 UI 제공.
+4. Split View 및 Multi-Window 환경 지원: iPad와 Mac에서의 멀티태스킹 기능을 수용.
 
 <br>
 <br>
 
-## 24. Size Classes를 활용하여 다양한 기기에 적응적인 UI를 구현하는 방법을 예시와 함께 설명해주세요.
+## 24.2 Size Classes를 활용하여 다양한 기기에 적응적인 UI를 구현하는 방법을 예시와 함께 설명해주세요.
+
+### Size Classes의 개념
+
+Size Classes는 화면의 **너비(Width)**와 **높이(Height)**를 두 가지 상태로 구분하여 UI를 조정할 수 있도록 돕습니다:
+
+- Compact: 작은 크기의 화면이나 영역 (예: iPhone 세로 화면).
+- Regular: 큰 크기의 화면이나 영역 (예: iPad, Mac 화면).
+
+#### Size Classes 조합
+<img src="https://github.com/user-attachments/assets/50bcb5c9-694e-414d-8cb1-a0b6e3030603">
+
+<br>
+
+### Size Classes를 활용한 코드 예제
+
+#### 스토리보드에서 Size Classes 활용
+
+1. 스토리보드에서 뷰 컨트롤러를 선택.
+2. Size Class에 따라 제약 조건 또는 뷰를 설정:
+- Compact Width + Regular Height → iPhone 세로 모드.
+- Regular Width + Regular Height → iPad 가로 모드.
+
+#### 코드에서 Size Classes 활용
+
+```swift
+import UIKit
+
+class AdaptiveViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .white
+        setupLayout()
+    }
+
+    private func setupLayout() {
+        // 중앙에 배치할 레이블 생성
+        let label = UILabel()
+        label.text = "Adaptive Layout"
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+
+        // 기본 Auto Layout 제약 조건 설정
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        // Size Class 변경 감지 및 대응
+        if traitCollection.horizontalSizeClass == .compact {
+            view.backgroundColor = .lightGray // iPhone 세로
+        } else {
+            view.backgroundColor = .blue // iPad 가로
+        }
+    }
+}
+```
+
+### 코드 설명
+1. Auto Layout 사용: UILabel을 화면 중앙에 배치.
+2. Size Class에 따른 배경색 변경:
+- traitCollectionDidChange를 활용하여 Size Class 변경 시 동작.
+- Compact Width(좁은 너비)에서는 배경색을 회색으로, Regular Width(넓은 너비)에서는 파란색으로 설정.
+
+### Size Classes 활용의 장점
+1. 적응형 UI 설계: 다양한 화면 크기와 방향을 고려한 유연한 UI 제공.
+2. 코드 재사용성: 하나의 코드로 여러 디바이스를 지원.
+3. iPad Split View와 같은 환경 지원: 멀티태스킹을 고려한 설계 가능.
+
+이와 같은 방식으로 Size Classes와 Adaptive Layout을 함께 사용하면 다양한 디바이스에서 최적의 사용자 경험을 제공할 수 있습니다.
 
 
 <br>
