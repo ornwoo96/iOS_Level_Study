@@ -6264,7 +6264,150 @@ func application(_ application: UIApplication, continue userActivity: NSUserActi
 <br>
 
 ## 21. Swift의 Result 타입과 에러 처리 방식에 대해 설명해주세요.
+### Result 타입:
+- Swift의 Result 타입은 작업의 성공 또는 실패 결과를 표현하는 열거형.
+- 두 가지 케이스를 제공: .success와 .failure.
+
+```swift
+enum Result<Success, Failure: Error> {
+    case success(Success)
+    case failure(Failure)
+}
+```
+
+<br>
+
+### 주요 특징:
+#### 1. 에러 처리 단순화:
+- 성공과 실패를 명확하게 구분.
+- 비동기 작업에서 콜백 클로저를 단순화.
+#### 2.	가독성 향상:
+- 성공과 실패 시의 코드 처리를 분리하여 가독성을 높임.
+
+<br>
+
+### 에러 처리 방식
+#### 1. do-catch 블록을 사용한 에러 처리
+- do-catch는 에러를 발생시키는 코드를 실행하고, 발생한 에러를 명확히 처리하기 위한 구문입니다.
+#### 예제:
+
+```swift
+enum NetworkError: Error {
+    case invalidURL
+    case noData
+}
+
+func fetchData(from url: String) throws -> String {
+    guard !url.isEmpty else { throw NetworkError.invalidURL }
+    return "Fetched Data"
+}
+
+do {
+    let data = try fetchData(from: "https://example.com")
+    print(data) // 성공 시 데이터 출력
+} catch NetworkError.invalidURL {
+    print("Invalid URL")
+} catch {
+    print("Unexpected error: \(error)")
+}
+```
+
+#### 특징:
+- do 블록 안에서 에러를 던지는(throw) 코드를 실행.
+- catch 블록에서 에러를 분기 처리.
+
+<br>
+
+#### 2.	옵셔널 반환을 사용한 에러 처리
+- 에러를 던지지 않고, nil로 반환하여 에러를 암시적으로 처리하는 방식입니다.
+#### 예제:
+
+```swift
+func fetchData(from url: String) -> String? {
+    guard !url.isEmpty else { return nil }
+    return "Fetched Data"
+}
+
+if let data = fetchData(from: "https://example.com") {
+    print(data)
+} else {
+    print("Failed to fetch data")
+}
+```
+
+<br>
+
+#### 3.	Result 타입을 사용한 에러 처리
+- 성공과 실패를 Result 타입으로 명확하게 표현.
+#### 예제:
+
+```swift
+func fetchData(from url: String) -> Result<String, Error> {
+    guard !url.isEmpty else { return .failure(NetworkError.invalidURL) }
+    return .success("Fetched Data")
+}
+
+let result = fetchData(from: "https://example.com")
+switch result {
+case .success(let data):
+    print("Data: \(data)")
+case .failure(let error):
+    print("Error: \(error)")
+}
+```
+
+#### 특징:
+- 명시적으로 성공(.success)과 실패(.failure)를 처리.
+- 비동기 작업이나 복잡한 로직에 적합.
+
+<br>
+
+#### 4.	try?를 사용한 에러 처리
+- 에러 발생 시 nil을 반환하는 방식.
+#### 예제:
+
+```swift
+func fetchData(from url: String) throws -> String {
+    guard !url.isEmpty else { throw NetworkError.invalidURL }
+    return "Fetched Data"
+}
+
+let data = try? fetchData(from: "")
+print(data ?? "No data fetched")
+```
+
+#### 특징:
+- 에러를 무시하고, 결과만 필요할 때 사용.
+- 단순화된 에러 처리.
+
+<br>
+
+#### 5.	try!를 사용한 에러 처리
+- 에러가 절대 발생하지 않는다고 보장하는 경우에 사용.
+#### 예제:
+
+```swift
+func fetchData(from url: String) throws -> String {
+    guard !url.isEmpty else { throw NetworkError.invalidURL }
+    return "Fetched Data"
+}
+
+let data = try! fetchData(from: "https://example.com") // 에러 발생 시 크래시
+print(data)
+```
+
+#### 특징:
+- 에러가 발생하면 앱이 크래시하므로, 안전하지 않은 상황에서는 사용하지 말아야 함.
+
+
+<br>
+<br>
+
 ## 21.1 Result 타입을 사용하는 이유와 장점은 무엇인가요?
+
+<br>
+<br>
+
 ## 21.2 에러 처리 시 do-catch 문과 Result 타입을 함께 사용하는 방법을 설명해주세요.
 
 <br>
