@@ -449,6 +449,9 @@ class MyViewController: UIViewController {
 
 
 ## 3. Swift의 메타타입(Metatype)과 미러(Mirror)에 대해 설명해주세요.
+[이해하기위한 관련 내용1](https://babbab2.tistory.com/122)
+[이해하기위한 관련 내용2](https://babbab2.tistory.com/151)
+
 
 Swift에서 **메타타입(Metatype)** 은 타입 그 자체를 표현하며, 타입의 정보를 다룰 수 있습니다.
 **미러(Mirror)** 는 런타임에 객체의 속성과 메타데이터를 동적으로 탐색할 수 있는 도구입니다.
