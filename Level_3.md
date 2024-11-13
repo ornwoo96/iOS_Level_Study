@@ -451,7 +451,7 @@ class MyViewController: UIViewController {
 ## 3. Swift의 메타타입(Metatype)과 미러(Mirror)에 대해 설명해주세요.
 
 Swift에서 **메타타입(Metatype)** 은 타입 그 자체를 표현하며, 타입의 정보를 다룰 수 있습니다.
-**미러(Mirror)**는 런타임에 객체의 속성과 메타데이터를 동적으로 탐색할 수 있는 도구입니다.
+**미러(Mirror)** 는 런타임에 객체의 속성과 메타데이터를 동적으로 탐색할 수 있는 도구입니다.
 
 <br>
 <br>
@@ -462,6 +462,7 @@ Swift에서 **메타타입(Metatype)** 은 타입 그 자체를 표현하며, �
 - 메타타입은 타입의 타입을 의미합니다.
 - Type 키워드를 사용하여 선언됩니다.
 - 예: String.Type은 String의 메타타입을 나타냅니다.
+
 
 #### 코드 예시
 ```swift
@@ -487,18 +488,156 @@ print(instance) // 출력: MyStruct()
 
 ## 3.2 미러를 사용하여 객체의 속성을 동적으로 탐색하는 방법을 설명해주세요.
 
+### 미러(Mirror)의 개념
+-	**미러(Mirror)** 는 런타임에 객체의 속성 및 메타데이터를 탐색할 수 있는 도구입니다.
+-	Mirror(reflecting:)을 사용하여 객체의 구조를 탐색.
+
+#### 코드 예시
+
+```swift
+// 예제 구조체
+struct Person {
+    let name: String
+    let age: Int
+}
+
+let person = Person(name: "John", age: 30)
+
+// Mirror를 사용한 속성 탐색
+let mirror = Mirror(reflecting: person)
+print("Type:", mirror.subjectType) // 출력: Type: Person
+
+for child in mirror.children {
+    print("Property name: \(child.label ?? "Unknown"), Value: \(child.value)")
+}
+// 출력:
+// Property name: name, Value: John
+// Property name: age, Value: 30
+```
+
+#### 주요 사용 상황
+1. 디버깅 및 로깅:
+- 객체의 속성 및 값을 디버깅에 활용.
+2. 런타임 속성 탐색:
+- 런타임에 객체의 속성을 동적으로 탐색.
+3. 유틸리티 함수 구현:
+- JSON 변환, 데이터 시리얼라이징 등에 활용.
+
+
+
 <br>
 <br>
 
 ## 3.3 메타타입과 미러를 활용한 실제 사용 사례를 들어주세요.
+### 1. 동적 팩토리 패턴 (메타타입 활용)
+
+메타타입을 사용하여 런타임에 특정 타입의 객체를 동적으로 생성.
+
+```swift
+// 동적 팩토리
+protocol Shape {
+    init()
+}
+
+struct Circle: Shape {
+    init() { print("Circle created") }
+}
+
+struct Square: Shape {
+    init() { print("Square created") }
+}
+
+func createShape(ofType type: Shape.Type) -> Shape {
+    return type.init()
+}
+
+let circle = createShape(ofType: Circle.self) // 출력: Circle created
+let square = createShape(ofType: Square.self) // 출력: Square created
+```
+
+<br>
+
+#### 2. JSON 디버깅 로깅 (미러 활용)
+
+미러를 사용하여 JSON 객체를 동적으로 탐색 및 디버깅.
+
+```swift
+import Foundation
+
+func logJSONProperties(_ json: [String: Any]) {
+    let mirror = Mirror(reflecting: json)
+    for child in mirror.children {
+        print("Key: \(child.label ?? "Unknown"), Value: \(child.value)")
+    }
+}
+
+// 테스트 JSON 데이터
+let json = ["name": "Alice", "age": 25] as [String: Any]
+logJSONProperties(json)
+// 출력:
+// Key: name, Value: Alice
+// Key: age, Value: 25
+```
+
+<br>
+
+#### 3. 런타임 검증 (미러 활용)
+
+런타임에 객체의 필수 필드 여부를 검증.
+
+```swift
+protocol Validatable {
+    func validate() -> Bool
+}
+
+struct User: Validatable {
+    var name: String?
+    var email: String?
+    
+    func validate() -> Bool {
+        let mirror = Mirror(reflecting: self)
+        for child in mirror.children {
+            if child.value as? String == nil {
+                return false
+            }
+        }
+        return true
+    }
+}
+
+let user = User(name: "Alice", email: nil)
+print(user.validate()) // 출력: false
+```
+
+<br>
+
+### 결론
+- 메타타입은 타입의 정보를 다루고, 동적으로 인스턴스를 생성할 때 사용됩니다.
+- 미러는 객체를 런타임에 탐색하며, 디버깅, 로깅, 데이터 변환 등에 활용됩니다.
+-	둘 다 런타임 동작의 유연성을 제공하며, 다양한 고급 기능을 구현하는 데 기여합니다.
+
+<br>
+
 
 <br>
 <br>
 
 ## 4. iOS 앱에서 바이너리 프레임워크(Binary Framework)를 생성하고 사용하는 방법은 무엇인가요?
-- 바이너리 프레임워크와 소스 코드 프레임워크의 차이점은 무엇인가요?
-- 바이너리 프레임워크를 생성할 때 고려해야 할 사항은 무엇인가요?
-- 바이너리 프레임워크를 배포하고 버전 관리하는 방법을 설명해주세요.
+
+<br>
+<br>
+
+## 4.1 바이너리 프레임워크와 소스 코드 프레임워크의 차이점은 무엇인가요?
+
+<br>
+<br>
+
+## 4.2 바이너리 프레임워크를 생성할 때 고려해야 할 사항은 무엇인가요?
+
+<br>
+<br>
+
+## 4.3 바이너리 프레임워크를 배포하고 버전 관리하는 방법을 설명해주세요.
 
 <br>
 <br>
