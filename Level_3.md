@@ -1888,10 +1888,43 @@ func saveToKeychainWithAccessControl(account: String, value: String) {
 
 ## 12. Swift의 async/await를 사용한 비동기 프로그래밍에 대해 설명해주세요.
 
+Swift의 async/await는 비동기 작업을 명확하고 간결하게 작성할 수 있도록 지원하는 프로그래밍 모델입니다. async 함수는 비동기로 실행되며, await 키워드를 통해 비동기 작업의 결과를 기다릴 수 있습니다.
+
 <br>
 <br>
 
 ## 12.1 async/await 문법의 동작 원리와 사용 방법은 무엇인가요?
+
+### 동작 원리:
+- async 키워드로 정의된 함수는 비동기로 호출됩니다.
+- await는 비동기 작업의 완료를 기다리고, 결과가 준비되면 다음 작업을 실행합니다.
+- 비동기 호출은 Task 컨텍스트 내에서 실행됩니다.
+
+#### 사용 예시:
+
+```swift
+func fetchData() async throws -> String {
+    // 네트워크 요청과 같은 비동기 작업
+    try await Task.sleep(nanoseconds: 1_000_000_000) // 1초 대기
+    return "Fetched Data"
+}
+
+func displayData() async {
+    do {
+        let data = try await fetchData()
+        print("Data: \(data)") // 출력: Fetched Data
+    } catch {
+        print("Error fetching data: \(error)")
+    }
+}
+
+// 사용 예시
+Task {
+    await displayData()
+}
+```
+
+
 
 <br>
 <br>
@@ -1899,11 +1932,216 @@ func saveToKeychainWithAccessControl(account: String, value: String) {
 
 ## 12.2 Task와 TaskGroup을 사용하여 비동기 작업을 관리하는 방법을 설명해주세요.
 
+### Task:
+- Task는 독립적인 비동기 작업을 수행합니다.
+- 작업은 Task를 통해 생성되며, 내부에서 비동기 작업을 실행할 수 있습니다.
+
+#### Task 사용 예시:
+
+```swift
+Task {
+    let result = await fetchData()
+    print("Result: \(result)")
+}
+```
+
+#### TaskGroup:
+- TaskGroup은 여러 비동기 작업을 그룹으로 관리할 수 있도록 지원합니다.
+- 작업들이 병렬로 실행되고, 모든 작업이 완료되면 결과를 처리할 수 있습니다.
+
+#### TaskGroup 사용 예시:
+
+```swift
+func fetchMultipleData() async {
+    await withTaskGroup(of: String.self) { group in
+        for i in 1...3 {
+            group.addTask {
+                try await fetchData()
+            }
+        }
+        
+        for await result in group {
+            print("Result: \(result)")
+        }
+    }
+}
+
+// 사용 예시
+Task {
+    await fetchMultipleData()
+}
+```
+
 
 <br>
 <br>
 
 ## 12.3 비동기 시퀀스(AsyncSequence)와 비동기 스트림(AsyncStream)의 차이점과 사용 예시를 들어주세요.
+
+### 차이점
+<img src="https://github.com/user-attachments/assets/94cd30e1-fec2-4957-b09b-00a03e0def8e">
+
+
+### AsyncSequence 예시:
+
+```swift
+// AsyncSequence 정의
+struct NumberSequence: AsyncSequence {
+    typealias Element = Int // 시퀀스의 요소 타입은 Int
+
+    // AsyncIteratorProtocol을 준수하는 이터레이터 정의
+    struct NumberIterator: AsyncIteratorProtocol {
+        var current = 0 // 현재 숫자를 추적하는 변수
+        
+        // next() 메서드: 다음 값을 비동기로 반환
+        mutating func next() async -> Int? {
+            // current가 5 이상이면 nil을 반환하여 시퀀스를 종료
+            guard current < 5 else { return nil }
+            defer { current += 1 } // 반환 후 current를 1 증가
+            return current // 현재 값 반환
+        }
+    }
+    
+    // AsyncSequence 요구 사항: makeAsyncIterator()
+    func makeAsyncIterator() -> NumberIterator {
+        NumberIterator() // NumberIterator 인스턴스 생성 및 반환
+    }
+}
+
+// 사용 예시
+Task {
+    let sequence = NumberSequence() // NumberSequence 인스턴스 생성
+    
+    // for await: 비동기로 시퀀스의 요소 순회
+    for await number in sequence {
+        print(number) // 출력: 0, 1, 2, 3, 4
+    }
+}
+```
+
+#### 실무 사용 사례:
+1. 파일 읽기
+-	큰 파일을 메모리에 올리지 않고, 비동기로 블록 단위로 읽어서 처리.
+- 예: 로그 파일 파싱.
+2. 배치 처리
+- 서버에서 배치 작업으로 데이터를 가져와 클라이언트에서 비동기로 순회하며 처리.
+- 예: 데이터베이스로부터 다량의 레코드 조회 후 순차 처리.
+3. 오프라인 데이터 동기화
+- 로컬 저장소에서 데이터를 비동기로 순회하며 UI를 업데이트.
+
+#### 예시:
+
+```swift
+struct FileLineSequence: AsyncSequence {
+    typealias Element = String
+
+    struct FileLineIterator: AsyncIteratorProtocol {
+        let lines: [String]
+        var currentIndex = 0
+
+        mutating func next() async -> String? {
+            guard currentIndex < lines.count else { return nil }
+            defer { currentIndex += 1 }
+            return lines[currentIndex]
+        }
+    }
+
+    let lines: [String]
+
+    func makeAsyncIterator() -> FileLineIterator {
+        FileLineIterator(lines: lines)
+    }
+}
+
+// 사용 예시
+Task {
+    let fileLines = FileLineSequence(lines: ["Line 1", "Line 2", "Line 3"])
+    for await line in fileLines {
+        print(line) // 출력: Line 1, Line 2, Line 3
+    }
+}
+```
+
+
+
+
+#### AsyncStream 예시:
+
+```swift
+// AsyncStream 생성 함수
+func produceStream() -> AsyncStream<Int> {
+    AsyncStream { continuation in
+        // 비동기로 데이터 생성
+        DispatchQueue.global().async {
+            for i in 1...5 {
+                continuation.yield(i) // 값을 스트림에 전달
+                sleep(1) // 1초 대기 (실제 비동기 작업 대신 대기)
+            }
+            continuation.finish() // 스트림 종료
+        }
+    }
+}
+
+// 사용 예시
+Task {
+    let stream = produceStream() // AsyncStream 생성
+    
+    // for await: 비동기로 스트림의 값 순회
+    for await value in stream {
+        print(value) // 출력: 1, 2, 3, 4, 5
+    }
+}
+```
+
+#### 실무 사용 사례:
+1. 네트워크 응답 처리
+- 서버에서 실시간 데이터를 스트리밍으로 제공할 때.
+- 예: WebSocket 메시지 처리, 실시간 주식 가격 업데이트.
+2. UI 이벤트 핸들링
+- 사용자 인터랙션을 실시간으로 비동기 스트림으로 처리.
+- 예: 스크롤 위치 변경, 버튼 클릭 이벤트 스트림.
+3. 타이머 기반 작업
+- 일정 시간 간격으로 발생하는 이벤트 처리.
+- 예: 실시간 UI 업데이트(예: 스톱워치).
+4. 센서 데이터 처리
+- 가속도계, 자이로스코프 등의 실시간 데이터 스트림 처리.
+
+#### 예시:
+
+```swift
+func listenToWebSocket() -> AsyncStream<String> {
+    AsyncStream { continuation in
+        let socket = WebSocket() // 가상의 WebSocket 객체
+        socket.onMessage = { message in
+            continuation.yield(message) // 메시지를 스트림에 전달
+        }
+        socket.onClose = {
+            continuation.finish() // 스트림 종료
+        }
+        socket.connect()
+    }
+}
+
+// 사용 예시
+Task {
+    let messages = listenToWebSocket()
+    for await message in messages {
+        print("Received message: \(message)")
+    }
+}
+```
+
+
+### 비교
+<img src="https://github.com/user-attachments/assets/95afbd1b-7b1e-4e2d-baa5-6cc0a954489b">
+
+### 결론
+-	AsyncSequence: 고정된 데이터 소스를 비동기로 순회해야 할 때 적합.
+-	AsyncStream: 실시간 데이터 처리, 이벤트 스트림, 동적 데이터 흐름 처리에 적합.
+
+#### 비동기 프로그래밍의 주요 장점:
+- 코드 가독성이 향상되고, 콜백 지옥을 피할 수 있음.
+- 비동기 작업을 효율적으로 관리하여 병렬 처리를 지원.
 
 <br>
 <br>
