@@ -1274,17 +1274,189 @@ struct ContentView: View {
 <br>
 
 ## 8. iOS 앱에서 Siri Shortcuts을 구현하는 방법은 무엇인가요?
-- Siri Shortcuts의 동작 원리와 사용 사례를 설명해주세요.
-- NSUserActivity와 Intents Framework를 사용하여 Siri Shortcuts을 구현하는 방법을 설명해주세요.
-- Siri Shortcuts을 사용자 정의하고 파라미터를 전달하는 방법은 무엇인가요?
+
+Siri Shortcuts는 사용자가 앱에서 자주 수행하는 작업을 Siri에 등록하여 음성 명령이나 자동화를 통해 실행할 수 있는 기능을 제공합니다. NSUserActivity 또는 Intents Framework를 사용하여 특정 작업을 등록하고, Siri가 이를 추천하거나 실행하도록 설정할 수 있습니다.
+
+<br>
+<br>
+
+## 8.1 Siri Shortcuts의 동작 원리와 사용 사례를 설명해주세요.
+### 동작 원리
+1. 단축어 등록: 앱에서 특정 동작을 Siri에 단축어로 등록.
+2. 사용자 행동 학습: iOS가 사용자의 행동 패턴을 학습하여 Siri Suggestions에 표시.
+3. 음성 명령 실행: 사용자가 음성 명령으로 단축어를 실행하거나, 단축어 앱에서 추가적인 워크플로를 생성.
+
+### 사용 사례
+- 할 일 앱: 새로운 할 일을 추가하는 작업을 단축어로 등록.
+- 음악 앱: 자주 듣는 재생목록을 단축어로 설정.
+- 운동 앱: 특정 운동 시작을 Siri로 호출.
+- 배달 앱: 마지막으로 주문한 배달을 재주문.
+
+
+<br>
+<br>
+
+## 8.2 NSUserActivity와 Intents Framework를 사용하여 Siri Shortcuts을 구현하는 방법을 설명해주세요.
+
+### 1. NSUserActivity를 사용한 단축어 구현
+
+NSUserActivity는 앱의 특정 작업을 시스템에 기록하고 Siri에 등록할 때 사용됩니다.
+
+#### 예시 코드: NSUserActivity로 단축어 등록
+
+```swift
+import UIKit
+
+class ViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        registerShortcut()
+    }
+
+    private func registerShortcut() {
+        let activity = NSUserActivity(activityType: "com.example.addTask")
+        activity.title = "Add Task"
+        activity.suggestedInvocationPhrase = "Add a new task"
+        activity.isEligibleForSearch = true
+        activity.isEligibleForPrediction = true
+        activity.persistentIdentifier = NSUserActivityPersistentIdentifier("com.example.addTask")
+        
+        self.userActivity = activity
+        activity.becomeCurrent() // Siri에 단축어 등록
+    }
+}
+```
+
+#### 주요 속성:
+- activityType: 작업의 고유 식별자.
+- title: 작업의 이름.
+- suggestedInvocationPhrase: Siri 음성 명령 추천.
+- isEligibleForSearch: Spotlight에 표시 여부.
+- isEligibleForPrediction: Siri Predictions에 표시 여부.
+
+<br>
+
+### 2. Intents Framework를 사용한 단축어 구현
+
+Intents Framework는 더 복잡한 사용자 요청(예: 파라미터를 포함한 명령)을 처리합니다.
+
+#### 주요 구성 요소:
+- Intent 정의: 작업의 데이터 구조를 정의.
+- IntentHandler: Intent 실행 로직을 구현.
+- IntentUI: 작업 완료 후 사용자 인터페이스를 제공(선택 사항).
+
+<br>
+
+#### 단계:
+1. Intent 정의 파일 생성
+- Xcode에서 .intentdefinition 파일 생성.
+- Intent와 관련 파라미터 정의.
+
+<br>
+
+2. IntentHandler 구현
+```swift
+import Intents
+
+class AddTaskIntentHandler: NSObject, AddTaskIntentHandling {
+    func handle(intent: AddTaskIntent, completion: @escaping (AddTaskIntentResponse) -> Void) {
+        guard let taskName = intent.taskName else {
+            completion(AddTaskIntentResponse(code: .failure, userActivity: nil))
+            return
+        }
+        print("Task added: \(taskName)")
+        completion(AddTaskIntentResponse.success(taskName: taskName))
+    }
+}
+```
+
+<br>
+
+3. AppDelegate에서 Intent 연결
+
+```swift
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    INPreferences.requestSiriAuthorization { status in
+        if status == .authorized {
+            print("Siri authorized")
+        }
+    }
+    return true
+}
+```
+
+
+<br>
+<br>
+
+## 8.3 Siri Shortcuts을 사용자 정의하고 파라미터를 전달하는 방법은 무엇인가요?
+
+사용자 정의 Siri Shortcuts
+
+#### 예: 사용자로부터 작업 이름과 우선순위를 입력받아 처리.
+
+```swift
+import Intents
+
+class AddTaskIntentHandler: NSObject, AddTaskIntentHandling {
+    func resolveTaskName(for intent: AddTaskIntent, with completion: @escaping (INStringResolutionResult) -> Void) {
+        if let taskName = intent.taskName, !taskName.isEmpty {
+            completion(.success(with: taskName))
+        } else {
+            completion(.needsValue()) // 사용자가 값을 입력하도록 요청
+        }
+    }
+
+    func resolvePriority(for intent: AddTaskIntent, with completion: @escaping (INIntegerResolutionResult) -> Void) {
+        if let priority = intent.priority, priority > 0 {
+            completion(.success(with: priority))
+        } else {
+            completion(.needsValue()) // 우선순위 값 요청
+        }
+    }
+
+    func handle(intent: AddTaskIntent, completion: @escaping (AddTaskIntentResponse) -> Void) {
+        guard let taskName = intent.taskName, let priority = intent.priority else {
+            completion(AddTaskIntentResponse(code: .failure, userActivity: nil))
+            return
+        }
+        print("Task: \(taskName), Priority: \(priority)")
+        completion(AddTaskIntentResponse.success(taskName: taskName, priority: priority))
+    }
+}
+```
+
+#### 파라미터 전달
+1. .intentdefinition 파일에서 파라미터 추가.
+2. IntentHandler에서 각 파라미터를 처리(예: resolveTaskName, resolvePriority).
+3. 단축어 실행 시 Siri가 필요한 값을 사용자에게 묻고 IntentHandler로 전달.
+
+<br>
+
+### 요약
+- NSUserActivity는 단순 작업을 추천하거나 실행하는 데 유용.
+- Intents Framework는 파라미터가 필요한 작업 또는 복잡한 요구사항에 적합.
+- Siri Shortcuts는 사용자 경험을 향상시키고, 자동화를 통해 앱 접근성을 높이는 데 기여.
 
 <br>
 <br>
 
 ## 9. Swift의 unsafe 포인터(Unsafe Pointer)에 대해 설명해주세요.
-- UnsafePointer, UnsafeMutablePointer, UnsafeRawPointer의 차이점과 사용 방법은 무엇인가요?
-- unsafe 포인터를 사용할 때 주의해야 할 점은 무엇인가요?
-- unsafe 포인터를 사용하여 C 언어 라이브러리와 상호작용하는 방법을 설명해주세요.
+
+<br>
+<br>
+
+## 9.1 UnsafePointer, UnsafeMutablePointer, UnsafeRawPointer의 차이점과 사용 방법은 무엇인가요?
+
+<br>
+<br>
+
+## 9.2 unsafe 포인터를 사용할 때 주의해야 할 점은 무엇인가요?
+
+<br>
+<br>
+
+## 9.3 unsafe 포인터를 사용하여 C 언어 라이브러리와 상호작용하는 방법을 설명해주세요.
 
 <br>
 <br>
