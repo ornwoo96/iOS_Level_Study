@@ -925,24 +925,163 @@ Combine의 에러 처리는 catch, replaceError, retry와 같은 연산자를 �
 
 ## 6. Swift의 동적 멤버 조회(Dynamic Member Lookup)에 대해 설명해주세요.
 
+Swift의 동적 멤버 조회는 런타임에 객체의 속성에 동적으로 접근할 수 있도록 하는 기능입니다. 이를 통해 정적인 컴파일 시간에 결정되지 않은 속성을 런타임에 처리할 수 있습니다.
+
+이 기능은 주로 JSON 파싱, 동적 데이터 모델링 등에 활용됩니다.
 
 <br>
 <br>
 
 ## 6.1 @dynamicMemberLookup 속성의 역할과 사용 방법은 무엇인가요?
+### 역할
+- @dynamicMemberLookup 속성을 사용하면, 객체에 정의되지 않은 멤버에 접근할 때 컴파일러가 특정 서브스크립트를 호출하도록 설정할 수 있습니다.
+- 이를 통해 동적 속성 접근이 가능해집니다.
 
+### 사용 방법
+1. 타입 앞에 @dynamicMemberLookup 선언.
+2. subscript(dynamicMember:) 구현.
+
+#### 예시:
+```swift
+@dynamicMemberLookup
+struct DynamicPerson {
+    private var properties: [String: String] = [:]
+
+    // 동적 멤버 조회를 위한 서브스크립트
+    subscript(dynamicMember member: String) -> String? {
+        get {
+            return properties[member]
+        }
+        set {
+            properties[member] = newValue
+        }
+    }
+}
+
+// 사용
+var person = DynamicPerson()
+person.name = "John"    // 동적으로 "name" 속성에 값 설정
+person.age = "30"       // 동적으로 "age" 속성에 값 설정
+print(person.name)      // 출력: Optional("John")
+print(person.age)       // 출력: Optional("30")
+```
 
 <br>
 <br>
 
 ## 6.2 서브스크립트(Subscript)를 사용하여 동적 멤버 조회를 구현하는 방법을 설명해주세요.
 
+@dynamicMemberLookup은 서브스크립트의 특별한 형태를 활용합니다. 이 서브스크립트는 다음과 같이 구현합니다:
+
+#### 서브스크립트 정의
+
+```swift
+subscript(dynamicMember member: String) -> ReturnType {
+    get {
+        // 동적 멤버 조회 로직
+    }
+    set {
+        // 동적 멤버 설정 로직 (옵션)
+    }
+}
+```
+
+#### 예시
+```swift
+@dynamicMemberLookup
+struct JSONWrapper {
+    private var data: [String: Any]
+
+    // 동적 멤버 조회 서브스크립트
+    subscript(dynamicMember member: String) -> Any? {
+        return data[member]
+    }
+}
+
+// 사용
+let json = JSONWrapper(data: ["title": "Swift Guide", "pages": 120])
+print(json.title) // 출력: Optional("Swift Guide")
+print(json.pages) // 출력: Optional(120)
+```
 
 <br>
 <br>
 
 ## 6.3 동적 멤버 조회를 활용한 실제 사용 사례를 들어주세요.
 
+### 1. JSON 데이터 처리
+
+@dynamicMemberLookup을 사용하면 JSON 데이터에 동적으로 접근할 수 있습니다.
+
+#### 예시:
+```swift
+@dynamicMemberLookup
+struct JSON {
+    private var dictionary: [String: Any]
+
+    subscript(dynamicMember key: String) -> Any? {
+        return dictionary[key]
+    }
+}
+
+// JSON 객체 사용
+let jsonData = JSON(dictionary: ["name": "Alice", "age": 25])
+print(jsonData.name) // 출력: Optional("Alice")
+print(jsonData.age)  // 출력: Optional(25)
+```
+
+<br>
+
+### 2. Key-Value 기반 데이터 모델
+
+Key-Value 기반 데이터 구조를 처리하는 경우에 유용합니다.
+
+#### 예시:
+
+```swift
+@dynamicMemberLookup
+struct KeyValueStore {
+    private var storage: [String: String] = [:]
+
+    subscript(dynamicMember key: String) -> String? {
+        get {
+            return storage[key]
+        }
+        set {
+            storage[key] = newValue
+        }
+    }
+}
+
+// 사용
+var config = KeyValueStore()
+config.apiKey = "12345"
+config.endpoint = "https://api.example.com"
+print(config.apiKey)   // 출력: Optional("12345")
+print(config.endpoint) // 출력: Optional("https://api.example.com")
+```
+
+<br>
+
+### 3. Swift와 Python 통합 (PythonKit 예시)
+
+동적 멤버 조회는 Swift에서 Python과 같은 동적 언어의 객체를 처리하는 데에도 사용됩니다.
+
+#### 예시:
+
+```swift
+import PythonKit
+
+let numpy = Python.import("numpy")
+let array = numpy.array([1, 2, 3])
+print(array.shape) // Python 객체의 동적 속성 조회
+```
+
+<br>
+
+### 정리
+
+동적 멤버 조회는 런타임에 동적 데이터를 다루는 데 강력한 도구입니다. 이를 활용하면 코드의 유연성과 확장성을 높일 수 있으며, 특히 JSON 데이터 처리, Key-Value 데이터 모델링, 동적 언어 통합과 같은 작업에 효과적입니다.
 
 <br>
 <br>
