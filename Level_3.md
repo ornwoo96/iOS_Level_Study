@@ -737,12 +737,85 @@ let package = Package(
 <br>
 
 ## 5. Combine 프레임워크에서 에러 처리는 어떻게 하나요?
-
+Combine 프레임워크는 **Publisher** 의 스트림에서 발생하는 에러를 처리하기 위한 다양한 메커니즘을 제공합니다. Combine에서는 에러 타입을 선언적으로 처리하며, 발생한 에러는 스트림이 종료되기 전에 처리하거나, 에러 발생 시 적절한 대체 작업을 수행할 수 있습니다.
 
 <br>
 <br>
 
 ## 5.1 에러 이벤트를 처리하기 위한 Operator에는 어떤 것들이 있나요?
+Combine에서 에러 이벤트를 처리하는 주요 연산자는 다음과 같습니다:
+
+### 1. catch
+- 에러가 발생했을 때 대체 Publisher를 제공하여 스트림을 복구.
+- 주로 fallback 데이터를 제공하거나 다른 Publisher로 전환하는 데 사용.
+
+#### 예시
+```swift
+import Combine
+
+let failingPublisher = Fail<Int, Error>(error: URLError(.badServerResponse))
+let recoveryPublisher = Just(42)
+
+failingPublisher
+    .catch { _ in recoveryPublisher } // 에러 발생 시 대체 Publisher로 대체
+    .sink(
+        receiveCompletion: { print("Completed with: \($0)") },
+        receiveValue: { print("Value received: \($0)") }
+    )
+/*
+출력:
+Value received: 42
+Completed with: finished
+*/
+```
+
+<br>
+
+### 2. replaceError
+- 에러 발생 시 제공된 기본값으로 대체.
+- 단순히 값을 반환하며 스트림은 종료되지 않음.
+
+#### 예시:
+```swift
+let errorPublisher = Fail<Int, Error>(error: URLError(.badServerResponse))
+
+errorPublisher
+    .replaceError(with: -1) // 에러 발생 시 기본값 -1로 대체
+    .sink(
+        receiveCompletion: { print("Completed with: \($0)") },
+        receiveValue: { print("Value received: \($0)") }
+    )
+/*
+출력:
+Value received: -1
+Completed with: finished
+*/
+```
+
+<br>
+
+### 3. retry
+- 에러가 발생한 스트림을 지정된 횟수만큼 다시 시도.
+- 주로 네트워크 요청이나 비동기 작업에 사용.
+
+#### 예시:
+
+```swift
+let retryPublisher = Fail<Int, Error>(error: URLError(.badServerResponse))
+
+retryPublisher
+    .retry(3) // 최대 3번까지 재시도
+    .catch { _ in Just(-1) }
+    .sink(
+        receiveCompletion: { print("Completed with: \($0)") },
+        receiveValue: { print("Value received: \($0)") }
+    )
+/*
+출력:
+Value received: -1
+Completed with: finished
+*/
+```
 
 
 <br>
@@ -750,19 +823,126 @@ let package = Package(
 
 ## 5.2 에러 이벤트 발생 시 Subscription을 자동으로 취소하는 방법은 무엇인가요?
 
+### 1. Subscription 자동 취소
+
+Combine에서 Subscription은 에러가 발생하거나 정상적으로 완료되면 자동으로 취소됩니다. 별도의 작업 없이도 에러 발생 시 스트림은 종료되고 리소스가 해제됩니다.
+
+### 2. 수동 취소 (명시적으로 Subscription을 관리)
+
+Cancellable 객체를 활용하여 Subscription을 수동으로 취소할 수 있습니다.
+
+#### 예시:
+
+```swift
+var cancellables = Set<AnyCancellable>()
+
+let failingPublisher = Fail<Int, Error>(error: URLError(.badServerResponse))
+
+failingPublisher
+    .sink(
+        receiveCompletion: { completion in
+            if case .failure(let error) = completion {
+                print("Error received: \(error)")
+            }
+        },
+        receiveValue: { print("Value received: \($0)") }
+    )
+    .store(in: &cancellables) // Subscription 저장
+```
 
 <br>
 <br>
 
 ## 5.3 Combine과 Result 타입을 함께 사용하여 에러 처리를 하는 방법을 설명해주세요.
 
+Combine에서 Result 타입을 활용하면 에러와 데이터를 명시적으로 처리할 수 있습니다. Result를 사용하여 Publisher를 래핑하거나 에러를 처리할 수 있습니다.
+
+#### 예시:
+
+```swift
+import Combine
+
+// Result 타입을 이용한 Publisher 생성
+let resultPublisher = Just(Result<Int, Error>.success(42))
+
+resultPublisher
+    .sink(
+        receiveCompletion: { print("Completed: \($0)") },
+        receiveValue: { result in
+            switch result {
+            case .success(let value):
+                print("Success with value: \(value)")
+            case .failure(let error):
+                print("Failure with error: \(error)")
+            }
+        }
+    )
+/*
+출력:
+Success with value: 42
+Completed: finished
+*/
+```
+
+### Combine과 Result를 함께 사용하는 이유
+- 명시적인 에러 핸들링: 에러와 성공 값을 분리하여 명확하게 처리 가능.
+- 더 나은 가독성: 에러 처리 로직과 성공 로직을 분리하여 코드의 의도를 명확히 표현.
+
+#### 예시: Combine과 Result를 활용한 네트워크 요청
+
+```swift
+struct NetworkError: Error {}
+let networkPublisher = Future<Result<Int, NetworkError>, Never> { promise in
+    let isSuccess = Bool.random()
+    if isSuccess {
+        promise(.success(.success(200)))
+    } else {
+        promise(.success(.failure(NetworkError())))
+    }
+}
+
+networkPublisher
+    .sink { result in
+        switch result {
+        case .success(.success(let statusCode)):
+            print("Request succeeded with status code: \(statusCode)")
+        case .success(.failure(let error)):
+            print("Request failed with error: \(error)")
+        default:
+            break
+        }
+    }
+```
+
+<br>
+
+### 결론
+
+Combine의 에러 처리는 catch, replaceError, retry와 같은 연산자를 통해 유연하게 구현할 수 있습니다. Result 타입과 함께 사용하면 명시적인 에러 처리와 데이터 핸들링이 가능하며, 네트워크 요청 같은 비동기 작업에서 특히 유용합니다.
+
 <br>
 <br>
 
 ## 6. Swift의 동적 멤버 조회(Dynamic Member Lookup)에 대해 설명해주세요.
-- @dynamicMemberLookup 속성의 역할과 사용 방법은 무엇인가요?
-- 서브스크립트(Subscript)를 사용하여 동적 멤버 조회를 구현하는 방법을 설명해주세요.
-- 동적 멤버 조회를 활용한 실제 사용 사례를 들어주세요.
+
+
+<br>
+<br>
+
+## 6.1 @dynamicMemberLookup 속성의 역할과 사용 방법은 무엇인가요?
+
+
+<br>
+<br>
+
+## 6.2 서브스크립트(Subscript)를 사용하여 동적 멤버 조회를 구현하는 방법을 설명해주세요.
+
+
+<br>
+<br>
+
+## 6.3 동적 멤버 조회를 활용한 실제 사용 사례를 들어주세요.
+
 
 <br>
 <br>
