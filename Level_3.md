@@ -1687,23 +1687,201 @@ Reflection은 Swift에서 객체의 속성 및 메타데이터를 동적으로 �
 
 ## 11. iOS 앱에서 Keychain을 사용하여 민감한 데이터를 안전하게 저장하는 방법은 무엇인가요?
 
+Keychain은 iOS에서 민감한 데이터를 안전하게 저장하기 위한 암호화된 스토리지입니다. 앱에서 비밀번호, 토큰, 인증서 등의 데이터를 보관할 때 사용됩니다. Keychain은 암호화된 영역에 데이터를 저장하며, 시스템에서 관리되어 보안이 매우 높습니다.
 
 <br>
 <br>
 
 ## 11.1 Keychain Services API를 사용하여 데이터를 저장하고 읽어오는 과정을 설명해주세요.
 
+### Keychain 데이터 저장
+
+Keychain에 데이터를 저장하려면 SecItemAdd 함수를 사용합니다.
+
+#### 예제: 데이터 저장
+
+```swift
+import Security
+
+// Keychain에 데이터를 저장하는 함수
+func saveToKeychain(account: String, value: String) {
+    // 저장할 데이터를 Data 타입으로 변환
+    let data = Data(value.utf8)
+    
+    // Keychain 저장을 위한 쿼리 생성
+    let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword, // 키체인 클래스 (일반 비밀번호 저장)
+        kSecAttrAccount as String: account,           // 계정 이름 (Key)
+        kSecValueData as String: data                 // 저장할 데이터 (Value)
+    ]
+    
+    // Keychain에 데이터 저장
+    let status = SecItemAdd(query as CFDictionary, nil)
+    
+    // 저장 결과 출력
+    if status == errSecSuccess {
+        print("Data saved successfully.")
+    } else {
+        print("Error saving data: \(status)")
+    }
+}
+```
+
+### Keychain 데이터 읽기
+
+Keychain에서 데이터를 읽어오려면 SecItemCopyMatching 함수를 사용합니다.
+
+#### 예제: 데이터 읽기
+
+```swift
+// Keychain에서 데이터를 읽어오는 함수
+func readFromKeychain(account: String) -> String? {
+    // Keychain 조회를 위한 쿼리 생성
+    let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword, // 키체인 클래스 (일반 비밀번호 저장)
+        kSecAttrAccount as String: account,           // 계정 이름 (Key)
+        kSecReturnData as String: true,               // 데이터를 반환하도록 설정
+        kSecMatchLimit as String: kSecMatchLimitOne   // 하나의 데이터만 검색
+    ]
+    
+    var item: CFTypeRef? // 결과를 저장할 변수
+    // Keychain에서 데이터 조회
+    let status = SecItemCopyMatching(query as CFDictionary, &item)
+    
+    // 조회 성공 시 데이터 반환
+    if status == errSecSuccess, let data = item as? Data {
+        return String(data: data, encoding: .utf8)
+    } else {
+        print("Error reading data: \(status)")
+        return nil
+    }
+}
+```
+
+<br>
+
+### Keychain 데이터 삭제
+
+Keychain에 저장된 데이터를 삭제하려면 SecItemDelete 함수를 사용합니다.
+
+#### 예제: 데이터 삭제
+
+```swift
+// Keychain에서 데이터를 삭제하는 함수
+func deleteFromKeychain(account: String) {
+    // Keychain 삭제를 위한 쿼리 생성
+    let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword, // 키체인 클래스 (일반 비밀번호 저장)
+        kSecAttrAccount as String: account            // 계정 이름 (Key)
+    ]
+    
+    // Keychain에서 데이터 삭제
+    let status = SecItemDelete(query as CFDictionary)
+    
+    // 삭제 결과 출력
+    if status == errSecSuccess {
+        print("Data deleted successfully.")
+    } else {
+        print("Error deleting data: \(status)")
+    }
+}
+```
 
 <br>
 <br>
 
 ## 11.2 Keychain Access Groups를 사용하여 앱 간에 데이터를 공유하는 방법은 무엇인가요?
+Keychain Access Groups를 사용하면 동일한 팀 ID를 사용하는 앱 간에 Keychain 데이터를 공유할 수 있습니다.
 
+### Access Groups 설정 방법
+1. Apple Developer Console 설정:
+- Keychain Sharing 기능을 활성화하고, Access Group을 추가합니다.
+-	Access Group의 형식은 $(AppIdentifierPrefix)com.example.sharedgroup입니다.
+2. Xcode 프로젝트 설정:
+-	Capabilities 탭에서 “Keychain Sharing”을 활성화하고 동일한 Access Group을 추가합니다.
+
+### 코드 구현
+
+Keychain Access Group을 설정하려면 kSecAttrAccessGroup 속성을 추가합니다.
+
+#### 예제: Access Group 사용
+
+```swift
+
+// Shared Keychain에 데이터를 저장하는 함수
+func saveToSharedKeychain(account: String, value: String) {
+    // 저장할 데이터를 Data 타입으로 변환
+    let data = Data(value.utf8)
+    
+    // Keychain 저장을 위한 쿼리 생성
+    let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword, // 키체인 클래스 (일반 비밀번호 저장)
+        kSecAttrAccount as String: account,           // 계정 이름 (Key)
+        kSecAttrAccessGroup as String: "com.example.sharedgroup", // 공유 그룹 설정
+        kSecValueData as String: data                 // 저장할 데이터 (Value)
+    ]
+    
+    // Keychain에 데이터 저장
+    let status = SecItemAdd(query as CFDictionary, nil)
+    
+    // 저장 결과 출력
+    if status == errSecSuccess {
+        print("Data saved successfully in shared group.")
+    } else {
+        print("Error saving data: \(status)")
+    }
+}
+```
 
 <br>
 <br>
 
 ## 11.3 Keychain의 접근 제어(Access Control) 옵션과 사용 방법을 설명해주세요.
+Keychain은 민감한 데이터를 보호하기 위해 다양한 접근 제어 옵션을 제공합니다.
+
+### 주요 접근 제어 옵션
+
+1. kSecAttrAccessibleWhenUnlocked:
+- 디바이스가 잠금 해제된 상태에서만 데이터에 접근할 수 있음.
+- 기본 옵션으로 가장 많이 사용됩니다.
+2. kSecAttrAccessibleAfterFirstUnlock:
+- 디바이스가 처음 잠금 해제된 이후부터 데이터에 계속 접근 가능.
+- 백그라운드 작업에 적합.
+3. kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly:
+-	디바이스에 암호가 설정된 상태에서만 사용 가능하며, 다른 디바이스로 전송 불가.
+3. kSecAttrAccessibleAlways (Deprecated):
+- 디바이스가 잠겨 있어도 데이터 접근 가능.
+
+#### 코드 구현
+
+```swift
+func saveToKeychainWithAccessControl(account: String, value: String) {
+    let data = Data(value.utf8)
+    
+    let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrAccount as String: account,
+        kSecValueData as String: data,
+        kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
+    ]
+    
+    let status = SecItemAdd(query as CFDictionary, nil)
+    if status == errSecSuccess {
+        print("Data saved with access control.")
+    } else {
+        print("Error saving data: \(status)")
+    }
+}
+```
+
+<br>
+
+### 요약
+- Keychain은 iOS에서 민감한 데이터를 안전하게 저장하기 위한 암호화된 스토리지입니다.
+- Keychain Services API를 사용하여 데이터를 저장, 읽기, 삭제할 수 있습니다.
+- Keychain Access Groups를 통해 앱 간 데이터 공유가 가능합니다.
+- 접근 제어 옵션은 데이터의 보안 수준과 사용 패턴에 맞게 선택해야 합니다.
+
 
 <br>
 <br>
