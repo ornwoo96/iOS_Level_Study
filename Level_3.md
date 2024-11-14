@@ -1686,68 +1686,163 @@ Reflection은 Swift에서 객체의 속성 및 메타데이터를 동적으로 �
 <br>
 
 ## 11. iOS 앱에서 Keychain을 사용하여 민감한 데이터를 안전하게 저장하는 방법은 무엇인가요?
-- Keychain Services API를 사용하여 데이터를 저장하고 읽어오는 과정을 설명해주세요.
-- Keychain Access Groups를 사용하여 앱 간에 데이터를 공유하는 방법은 무엇인가요?
-- Keychain의 접근 제어(Access Control) 옵션과 사용 방법을 설명해주세요.
+
+
+<br>
+<br>
+
+## 11.1 Keychain Services API를 사용하여 데이터를 저장하고 읽어오는 과정을 설명해주세요.
+
+
+<br>
+<br>
+
+## 11.2 Keychain Access Groups를 사용하여 앱 간에 데이터를 공유하는 방법은 무엇인가요?
+
+
+<br>
+<br>
+
+## 11.3 Keychain의 접근 제어(Access Control) 옵션과 사용 방법을 설명해주세요.
 
 <br>
 <br>
 
 ## 12. Swift의 async/await를 사용한 비동기 프로그래밍에 대해 설명해주세요.
-- async/await 문법의 동작 원리와 사용 방법은 무엇인가요?
-- Task와 TaskGroup을 사용하여 비동기 작업을 관리하는 방법을 설명해주세요.
-- 비동기 시퀀스(AsyncSequence)와 비동기 스트림(AsyncStream)의 차이점과 사용 예시를 들어주세요.
+
+<br>
+<br>
+
+## 12.1 async/await 문법의 동작 원리와 사용 방법은 무엇인가요?
+
+<br>
+<br>
+
+
+## 12.2 Task와 TaskGroup을 사용하여 비동기 작업을 관리하는 방법을 설명해주세요.
+
+
+<br>
+<br>
+
+## 12.3 비동기 시퀀스(AsyncSequence)와 비동기 스트림(AsyncStream)의 차이점과 사용 예시를 들어주세요.
 
 <br>
 <br>
 
 ## 13. iOS 앱에서 WidgetKit을 사용하여 홈 화면 위젯을 구현하는 방법은 무엇인가요?
-- 위젯의 생명주기(Life Cycle)와 업데이트 방식을 설명해주세요.
-- SwiftUI를 사용하여 위젯의 UI를 구성하는 방법과 주의 사항은 무엇인가요?
-- 위젯과 앱 간의 데이터 공유 및 통신 방법을 설명해주세요.
+
+<br>
+<br>
+
+## 13.1 위젯의 생명주기(Life Cycle)와 업데이트 방식을 설명해주세요.
+
+<br>
+<br>
+
+
+## 13.2 SwiftUI를 사용하여 위젯의 UI를 구성하는 방법과 주의 사항은 무엇인가요?
+
+<br>
+<br>
+
+
+## 13.3 위젯과 앱 간의 데이터 공유 및 통신 방법을 설명해주세요.
 
 <br>
 <br>
 
 ## 14. MVVM-C(Coordinator) 아키텍처 패턴에 대해 설명해주세요.
-- Coordinator의 역할과 구현 방법을 설명해주세요.
-- MVVM-C 패턴의 장단점과 적용 사례를 소개해주세요.
+
+<br>
+<br>
+
+## 14.1 Coordinator의 역할과 구현 방법을 설명해주세요.
+
+<br>
+<br>
+
+## 14.2 MVVM-C 패턴의 장단점과 적용 사례를 소개해주세요.
 
 <br>
 <br>
 
 ## 15. Swift의 @dynamicCallable과 @dynamicMemberLookup에 대해 설명해주세요.
-- @dynamicCallable을 사용하여 사용자 정의 호출 가능 타입을 만드는 방법과 사용 예시를 들어주세요.
-- @dynamicMemberLookup을 활용하여 동적으로 속성에 접근하는 방법과 실제 사용 사례를 소개해주세요.
+
+<br>
+<br>
+
+## 15.1 @dynamicCallable을 사용하여 사용자 정의 호출 가능 타입을 만드는 방법과 사용 예시를 들어주세요.
+
+<br>
+<br>
+
+## 15.2 @dynamicMemberLookup을 활용하여 동적으로 속성에 접근하는 방법과 실제 사용 사례를 소개해주세요.
 
 <br>
 <br>
 
 ## 16. Swift의 ABI(Application Binary Interface) 안정성에 대해 설명해주세요.
-- ABI 안정성의 개념과 중요성을 설명해주세요.
-- ABI 안정성이 프레임워크 개발과 배포에 미치는 영향을 설명해주세요.
+
+<br>
+<br>
+
+## 16.1 ABI 안정성의 개념과 중요성을 설명해주세요.
+
+<br>
+<br>
+
+## 16.2 ABI 안정성이 프레임워크 개발과 배포에 미치는 영향을 설명해주세요.
 
 <br>
 <br>
 
 ## 17. iOS 앱에서 Combine 프레임워크를 활용한 반응형 프로그래밍 패턴에 대해 설명해주세요.
-- MVVM 아키텍처에서 Combine을 활용한 데이터 바인딩 방법을 예시와 함께 설명해주세요.
-- Combine과 SwiftUI를 함께 사용하여 선언적이고 반응형 UI를 구축하는 방법을 소개해주세요.
+
+<br>
+<br>
+
+## 17.1 MVVM 아키텍처에서 Combine을 활용한 데이터 바인딩 방법을 예시와 함께 설명해주세요.
+
+<br>
+<br>
+
+## 17.2 Combine과 SwiftUI를 함께 사용하여 선언적이고 반응형 UI를 구축하는 방법을 소개해주세요.
 
 <br>
 <br>
 
 ## 18. Swift의 런타임 동작과 성능 최적화 기법에 대해 설명해주세요.
-- Swift 런타임의 구조와 동작 방식을 설명해주세요.
-- 동적 디스패치, 인라이닝, 스택 프로모션 등 Swift 성능 최적화 기법과 컴파일러 최적화 옵션을 소개해주세요.
+
+<br>
+<br>
+
+## 18.1 Swift 런타임의 구조와 동작 방식을 설명해주세요.
+
+<br>
+<br>
+
+## 18.2 동적 디스패치, 인라이닝, 스택 프로모션 등 Swift 성능 최적화 기법과 컴파일러 최적화 옵션을 소개해주세요.
 
 <br>
 <br>
 
 ## 19. iOS 앱의 접근성(Accessibility)을 향상시키기 위한 방법과 고려 사항에 대해 설명해주세요.
-- VoiceOver, Switch Control 등 접근성 기술의 동작 원리와 지원 방법을 설명해주세요.
-- Dynamic Type, Bold Text 등 시각적 접근성 향상을 위한 기술과 구현 방법을 소개해주세요.
-- 접근성 테스트 및 심사 기준, 모범 사례 등을 예시와 함께 설명해주세요.
+
+<br>
+<br>
+
+## 19.1 VoiceOver, Switch Control 등 접근성 기술의 동작 원리와 지원 방법을 설명해주세요.
+
+<br>
+<br>
+
+## 19.2 Dynamic Type, Bold Text 등 시각적 접근성 향상을 위한 기술과 구현 방법을 소개해주세요.
+
+<br>
+<br>
+
+## 19.3 접근성 테스트 및 심사 기준, 모범 사례 등을 예시와 함께 설명해주세요.
 
 <br>
 <br>
