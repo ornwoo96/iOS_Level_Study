@@ -627,28 +627,134 @@ print(user.validate()) // 출력: false
 
 ## 4. iOS 앱에서 바이너리 프레임워크(Binary Framework)를 생성하고 사용하는 방법은 무엇인가요?
 
+- 바이너리 프레임워크는 소스 코드 없이 제공되며, iOS 앱에 특정 기능이나 라이브러리를 통합할 때 사용됩니다. - Apple의 Xcode는 바이너리 프레임워크 생성 및 통합을 지원하며, 주로 코드 보호, 배포 간소화, 재사용성을 위해 사용됩니다.
+
 <br>
 <br>
 
 ## 4.1 바이너리 프레임워크와 소스 코드 프레임워크의 차이점은 무엇인가요?
+
+<img src="https://github.com/user-attachments/assets/505aafb3-7e10-40ca-8c7a-e8d3053c8fee">
+
 
 <br>
 <br>
 
 ## 4.2 바이너리 프레임워크를 생성할 때 고려해야 할 사항은 무엇인가요?
 
+
+### 1. 아키텍처 지원:
+- iOS 앱은 ARM64(iPhone)와 x86_64(Simulator) 등 다양한 아키텍처를 지원해야 하므로, **XCFramework** 를 생성하여 여러 아키텍처를 통합하는 것이 권장됩니다.
+
+
+### 2.	모듈화:
+- 프레임워크를 설계할 때 모듈화와 캡슐화를 고려하여 외부에 노출되는 API를 명확히 정의합니다.
+### 3.	의존성 관리:
+- 의존성 프레임워크가 있다면 CocoaPods, Carthage, 또는 Swift Package Manager를 활용하여 통합합니다.
+
+
+### 4.	코드 보호:
+- 바이너리 형태로 제공하면 소스 코드가 보호되며 디컴파일 방지를 위해 **난독화(Obfuscation)**를 추가적으로 고려할 수 있습니다.
+
+### 5.	버전 관리:
+- 프레임워크의 버전을 관리하여 하위 호환성을 제공하며 변경 이력을 명확히 유지합니다.
+
+
 <br>
 <br>
 
 ## 4.3 바이너리 프레임워크를 배포하고 버전 관리하는 방법을 설명해주세요.
+### 1. 프레임워크 생성
+- Xcode에서 XCFramework 생성:
+
+```swift
+# Build for device
+xcodebuild archive -scheme MyFramework -sdk iphoneos -archivePath ./build/MyFramework.ios.xcarchive
+
+# Build for simulator
+xcodebuild archive -scheme MyFramework -sdk iphonesimulator -archivePath ./build/MyFramework.sim.xcarchive
+
+# Combine into an XCFramework
+xcodebuild -create-xcframework \
+    -framework ./build/MyFramework.ios.xcarchive/Products/Library/Frameworks/MyFramework.framework \
+    -framework ./build/MyFramework.sim.xcarchive/Products/Library/Frameworks/MyFramework.framework \
+    -output ./build/MyFramework.xcframework
+```
+
+<br>
+
+### 2. 배포
+- GitHub, GitLab, Bitbucket 등 Git 리포지토리에 업로드:
+  - XCFramework 파일을 릴리스에 첨부하여 배포하거나, CocoaPods/Carthage 스펙을 추가하여 쉽게 통합 가능하게 설정.
+- Swift Package Manager(SPM):
+  - Package.swift 파일에 프레임워크 URL과 버전을 정의하여 배포.
+
+### 3. 버전 관리
+- Semantic Versioning:
+  - 버전 번호를 MAJOR.MINOR.PATCH 형식으로 관리.
+    - MAJOR: 하위 호환성 깨짐.
+    - MINOR: 새로운 기능 추가.
+    - PATCH: 버그 수정.
+  - 예: 1.2.0, 2.0.0.
+ 
+### 예제: XCFramework 생성 및 SPM 배포
+
+#### 1.	XCFramework 생성
+- 위 명령어를 사용하여 XCFramework 생성.
+#### 2.	SPM으로 배포
+
+```swift
+// Package.swift
+let package = Package(
+    name: "MyFramework",
+    platforms: [
+        .iOS(.v13)
+    ],
+    products: [
+        .library(
+            name: "MyFramework",
+            targets: ["MyFramework"]
+        ),
+    ],
+    targets: [
+        .binaryTarget(
+            name: "MyFramework",
+            url: "https://example.com/MyFramework.xcframework.zip",
+            checksum: "checksum_value"
+        )
+    ]
+)
+```
+
+<br>
+
+### 요약
+- 바이너리 프레임워크는 소스 코드 없이 기능을 제공하며 빌드 속도와 보안이 강점.
+- 생성 시 다중 아키텍처 지원, 코드 보호, 버전 관리를 고려.
+- 배포는 GitHub 릴리스, Swift Package Manager 등을 활용.
 
 <br>
 <br>
 
 ## 5. Combine 프레임워크에서 에러 처리는 어떻게 하나요?
-- 에러 이벤트를 처리하기 위한 Operator에는 어떤 것들이 있나요?
-- 에러 이벤트 발생 시 Subscription을 자동으로 취소하는 방법은 무엇인가요?
-- Combine과 Result 타입을 함께 사용하여 에러 처리를 하는 방법을 설명해주세요.
+
+
+<br>
+<br>
+
+## 5.1 에러 이벤트를 처리하기 위한 Operator에는 어떤 것들이 있나요?
+
+
+<br>
+<br>
+
+## 5.2 에러 이벤트 발생 시 Subscription을 자동으로 취소하는 방법은 무엇인가요?
+
+
+<br>
+<br>
+
+## 5.3 Combine과 Result 타입을 함께 사용하여 에러 처리를 하는 방법을 설명해주세요.
 
 <br>
 <br>
