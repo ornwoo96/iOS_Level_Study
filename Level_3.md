@@ -2032,31 +2032,35 @@ Task {
 #### 예시:
 
 ```swift
+// FileLineSequence: AsyncSequence를 구현한 구조체
 struct FileLineSequence: AsyncSequence {
-    typealias Element = String
+    typealias Element = String // Sequence의 요소 타입 정의 (문자열)
 
+    // FileLineIterator: AsyncIteratorProtocol을 구현한 내부 구조체
     struct FileLineIterator: AsyncIteratorProtocol {
-        let lines: [String]
-        var currentIndex = 0
+        let lines: [String] // 데이터를 저장하는 배열
+        var currentIndex = 0 // 현재 읽고 있는 인덱스
 
+        // next(): 비동기적으로 다음 요소를 반환
         mutating func next() async -> String? {
-            guard currentIndex < lines.count else { return nil }
-            defer { currentIndex += 1 }
-            return lines[currentIndex]
+            guard currentIndex < lines.count else { return nil } // 더 이상 요소가 없으면 nil 반환
+            defer { currentIndex += 1 } // 다음 호출을 위해 인덱스를 증가
+            return lines[currentIndex] // 현재 요소 반환
         }
     }
 
-    let lines: [String]
+    let lines: [String] // 시퀀스가 순회할 데이터
 
+    // makeAsyncIterator(): 이터레이터를 생성하여 반환
     func makeAsyncIterator() -> FileLineIterator {
-        FileLineIterator(lines: lines)
+        FileLineIterator(lines: lines) // 내부 이터레이터 생성
     }
 }
 
 // 사용 예시
 Task {
-    let fileLines = FileLineSequence(lines: ["Line 1", "Line 2", "Line 3"])
-    for await line in fileLines {
+    let fileLines = FileLineSequence(lines: ["Line 1", "Line 2", "Line 3"]) // 데이터로 시퀀스 생성
+    for await line in fileLines { // 비동기 for-in으로 순회
         print(line) // 출력: Line 1, Line 2, Line 3
     }
 }
@@ -2109,24 +2113,30 @@ Task {
 #### 예시:
 
 ```swift
+// listenToWebSocket(): AsyncStream을 반환하는 함수
 func listenToWebSocket() -> AsyncStream<String> {
     AsyncStream { continuation in
-        let socket = WebSocket() // 가상의 WebSocket 객체
+        let socket = WebSocket() // 가상의 WebSocket 객체 생성
+        
+        // WebSocket에서 메시지를 받았을 때 호출
         socket.onMessage = { message in
             continuation.yield(message) // 메시지를 스트림에 전달
         }
+        
+        // WebSocket이 닫혔을 때 호출
         socket.onClose = {
-            continuation.finish() // 스트림 종료
+            continuation.finish() // 스트림을 종료
         }
-        socket.connect()
+        
+        socket.connect() // WebSocket 연결 시작
     }
 }
 
 // 사용 예시
 Task {
-    let messages = listenToWebSocket()
-    for await message in messages {
-        print("Received message: \(message)")
+    let messages = listenToWebSocket() // WebSocket 메시지 스트림 생성
+    for await message in messages { // 스트림에서 메시지를 순차적으로 가져옴
+        print("Received message: \(message)") // 메시지 출력
     }
 }
 ```
