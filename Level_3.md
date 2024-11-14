@@ -1087,9 +1087,188 @@ print(array.shape) // Python 객체의 동적 속성 조회
 <br>
 
 ## 7. Swift의 Property Wrapper에 대해 설명해주세요.
-- Property Wrapper를 사용하는 이유와 장점은 무엇인가요?
-- @State, @Binding, @ObservedObject 등의 Property Wrapper의 차이점과 사용 방법을 설명해주세요.
-- Custom Property Wrapper를 만드는 방법과 사용 예시를 들어주세요.
+
+Property Wrapper는 속성의 동작을 캡슐화하여 반복적인 코드 작성을 줄이고 코드 재사용성을 높이는 기능입니다. @를 사용하여 선언되며, 속성을 저장, 수정, 접근하는 방식을 커스터마이징할 수 있습니다.
+
+
+<br>
+<br>
+
+## 7.1 Property Wrapper를 사용하는 이유와 장점은 무엇인가요?
+
+### 이유
+- 속성 관리: 값의 저장 및 접근 방식을 표준화.
+- 중복 제거: 반복적으로 사용되는 속성 로직을 캡슐화.
+- 코드 가독성: 속성의 동작을 직관적으로 표현.
+
+### 장점
+1. 재사용 가능: 공통 로직을 하나의 Property Wrapper로 정의하여 여러 속성에 적용.
+2. 캡슐화: 내부 로직을 숨기고 속성 선언부만 노출.
+3. 코드 간결화: 초기화, 유효성 검사, 변환 로직을 간단하게 표현 가능.
+
+<br>
+<br>
+
+## 7.2 @State, @Binding, @ObservedObject 등의 Property Wrapper의 차이점과 사용 방법을 설명해주세요.
+
+### 1. @State
+- 용도: SwiftUI 뷰의 로컬 상태를 관리.
+- 특징: 뷰가 상태 변경을 감지하고 다시 렌더링.
+- 예시:
+
+```swift
+struct CounterView: View {
+    @State private var count = 0
+
+    var body: some View {
+        VStack {
+            Text("Count: \(count)")
+            Button("Increment") {
+                count += 1
+            }
+        }
+    }
+}
+```
+
+<br>
+
+### 2. @Binding
+- 용도: 부모 뷰의 상태를 하위 뷰에 바인딩.
+- 특징: 두 뷰가 상태를 공유하여 동기화 가능.
+- 예시:
+
+```swift
+struct CounterView: View {
+    @Binding var count: Int
+
+    var body: some View {
+        Button("Increment") {
+            count += 1
+        }
+    }
+}
+
+struct ContentView: View {
+    @State private var count = 0
+
+    var body: some View {
+        CounterView(count: $count) // Binding으로 전달
+    }
+}
+```
+
+<br>
+
+### 3. @ObservedObject
+- 용도: 외부의 클래스 기반 상태 객체를 관찰.
+- 특징: 객체의 상태가 변경되면 뷰를 업데이트.
+- 예시:
+
+```swift
+class CounterModel: ObservableObject {
+    @Published var count = 0
+}
+
+struct CounterView: View {
+    @ObservedObject var model: CounterModel
+
+    var body: some View {
+        VStack {
+            Text("Count: \(model.count)")
+            Button("Increment") {
+                model.count += 1
+            }
+        }
+    }
+}
+```
+
+<br>
+
+### 4. @EnvironmentObject
+- 용도: 앱의 뷰 계층 구조 전반에 걸쳐 데이터를 공유.
+- 특징: 객체를 전역적으로 사용 가능.
+- 예시:
+
+```swift
+class AppData: ObservableObject {
+    @Published var username: String = "Guest"
+}
+
+struct ContentView: View {
+    @EnvironmentObject var appData: AppData
+
+    var body: some View {
+        Text("Welcome, \(appData.username)!")
+    }
+}
+
+// App entry point
+@main
+struct MyApp: App {
+    let appData = AppData()
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(appData) // 환경 객체 주입
+        }
+    }
+}
+```
+
+<br>
+<br>
+
+## 7.3 Custom Property Wrapper를 만드는 방법과 사용 예시를 들어주세요.
+### 구조
+- Property Wrapper는 @propertyWrapper 키워드를 사용하여 정의.
+- required 프로퍼티:
+  - wrappedValue: 속성의 실제 값을 저장.
+- 선택적 프로퍼티:
+  - projectedValue: 추가 기능을 제공하기 위한 속성.
+
+#### 예시: 값의 범위를 제한하는 Property Wrapper
+
+```swift
+@propertyWrapper
+struct Clamped<Value: Comparable> {
+    private var value: Value
+    private let range: ClosedRange<Value>
+
+    init(wrappedValue: Value, _ range: ClosedRange<Value>) {
+        self.value = min(max(wrappedValue, range.lowerBound), range.upperBound)
+        self.range = range
+    }
+
+    var wrappedValue: Value {
+        get { value }
+        set { value = min(max(newValue, range.lowerBound), range.upperBound) }
+    }
+}
+
+// 사용 예시
+struct ContentView: View {
+    @Clamped(0...100) var progress: Int = 50
+
+    var body: some View {
+        VStack {
+            Text("Progress: \(progress)")
+            Button("Increment") {
+                progress += 20 // 최대값 100을 넘지 않음
+            }
+        }
+    }
+}
+```
+
+<br>
+
+### 정리
+- Property Wrapper는 코드의 간결화와 재사용성을 제공.
+- @State, @Binding, @ObservedObject 등은 SwiftUI에서 상태 관리를 위한 강력한 도구.
+- Custom Property Wrapper는 개발자의 요구에 맞는 속성 동작을 구현 가능.
 
 <br>
 <br>
