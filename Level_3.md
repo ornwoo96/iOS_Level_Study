@@ -2446,16 +2446,149 @@ MVVM-C는 네비게이션 로직을 뷰 컨트롤러에서 분리하여 유지�
 <br>
 
 ## 15. Swift의 @dynamicCallable과 @dynamicMemberLookup에 대해 설명해주세요.
+@dynamicCallable과 @dynamicMemberLookup은 Swift의 동적 호출 및 속성 접근 기능을 제공하는 특수 속성입니다.
+이 두 속성은 동적으로 메서드 호출이나 속성 접근을 처리하는 타입을 구현할 수 있도록 도와줍니다.
+
 
 <br>
 <br>
 
 ## 15.1 @dynamicCallable을 사용하여 사용자 정의 호출 가능 타입을 만드는 방법과 사용 예시를 들어주세요.
 
+### @dynamicCallable의 역할
+- 클래스, 구조체, 열거형이 함수처럼 호출될 수 있게 만듭니다.
+- 호출 인자를 자유롭게 처리할 수 있으며, 호출 결과를 반환합니다.
+
+
+#### 사용 예시
+```swift
+@dynamicCallable
+struct CallableExample {
+    // 위치 기반 인자를 처리하는 메서드
+    func dynamicallyCall(withArguments args: [Int]) -> Int {
+        return args.reduce(0, +) // 전달받은 숫자 배열을 모두 더하여 반환
+    }
+
+    // 키-값 쌍 인자를 처리하는 메서드
+    func dynamicallyCall(withKeywordArguments args: KeyValuePairs<String, Int>) -> Int {
+        return args.values.reduce(0, +) // 전달받은 키-값 쌍에서 값만 추출하여 모두 더함
+    }
+}
+
+// 사용
+let callable = CallableExample()
+
+// 위치 기반 인자를 사용한 호출
+// dynamicallyCall(withArguments:) 메서드가 호출됨
+let result1 = callable(1, 2, 3) 
+// 전달된 인자는 [1, 2, 3] 배열 형태로 dynamicallyCall(withArguments:)에 전달됨
+// 메서드는 배열의 모든 요소를 더해 6을 반환
+print(result1) // 출력: 6
+
+// 키-값 쌍 인자를 사용한 호출
+// dynamicallyCall(withKeywordArguments:) 메서드가 호출됨
+let result2 = callable(a: 4, b: 5, c: 6)
+// 전달된 인자는 KeyValuePairs 형태로 dynamicallyCall(withKeywordArguments:)에 전달됨
+// ["a": 4, "b": 5, "c": 6]에서 값들(4, 5, 6)을 추출하여 모두 더해 15를 반환
+print(result2) // 출력: 15
+```
+
+### 동작 원리
+1. dynamicallyCall(withArguments:): 위치 기반 인자를 처리.
+2. dynamicallyCall(withKeywordArguments:): 키-값 쌍의 인자를 처리.
+
+### 실무 활용 예시
+- Python과 같은 동적 언어 API 호출:
+	- 외부 Python, JavaScript 인터프리터를 Swift에서 호출할 때.
+- 동적 메서드 실행:
+	- 서버 요청에 따라 동적으로 메서드를 실행해야 할 때.
+
 <br>
 <br>
 
 ## 15.2 @dynamicMemberLookup을 활용하여 동적으로 속성에 접근하는 방법과 실제 사용 사례를 소개해주세요.
+
+### @dynamicMemberLookup의 역할
+- 동적 키를 통해 속성에 접근 가능.
+- subscript(dynamicMember:)를 구현하여 호출 시 동적 로직을 처리.
+
+
+#### 사용 예시
+
+```swift
+@dynamicMemberLookup
+struct DynamicMemberExample {
+    // 내부 저장소: 문자열 키와 값의 딕셔너리
+    private var storage: [String: String] = [
+        "name": "Swift",
+        "language": "Programming"
+    ]
+
+    // @dynamicMemberLookup가 요구하는 서브스크립트 구현
+    subscript(dynamicMember member: String) -> String? {
+        return storage[member] // 전달된 멤버 이름을 키로 사용하여 저장소에서 값 반환
+    }
+}
+
+// 사용
+let dynamic = DynamicMemberExample()
+
+// "name" 키로 저장소의 값을 가져옴
+// dynamic.name 호출은 subscript(dynamicMember:)로 변환되어 storage["name"] 값을 반환
+print(dynamic.name) // 출력: Swift
+
+// "language" 키로 저장소의 값을 가져옴
+// dynamic.language 호출은 subscript(dynamicMember:)로 변환되어 storage["language"] 값을 반환
+print(dynamic.language) // 출력: Programming
+```
+
+#### 동작 원리
+- **subscript(dynamicMember:)** 를 구현하여 호출 시 동작 정의.
+
+### 실무 활용 예시
+- JSON 데이터 접근:
+	- 서버로부터 받은 JSON 데이터의 키를 동적으로 접근.
+- 유연한 데이터 모델링:
+	- 런타임에서 결정되는 속성 이름을 처리해야 할 때.
+
+```swift
+@dynamicMemberLookup
+struct JSONWrapper {
+    // 내부 저장소: 키-값 형태의 JSON 데이터를 저장
+    private let data: [String: Any]
+
+    // 생성자: 외부에서 JSON 데이터([String: Any])를 받아 내부 저장소에 저장
+    init(data: [String: Any]) {
+        self.data = data
+    }
+
+    // @dynamicMemberLookup가 요구하는 서브스크립트 구현
+    // 호출된 멤버 이름을 키로 사용하여 JSON 데이터에서 값 반환
+    subscript(dynamicMember member: String) -> Any? {
+        return data[member] // 전달된 멤버 이름을 키로 JSON 데이터를 검색
+    }
+}
+
+// 사용 예시
+let json = JSONWrapper(data: ["username": "john_doe", "age": 25])
+
+// "username" 키를 동적으로 호출
+// json.username 호출은 subscript(dynamicMember: "username")로 변환
+print(json.username ?? "Unknown") // 출력: john_doe
+
+// "age" 키를 동적으로 호출
+// json.age 호출은 subscript(dynamicMember: "age")로 변환
+print(json.age ?? 0) // 출력: 25
+```
+
+<br>
+
+### @dynamicCallable과 @dynamicMemberLookup의 차이점
+<img src="https://github.com/user-attachments/assets/d1bc4869-df4e-4879-9c1c-4d81f2ef1c6f">
+
+### 결론
+- @dynamicCallable과 @dynamicMemberLookup은 런타임에서 동적 속성과 호출을 처리할 수 있도록 유연성을 제공.
+- 실무 활용: 외부 동적 언어의 호출, 동적 데이터 모델링(JSON 처리) 등 다양한 시나리오에서 유용합니다.
 
 <br>
 <br>
