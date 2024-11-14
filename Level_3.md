@@ -1443,28 +1443,244 @@ class AddTaskIntentHandler: NSObject, AddTaskIntentHandling {
 
 ## 9. Swift의 unsafe 포인터(Unsafe Pointer)에 대해 설명해주세요.
 
+Unsafe 포인터는 Swift에서 메모리에 직접 접근하고 관리할 수 있는 기능을 제공합니다. 일반적으로 Swift는 메모리를 안전하게 관리하지만, C 또는 C++ 라이브러리와 상호작용하거나 성능 최적화를 위해 unsafe 포인터가 필요할 수 있습니다.
+
 <br>
 <br>
 
 ## 9.1 UnsafePointer, UnsafeMutablePointer, UnsafeRawPointer의 차이점과 사용 방법은 무엇인가요?
+
+### 1. UnsafePointer
+- 읽기 전용 메모리에 접근.
+- 포인터를 사용해 데이터를 변경할 수 없음.
+
+
+#### 예제: 
+```swift
+let numbers = [1, 2, 3]
+numbers.withUnsafeBufferPointer { bufferPointer in
+    let pointer: UnsafePointer<Int> = bufferPointer.baseAddress!
+    print(pointer.pointee) // 1 (첫 번째 요소)
+}
+```
+
+<br>
+
+### 2. UnsafeMutablePointer
+- 읽기/쓰기 가능한 메모리에 접근.
+- 값을 직접 변경 가능.
+
+#### 예제:
+```swift
+var value = 10
+withUnsafeMutablePointer(to: &value) { pointer in
+    pointer.pointee = 20 // 값을 변경
+    print(pointer.pointee) // 20
+}
+```
+
+<br>
+
+### 3. UnsafeRawPointer
+- 메모리를 바이트 단위로 접근.
+- 특정 타입에 구애받지 않고 데이터를 처리.
+
+#### 예제:
+
+```swift
+let numbers = [1, 2, 3]
+numbers.withUnsafeBytes { rawPointer in
+    let firstByte = rawPointer.first!
+    print(firstByte) // 첫 번째 요소의 첫 번째 바이트
+}
+```
+
+<br>
+
+### 차이점 요약
+
+<img src="https://github.com/user-attachments/assets/874163c3-85c9-4b87-9d4e-d5073f5d61d4">
 
 <br>
 <br>
 
 ## 9.2 unsafe 포인터를 사용할 때 주의해야 할 점은 무엇인가요?
 
+### 1. 메모리 관리
+
+- 포인터가 가리키는 메모리가 유효한지 확인해야 합니다.
+- Swift는 ARC로 메모리를 관리하지만, Unsafe 포인터는 수동으로 관리해야 합니다.
+
+### 2. 타입 안정성
+
+- 포인터로 접근하는 데이터의 타입이 올바른지 보장해야 합니다.
+- 잘못된 타입으로 접근 시 예기치 않은 동작이 발생할 수 있습니다.
+
+### 3. 메모리 경계 확인
+
+- 포인터를 사용해 데이터를 읽거나 쓸 때, 메모리 경계를 넘지 않도록 주의.
+
+
 <br>
 <br>
 
 ## 9.3 unsafe 포인터를 사용하여 C 언어 라이브러리와 상호작용하는 방법을 설명해주세요.
 
+Swift에서 C 언어 라이브러리를 사용할 때, C 함수가 포인터를 매개변수로 요구하면 unsafe 포인터를 사용해야 합니다.
+
+#### 예제: C의 memcpy 함수와 상호작용
+
+#### C 함수 선언:
+
+```swift
+void *memcpy(void *dest, const void *src, size_t n);
+```
+
+#### swift 코드:
+```swift
+import Foundation
+
+let source = [1, 2, 3, 4, 5]
+var destination = [Int](repeating: 0, count: source.count)
+
+source.withUnsafeBytes { srcPointer in
+    destination.withUnsafeMutableBytes { destPointer in
+        memcpy(destPointer.baseAddress!, srcPointer.baseAddress!, srcPointer.count)
+    }
+}
+
+print(destination) // [1, 2, 3, 4, 5]
+```
+
+<br>
+
+### 요약
+- UnsafePointer는 읽기 전용, UnsafeMutablePointer는 읽기/쓰기 가능, UnsafeRawPointer는 바이트 단위로 메모리에 접근합니다.
+- Unsafe 포인터를 사용할 때는 메모리 안전성, 타입 안정성, 메모리 경계를 주의해야 합니다.
+- C 라이브러리와 상호작용 시 Unsafe 포인터는 필수적인 도구이며, 올바른 메모리 관리가 필요합니다.
+
 <br>
 <br>
 
 ## 10. Swift의 reflection에 대해 설명해주세요.
-- Mirror 타입을 사용하여 객체의 속성을 동적으로 탐색하는 방법은 무엇인가요?
-- 런타임에 타입 정보를 검사하고 메서드를 호출하는 방법을 설명해주세요.
-- reflection을 사용할 때 주의해야 할 점과 성능 고려 사항은 무엇인가요?
+Reflection은 Swift에서 런타임에 객체의 메타데이터(예: 타입 정보, 속성 등)에 접근하거나 조작할 수 있는 기능을 의미합니다. Mirror 타입과 type(of:) 함수가 이를 지원하며, 객체의 속성 탐색, 디버깅, 유연한 데이터 처리 등에 유용합니다.
+
+<br>
+<br>
+
+## 10.1 Mirror 타입을 사용하여 객체의 속성을 동적으로 탐색하는 방법은 무엇인가요?
+### 1. Mirror 타입
+-	Mirror는 런타임에 객체의 속성, 타입, 자식 요소 등에 대한 정보를 제공합니다.
+
+#### 예제
+
+```swift
+struct Person {
+    var name: String
+    var age: Int
+    var isEmployed: Bool
+}
+
+let person = Person(name: "Alice", age: 30, isEmployed: true)
+
+// Mirror를 사용하여 속성 탐색
+let mirror = Mirror(reflecting: person)
+
+print("Type: \(mirror.subjectType)") // Person
+for child in mirror.children {
+    print("Property: \(child.label ?? "unknown"), Value: \(child.value)")
+}
+```
+
+#### 출력
+
+```
+Type: Person
+Property: name, Value: Alice
+Property: age, Value: 30
+Property: isEmployed, Value: true
+```
+
+#### 설명
+1. Mirror(reflecting:)를 사용하여 객체를 반영(reflect)합니다.
+2. children 속성을 통해 객체의 모든 속성과 값을 순회할 수 있습니다.
+3. subjectType을 통해 객체의 타입 정보를 얻습니다.
+
+<br>
+<br>
+
+## 10.2 런타임에 타입 정보를 검사하고 메서드를 호출하는 방법을 설명해주세요.
+
+### 1. type(of:)를 사용한 타입 정보 검사
+- type(of:)는 객체의 실제 타입을 반환합니다.
+- 동적 객체 처리가 필요한 경우 유용합니다.
+
+#### 예제: 타입 검사
+
+```swift
+let values: [Any] = ["Hello", 42, true]
+
+for value in values {
+    switch type(of: value) {
+    case is String.Type:
+        print("String value: \(value)")
+    case is Int.Type:
+        print("Integer value: \(value)")
+    case is Bool.Type:
+        print("Boolean value: \(value)")
+    default:
+        print("Unknown type")
+    }
+}
+```
+
+<br>
+
+### 2. 런타임 메서드 호출
+- Swift는 Objective-C의 Selector와 함께 동적으로 메서드를 호출할 수 있습니다.
+- Objective-C와의 상호운용성이 필요한 경우에 사용됩니다.
+
+#### 예제: Selector를 이용한 메서드 호출
+
+```swift
+import Foundation
+
+@objc class DynamicClass: NSObject {
+    @objc func sayHello() {
+        print("Hello, Dynamic World!")
+    }
+}
+
+let instance = DynamicClass()
+let selector = #selector(DynamicClass.sayHello)
+
+if instance.responds(to: selector) {
+    instance.perform(selector) // 출력: Hello, Dynamic World!
+}
+```
+
+<br>
+<br>
+
+## 10.3 reflection을 사용할 때 주의해야 할 점과 성능 고려 사항은 무엇인가요?
+
+### 1. 주의해야 할 점
+- 타입 안정성:
+  - Reflection은 컴파일 타임 안전성을 보장하지 않습니다. 잘못된 속성 이름이나 타입 사용 시 런타임 에러가 발생할 수 있습니다.
+- 제한된 기능:
+  - Swift의 Reflection은 C++ 또는 Java에 비해 기능이 제한적입니다.
+  - 런타임 메서드 추가 및 클래스 생성 등 고급 동적 기능은 불가능합니다.
+
+### 2. 성능 고려 사항
+- Reflection은 런타임 비용이 발생합니다.
+  - 런타임에 메타데이터를 읽기 위해 추가적인 연산이 필요하기 때문에 성능에 영향을 줄 수 있습니다.
+- 빈번한 Reflection 사용은 피하고, 디버깅이나 일회성 작업에 사용하는 것이 적합합니다.
+
+<br>
+
+### 요약
+
+Reflection은 Swift에서 객체의 속성 및 메타데이터를 동적으로 탐색하고 활용할 수 있는 강력한 기능입니다. 하지만 성능 문제와 타입 안정성 문제로 인해 제한적인 상황에서만 사용하는 것이 좋습니다.
 
 <br>
 <br>
