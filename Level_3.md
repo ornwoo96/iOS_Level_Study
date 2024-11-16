@@ -3157,6 +3157,113 @@ iOS 접근성 기술은 앱의 사용성을 향상시키고, 다양한 사용자
 <br>
 
 ## 20. iOS 앱에서 Objective-C 브리징(Bridging)을 하는 방법과 주의 사항을 설명해주세요.
+Objective-C와 Swift는 Apple 생태계에서 상호 운용성을 고려해 설계되었으며, 두 언어 간의 브리징(Bridging)을 통해 한 프로젝트 내에서 함께 사용할 수 있습니다.
+
+<br>
+
+### Objective-C와 Swift 간 브리징의 기본 원리
+- Swift는 Objective-C 런타임과 긴밀히 통합되어 두 언어 간의 상호 운용이 가능.
+- Bridging Header를 사용하여 Swift에서 Objective-C 코드를 가져올 수 있음.
+- Swift 클래스에 @objc 키워드를 사용해 Objective-C 코드에서 Swift 클래스를 호출 가능.
+
+<br>
+
+### Objective-C 브리징 방법
+
+#### 1. Bridging Header 파일을 사용하여 Swift에서 Objective-C 호출
+
+- Objective-C 코드를 Swift에서 사용하려면:
+1. 프로젝트에 Objective-C 파일을 추가하면 Xcode가 자동으로 Bridging Header 파일 생성을 제안.
+2. Bridging Header 파일에 Objective-C 헤더 파일을 import.
+
+```objective-c
+// Objective-C 헤더 파일 (MyObjectiveCClass.h)
+@interface MyObjectiveCClass : NSObject
+- (void)sayHello;
+@end
+```
+
+```objc
+// MyProject-Bridging-Header.h
+#import "MyObjectiveCClass.h"
+```
+
+3. swift에서 사용 :
+
+```swift
+let obj = MyObjectiveCClass()
+obj.sayHello()
+```
+
+<br>
+
+#### @objc를 사용하여 Objective-C에서 Swift 호출
+- Swift에서 Objective-C 코드와 상호작용하려면 @objc 키워드 사용:
+```swift
+// Swift 클래스
+import Foundation
+
+@objc class MySwiftClass: NSObject {
+    @objc func greet() {
+        print("Hello from Swift!")
+    }
+}
+```
+
+<br>
+
+- Objective-C에서 사용:
+
+```objective-c
+// Objective-C 파일
+#import "MyProject-Swift.h"
+
+MySwiftClass *swiftObj = [[MySwiftClass alloc] init];
+[swiftObj greet];
+```
+
+<br>
+
+### 주의 사항
+#### 1. NSObject 상속 필수 (Swift → Objective-C)
+- Objective-C는 Swift의 클래스가 NSObject를 상속하지 않으면 이를 인식하지 못함.
+- 따라서 Objective-C와 상호 운용하려는 Swift 클래스는 NSObject를 상속해야 함.
+#### 2.	Generics, Tuples, Closures의 제한
+- Objective-C는 Swift의 고급 기능인 제네릭, 튜플, 클로저 등을 직접적으로 지원하지 않음.
+- 이 경우 대신 블록(Blocks)을 사용하거나 Objective-C 호환 타입으로 변환해야 함.
+#### 3.	Enum 및 Struct의 제한
+- Swift의 열거형(Enum)과 구조체(Struct)는 Objective-C에서 직접 접근할 수 없음.
+- @objc와 RawRepresentable을 활용해 호환 가능한 타입으로 변환:
+
+```swift
+@objc enum MyEnum: Int {
+    case first = 1
+    case second
+}
+```
+
+#### 4.	Dynamic Dispatch
+- Objective-C는 동적 디스패치를 사용하며, 이를 위해 Swift 메서드에 @objc 키워드 또는 dynamic 키워드를 명시적으로 추가해야 함.
+#### 5. 코드 관리
+- 브리징 파일을 사용할 경우 의존성 관리가 복잡해질 수 있으므로, 필요한 파일만 포함하도록 설정.
+
+<br>
+
+### 1. Objective-C에서 제공하는 SDK와 Swift 연동
+- Apple의 일부 프레임워크(예: Core Data, MapKit)는 여전히 Objective-C 기반으로 제공됨. 이를 Swift로 쉽게 호출 가능.
+
+### 2. Swift로 작성한 라이브러리의 Objective-C 호환성
+- @objc를 사용하여 Swift 코드 기반의 라이브러리를 Objective-C 프로젝트에서 사용할 수 있음.
+
+### 3. Legacy 코드 통합
+- 기존 Objective-C 프로젝트에 새로운 Swift 모듈을 추가하거나, Swift 프로젝트에 기존 Objective-C 모듈을 통합 가능.
+
+<br>
+
+### 요약
+
+Objective-C와 Swift 브리징은 Apple 생태계에서 두 언어 간의 상호 운용성을 지원하며, Bridging Header와 @objc 키워드를 통해 구현됩니다. 주요 제약 사항(예: 제네릭, 구조체, 튜플 등)을 고려하여 두 언어 간의 상호작용을 설계해야 하며, 적절한 브리징 전략을 통해 코드를 효율적으로 통합할 수 있습니다.
+
 
 <br>
 <br>
