@@ -2684,11 +2684,54 @@ struct User {
 
 ## 17. iOS 앱에서 Combine 프레임워크를 활용한 반응형 프로그래밍 패턴에 대해 설명해주세요.
 
+Combine은 Apple이 제공하는 반응형 프로그래밍 프레임워크로, 데이터 흐름과 이벤트를 비동기적으로 처리할 수 있도록 도와줍니다. Combine은 Publisher-Subscriber 패턴을 기반으로 하며, SwiftUI와 함께 사용하면 선언적이고 반응형 UI를 쉽게 구축할 수 있습니다.
 
 <br>
 <br>
 
 ## 17.1 MVVM 아키텍처에서 Combine을 활용한 데이터 바인딩 방법을 예시와 함께 설명해주세요.
+### 1. ViewModel과 Combine 사용
+```swift
+import Combine
+import Foundation
+
+// MARK: - ViewModel
+class CounterViewModel: ObservableObject {
+    @Published var count: Int = 0 // Combine의 Publisher 역할
+
+    func increment() {
+        count += 1
+    }
+}
+
+// MARK: - View
+import SwiftUI
+
+struct CounterView: View {
+    @StateObject private var viewModel = CounterViewModel()
+
+    var body: some View {
+        VStack {
+            Text("Count: \(viewModel.count)")
+                .font(.largeTitle)
+                .padding()
+
+            Button("Increment") {
+                viewModel.increment()
+            }
+            .padding()
+        }
+    }
+}
+```
+
+#### 설명
+1. @Published:
+- count 변수를 Combine의 Publisher로 선언해 ViewModel과 View 간의 데이터 흐름을 관리합니다.
+2. @StateObject:
+- CounterView가 CounterViewModel을 소유하며, Combine을 통해 데이터 바인딩이 이루어집니다.
+3. 데이터 바인딩:
+- ViewModel의 @Published 프로퍼티가 변경되면 SwiftUI는 이를 감지하고 UI를 자동으로 업데이트합니다.
 
 
 <br>
@@ -2696,6 +2739,77 @@ struct User {
 
 ## 17.2 Combine과 SwiftUI를 함께 사용하여 선언적이고 반응형 UI를 구축하는 방법을 소개해주세요.
 
+### 1. 네트워크 요청 예시
+
+SwiftUI와 Combine을 활용하여 데이터를 비동기적으로 처리하고 UI에 반영하는 예제입니다.
+
+```swift
+import Combine
+import SwiftUI
+
+// MARK: - ViewModel
+class JokeViewModel: ObservableObject {
+    @Published var joke: String = "Loading..."
+    private var cancellable: AnyCancellable?
+
+    func fetchJoke() {
+        let url = URL(string: "https://api.chucknorris.io/jokes/random")!
+        
+        cancellable = URLSession.shared.dataTaskPublisher(for: url)
+            .map { $0.data }
+            .decode(type: Joke.self, decoder: JSONDecoder())
+            .map { $0.value }
+            .replaceError(with: "Failed to fetch joke")
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$joke) // $joke는 @Published와 바인딩됨
+    }
+}
+
+// MARK: - Joke Model
+struct Joke: Decodable {
+    let value: String
+}
+
+// MARK: - View
+struct JokeView: View {
+    @StateObject private var viewModel = JokeViewModel()
+
+    var body: some View {
+        VStack {
+            Text(viewModel.joke)
+                .font(.title)
+                .multilineTextAlignment(.center)
+                .padding()
+
+            Button("Fetch Joke") {
+                viewModel.fetchJoke()
+            }
+            .padding()
+        }
+    }
+}
+```
+
+#### 설명
+1. 데이터 흐름:
+- URLSession.shared.dataTaskPublisher는 네트워크 데이터를 Combine의 Publisher로 변환합니다.
+- map, decode, replaceError 연산자를 사용하여 데이터를 처리합니다.
+2. UI 업데이트:
+- @Published var joke가 변경되면 SwiftUI는 이를 자동으로 감지하여 UI를 업데이트합니다.
+3. Reactive Programming:
+- Combine 연산자를 활용하여 비동기 작업을 선언적으로 정의합니다.
+
+<br>
+
+### Combine의 장점
+1. 반응형 데이터 흐름:
+- 이벤트 흐름이 데이터 바인딩과 통합되어 코드의 간결성과 유지보수가 용이합니다.
+2. 선언적 프로그래밍:
+- SwiftUI와 자연스럽게 통합되어 선언적으로 UI와 상태 관리를 작성할 수 있습니다.
+3. 비동기 처리 통합:
+- 네트워크 요청, 타이머, 사용자 입력 등 다양한 비동기 작업을 하나의 패턴으로 처리할 수 있습니다.
+
+결론: Combine과 MVVM, SwiftUI를 결합하면 선언적이고 반응형 프로그래밍의 장점을 극대화할 수 있습니다. 데이터 흐름을 명확히 관리하고, 코드의 복잡성을 줄이는 데 유리합니다.
 
 <br>
 <br>
