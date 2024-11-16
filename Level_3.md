@@ -2816,35 +2816,342 @@ struct JokeView: View {
 
 ## 18. Swift의 런타임 동작과 성능 최적화 기법에 대해 설명해주세요.
 
+Swift는 정적 타입 언어이면서도 런타임에 동적 동작을 지원하는 언어입니다. 이를 통해 정적 타입 검사와 런타임 효율성을 모두 유지하며, Objective-C와의 상호작용도 가능하게 만듭니다.
+
 <br>
 <br>
 
 ## 18.1 Swift 런타임의 구조와 동작 방식을 설명해주세요.
+
+### Swift 런타임의 구조
+#### 1.	Static Dispatch:
+- 컴파일 시점에 함수 호출 및 타입 정보가 결정됩니다.
+- 구조체나 열거형 같은 값 타입에서 주로 사용됩니다.
+#### 2.	Dynamic Dispatch:
+- 런타임에 함수 호출이 결정됩니다.
+- 클래스에서 프로토콜이나 @objc 메서드 사용 시 발생합니다.
+#### 3.	Objective-C 런타임 통합:
+- @objc 키워드를 통해 Objective-C 런타임과의 상호작용이 가능합니다.
+- 이를 통해 KVO(Key-Value Observing), Selector 등이 지원됩니다.
+
+<br>
+
+### Swift 런타임의 동작
+#### 메모리 관리:
+- ARC(Automatic Reference Counting)를 통해 객체의 생명주기를 관리합니다.
+- 클래스 타입은 힙 메모리에 할당되며, 참조 카운트가 0이 되면 해제됩니다.
+#### 메서드 디스패치:
+- 함수 호출 시 컴파일러가 정적 또는 동적 디스패치를 결정합니다.
+- 동적 디스패치는 vtable 또는 Objective-C의 메시지 전달 방식을 사용합니다.
+
 
 <br>
 <br>
 
 ## 18.2 동적 디스패치, 인라이닝, 스택 프로모션 등 Swift 성능 최적화 기법과 컴파일러 최적화 옵션을 소개해주세요.
 
+### 1. 동적 디스패치(Dynamic Dispatch)
+- 런타임에 메서드 주소를 찾아 호출하는 방식.
+- 클래스 타입에서 다형성을 사용할 때 발생.
+- 최적화:
+	- final 키워드를 사용하여 메서드 오버라이딩을 방지해 정적 디스패치로 변환.
+
+```swift
+class Animal {
+    func speak() {
+        print("Animal speaks")
+    }
+}
+
+final class Dog: Animal {
+    override func speak() {
+        print("Dog barks")
+    }
+}
+```
+
+<br>
+
+### 2. 정적 디스패치(Static Dispatch)
+- 컴파일 시점에 함수 주소가 결정되어 더 빠릅니다.
+- 값 타입(구조체, 열거형)에서 주로 사용.
+- 최적화:
+	- 클래스를 사용하지 않고 구조체를 활용.
+
+```swift
+struct Calculator {
+    func add(_ a: Int, _ b: Int) -> Int {
+        return a + b
+    }
+}
+```
+
+<br>
+
+### 3. 인라이닝(Inlining)
+- 컴파일러가 작은 함수의 호출을 제거하고 코드 자체를 호출 위치에 삽입.
+- 함수 호출 오버헤드를 줄이며, 컴파일러는 @inline 속성으로 힌트를 받을 수 있습니다.
+
+```swift
+@inline(__always)
+func add(_ a: Int, _ b: Int) -> Int {
+    return a + b
+}
+```
+
+<br>
+
+### 4. 스택 프로모션(Stack Promotion)
+- 값 타입 변수가 힙이 아닌 스택 메모리에 할당되도록 최적화.
+- 힙 메모리 할당보다 스택 할당이 더 빠릅니다.
+- 최적화:
+	- 값 타입(구조체, 열거형) 사용을 권장.
+
+- 예시
+
+#### 값 타입 변수가 힙에 할당되는 경우
+```swift
+struct Point {
+    var x: Int
+    var y: Int
+}
+
+class Holder {
+    var point: Point
+
+    init(point: Point) {
+        self.point = point
+    }
+}
+
+func calculate() {
+    let holder = Holder(point: Point(x: 10, y: 20)) // Point는 Holder 클래스에 의해 힙에 저장됨
+    print("Sum of coordinates: \(holder.point.x + holder.point.y)")
+}
+
+calculate()
+```
+
+#### 설명
+1. Point는 값 타입(구조체)이지만, 클래스 Holder의 프로퍼티로 사용됩니다.
+2. 클래스는 참조 타입이므로 Holder의 인스턴스는 힙에 저장됩니다.
+3. 따라서 Point도 클래스 인스턴스에 포함되어 힙 메모리에 저장됩니다.
+
+#### 출력
+
+```
+Sum of coordinates: 30
+```
+
+<br>
+
+
+#### 값을 스택 메모리에 할당하도록 수정한 경우
+```swift
+struct Point {
+    var x: Int
+    var y: Int
+}
+
+func calculate() {
+    let point = Point(x: 10, y: 20) // Point는 함수의 로컬 변수로 스택에 저장됨
+    print("Sum of coordinates: \(point.x + point.y)")
+}
+
+calculate()
+```
+
+#### 설명
+1. Point는 스택에 할당됩니다.
+2. 함수 내에서만 사용되며 캡처되지 않으므로 스택 메모리를 활용해 빠르고 효율적으로 처리됩니다.
+
+#### 출력
+
+```swift
+Sum of coordinates: 30
+```
+
+<br>
+
+### 5. 컴파일러 최적화 옵션
+- O (None): 디버그 모드. 최적화 없이 디버깅을 위한 정보 제공.
+- Osize: 크기 최적화를 우선.
+- Ounchecked: 런타임 검사 제거로 성능 최적화. (주의: 크래시 발생 가능성 증가)
+- Ofast: 가장 높은 수준의 최적화.
+
+<br>
+
+### 6. 프로토콜 지향 프로그래밍과 성능
+- 프로토콜을 사용하면 추상화를 통해 코드를 간결하게 만들 수 있으나, 프로토콜 메서드는 동적 디스패치를 사용할 수 있어 성능 저하 가능.
+- 최적화:
+	- @inlineable을 사용해 프로토콜 구현을 인라이닝.
+	- associatedtype으로 제네릭 타입과 결합해 컴파일 타임에 결정.
+
+#### 예시: 최적화 적용
+
+```swift
+protocol Drawable {
+    func draw()
+}
+
+struct Circle: Drawable {
+    func draw() {
+        print("Drawing a Circle")
+    }
+}
+
+struct Rectangle: Drawable {
+    func draw() {
+        print("Drawing a Rectangle")
+    }
+}
+
+func render<T: Drawable>(_ shape: T) {
+    shape.draw() // 정적 디스패치
+}
+
+// 최적화 적용
+final class FastRenderer {
+    @inline(__always)
+    func render(shape: Drawable) {
+        shape.draw() // 인라이닝
+    }
+}
+```
+
+#### 성능 최적화 시 주의점
+1. 과도한 최적화는 코드 가독성과 유지보수성을 해칠 수 있습니다.
+2. 런타임 동작을 이해하고 적절한 상황에서 동적 또는 정적 디스패치를 선택해야 합니다.
+3. 디버그 모드와 릴리스 모드에서 성능 차이를 염두에 두고 테스트해야 합니다.
+
+결론: Swift 런타임의 동작 원리를 이해하면 성능 최적화에 도움이 됩니다. final, @inline, 값 타입 활용 등의 기법을 적절히 적용하여 효율적인 코드를 작성할 수 있습니다.
+
 <br>
 <br>
 
 ## 19. iOS 앱의 접근성(Accessibility)을 향상시키기 위한 방법과 고려 사항에 대해 설명해주세요.
+iOS 앱의 접근성을 향상시키기 위해 개발자는 다양한 접근성 기술과 프레임워크를 활용하여 장애가 있는 사용자도 앱을 쉽게 사용할 수 있도록 설계해야 합니다.
+
 
 <br>
 <br>
 
 ## 19.1 VoiceOver, Switch Control 등 접근성 기술의 동작 원리와 지원 방법을 설명해주세요.
 
+
+### VoiceOver
+#### 동작 원리:
+- 화면의 요소를 음성으로 읽어주고, 사용자는 화면을 탐색하며 UI를 제어할 수 있습니다.
+#### 지원 방법:
+- 접근성 레이블(Accessibility Label): 요소를 설명하는 텍스트를 설정.
+- 접근성 힌트(Accessibility Hint): 요소의 동작을 설명하는 추가 정보를 제공.
+- 접근성 값(Accessibility Value): 요소의 상태를 나타냄.
+
+```swift
+button.accessibilityLabel = "플레이 버튼"
+button.accessibilityHint = "음악을 재생합니다"
+button.accessibilityValue = "일시 정지 상태"
+```
+
+<br>
+
+### Switch Control
+#### 동작 원리:
+- 물리적 스위치나 화면 터치로 항목 간의 이동 및 선택을 가능하게 함.
+#### 지원 방법:
+- 요소의 **포커스 가능성(Accessibility Focus)**을 개선.
+- 탐색 순서를 적절히 설정.
+
+```swift
+button.isAccessibilityElement = true
+button.accessibilityTraits = .button
+```
+
 <br>
 <br>
 
 ## 19.2 Dynamic Type, Bold Text 등 시각적 접근성 향상을 위한 기술과 구현 방법을 소개해주세요.
 
+### Dynamic Type
+#### 기능: 사용자가 기기 설정에서 텍스트 크기를 조정하면 앱의 텍스트 크기도 자동으로 조정.
+#### 구현 방법:
+- UIFont.preferredFont(forTextStyle:)를 사용하여 사용자 설정에 따른 폰트 크기 적용.
+
+```swift
+label.font = UIFont.preferredFont(forTextStyle: .body)
+label.adjustsFontForContentSizeCategory = true
+```
+
+<br>
+
+### Bold Text
+#### 기능: 사용자가 Bold Text 옵션을 활성화하면 텍스트를 굵게 표시.
+#### 구현 방법:
+- iOS 시스템에서 자동으로 지원되며, 사용자 정의 폰트 사용 시 Dynamic Type와 함께 적용 가능.
+
+<br>
+
+### 고대비 색상(High Contrast)
+#### 기능: 색약이나 시각적 제약이 있는 사용자를 위해 대비를 높임.
+#### 구현 방법:
+- UITraitCollection의 accessibilityContrast 속성을 확인하여 고대비 설정을 감지.
+
+```swift
+if traitCollection.accessibilityContrast == .high {
+    view.backgroundColor = .black
+} else {
+    view.backgroundColor = .white
+}
+```
+
+
 <br>
 <br>
 
 ## 19.3 접근성 테스트 및 심사 기준, 모범 사례 등을 예시와 함께 설명해주세요.
+### 접근성 테스트
+#### iOS 시뮬레이터의 Accessibility Inspector:
+- 화면 요소의 접근성 설정 상태를 검사.
+#### VoiceOver 테스트:
+- VoiceOver를 활성화하여 사용자 경험 확인.
+#### Switch Control 테스트:
+- 탐색 순서와 포커스가 올바르게 작동하는지 확인.
+
+<br>
+
+### 심사 기준
+- Apple의 Human Interface Guidelines (HIG):
+- 요소의 크기와 간격, 텍스트 가독성, 포커스 이동 등이 기준을 충족해야 함.
+
+<br>
+
+### 모범 사례
+#### 1.	명확한 레이블 제공:
+- 모든 상호작용 가능한 요소에 접근성 레이블 설정.
+
+```swift
+button.accessibilityLabel = "로그인 버튼"
+```
+
+#### 2.	적절한 탐색 순서 설정:
+- 뷰 계층 구조에 따라 탐색 순서를 논리적으로 배치.
+
+```swift
+view.accessibilityElements = [label, textField, button]
+```
+
+#### 3.	비시각적 피드백 제공:
+- 진동이나 소리를 활용해 사용자에게 추가 정보를 제공.
+
+```swift
+UIAccessibility.post(notification: .announcement, argument: "로그인이 성공했습니다.")
+```
+
+<br>
+
+#### 요약
+
+iOS 접근성 기술은 앱의 사용성을 향상시키고, 다양한 사용자가 앱을 이용할 수 있도록 돕습니다. 개발자는 VoiceOver, Dynamic Type, Switch Control 등을 구현하고 Apple의 HIG를 준수하여 접근성을 확보해야 합니다.
 
 <br>
 <br>
