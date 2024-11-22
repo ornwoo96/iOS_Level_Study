@@ -462,20 +462,24 @@ print(array2.getStorage()) // [1, 2, 3, 4]
 
 ## 4. iOS 앱에서 Core NFC를 사용하여 NFC 태그와 상호작용하는 방법은 무엇인가요?
 
+
 <br>
 <br>
 
 ## 4.1 NFCNDEFReaderSession과 NFCTagReaderSession의 차이점과 사용 방법을 설명해주세요.
+
 
 <br>
 <br>
 
 ## 4.2 NFC 태그 읽기 및 쓰기 과정과 필요한 권한 설정 방법을 설명해주세요.
 
+
 <br>
 <br>
 
 ## 4.3 Core NFC를 사용할 때 주의해야 할 점과 제한 사항은 무엇인가요?
+
 
 <br>
 <br>
