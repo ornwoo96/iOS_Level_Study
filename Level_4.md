@@ -74,7 +74,9 @@ func updateBalance(_ amount: inout Int) {
 let currentBalance = balance
 updateBalance(&balance)
 ```
-
+- Swift는 변수에 대한 접근 규칙을 컴파일 시점에 검사합니다.
+- inout으로 넘기는 경우는 쓰기 접근이 함수가 끝날 때까지 잠겨 있는 상태로 간주됩니다.
+- 함수 호출 전에 읽기/쓰기 접근이 겹치면 충돌 가능성이 생깁니다.
 
 #### 해결 방법:
 - 읽기와 쓰기를 순차적으로 수행:
