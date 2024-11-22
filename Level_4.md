@@ -463,10 +463,81 @@ print(array2.getStorage()) // [1, 2, 3, 4]
 ## 4. iOS 앱에서 Core NFC를 사용하여 NFC 태그와 상호작용하는 방법은 무엇인가요?
 
 
+Core NFC는 iOS 앱이 NFC(Near Field Communication) 태그를 읽거나 쓰기 위한 프레임워크입니다. 이를 통해 NFC 태그에서 정보를 읽어오거나 데이터를 저장할 수 있습니다.
+
 <br>
 <br>
 
 ## 4.1 NFCNDEFReaderSession과 NFCTagReaderSession의 차이점과 사용 방법을 설명해주세요.
+
+### 1. NFCNDEFReaderSession
+-	주요 용도:
+  -	NDEF(NFC Data Exchange Format) 형식의 데이터를 읽을 때 사용.
+- 제한: NDEF 형식 태그만 지원.
+- 사용 예: URL, 텍스트 데이터 등 간단한 정보를 읽어오는 태그.
+- 코드 예시:
+
+```swift
+import CoreNFC
+
+class NFCReader: NSObject, NFCNDEFReaderSessionDelegate {
+    func beginNFCSession() {
+        let session = NFCNDEFReaderSession(delegate: self, queue: nil, invalidateAfterFirstRead: true)
+        session.begin()
+    }
+
+    func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
+        for message in messages {
+            for record in message.records {
+                if let payload = String(data: record.payload, encoding: .utf8) {
+                    print("Read payload: \(payload)")
+                }
+            }
+        }
+    }
+
+    func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: Error) {
+        print("Session invalidated: \(error.localizedDescription)")
+    }
+}
+```
+
+<br>
+
+### 2. NFCTagReaderSession
+- 주요 용도:
+  - NFC 태그와 저수준에서 상호작용(비NDEF 형식 포함).
+  - ISO15693, ISO7816 등과 같은 비표준 태그 읽기/쓰기.
+- 제한: 더 복잡한 작업을 처리하므로 사용이 까다로움.
+- 사용 예: NFC 기반 인증, 스마트 카드와의 상호작용.
+- 코드 예시:
+
+```swift
+import CoreNFC
+
+class NFCTagReader: NSObject, NFCTagReaderSessionDelegate {
+    func beginTagSession() {
+        let session = NFCTagReaderSession(pollingOption: .iso14443, delegate: self, queue: nil)
+        session.begin()
+    }
+
+    func tagReaderSession(_ session: NFCTagReaderSession, didDetect tags: [NFCTag]) {
+        guard let firstTag = tags.first else { return }
+        session.connect(to: firstTag) { error in
+            if let error = error {
+                print("Error connecting to tag: \(error)")
+                return
+            }
+            print("Tag connected successfully")
+            session.invalidate()
+        }
+    }
+
+    func tagReaderSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
+        print("Session invalidated: \(error.localizedDescription)")
+    }
+}
+```
 
 
 <br>
@@ -474,18 +545,90 @@ print(array2.getStorage()) // [1, 2, 3, 4]
 
 ## 4.2 NFC 태그 읽기 및 쓰기 과정과 필요한 권한 설정 방법을 설명해주세요.
 
+### 1. 읽기 과정
+- 앱이 NFCNDEFReaderSession이나 NFCTagReaderSession을 통해 태그를 탐색.
+- 태그와 연결 후 데이터를 읽어옴.
+- 예:
+
+```swift
+func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
+    for message in messages {
+        for record in message.records {
+            print("Record payload: \(record.payload)")
+        }
+    }
+}
+```
+
+<br>
+
+### 2. 쓰기 과정
+- NFCNDEFPayload 객체를 생성하여 데이터를 구성.
+- write 메서드를 호출해 태그에 데이터 저장.
+- 예:
+
+```swift
+func writeDataToTag(session: NFCNDEFReaderSession, data: String) {
+    let payload = NFCNDEFPayload(
+        format: .nfcWellKnown,
+        type: "T".data(using: .utf8)!,
+        identifier: Data(),
+        payload: data.data(using: .utf8)!
+    )
+    let message = NFCNDEFMessage(records: [payload])
+    session.writeNDEF(message) { error in
+        if let error = error {
+            print("Write failed: \(error)")
+        } else {
+            print("Write successful")
+        }
+    }
+}
+```
+
+<br>
+
+### 3. 필요한 권한 설정
+- Info.plist에 아래 키 추가:
+
+```xml
+<key>NFCReaderUsageDescription</key>
+<string>앱이 NFC 태그와 상호작용하기 위해 필요합니다.</string>
+```
 
 <br>
 <br>
 
 ## 4.3 Core NFC를 사용할 때 주의해야 할 점과 제한 사항은 무엇인가요?
+### 1. 주의할 점
+-	단말기 지원: NFC는 iPhone 7 이상에서만 사용 가능.
+-	작업 시간 제한: 세션당 최대 60초.
+-	동시성 제한: 한 번에 하나의 NFC 세션만 활성화 가능.
+-	오류 처리: 세션이 예상치 못하게 종료될 경우 사용자 경험을 고려한 에러 처리 필요.
 
+### 2. 제한 사항
+- NFCNDEFReaderSession은 NDEF 형식 데이터만 처리 가능.
+- 백그라운드에서 NFC 태그 탐지가 불가능.
 
 <br>
 <br>
 
 ## 4.4 Core NFC를 사용할 때 고려해야 할 보안 사항과 모범 사례를 설명해주세요.
+### 1. 보안 사항
+- 암호화된 데이터 처리: NFC 데이터를 읽거나 쓸 때 암호화된 프로토콜 사용.
+- 태그 인증: NFC 태그가 신뢰할 수 있는 출처인지 확인.
+- 민감 데이터 제한: 개인정보 및 민감 데이터를 태그에 저장하지 않음.
 
+### 2. 모범 사례
+- 사용자 경험 개선: NFC 태그를 잘못 스캔한 경우 사용자에게 명확한 에러 메시지 제공.
+- 최적화된 태그 탐지: 필요 없는 태그를 무작위로 스캔하지 않도록 서비스 UUID를 명확히 설정.
+- 권한 관리: 사용자에게 NFC 사용 권한을 투명하게 요청하고 사용 이유 설명.
+
+<br>
+
+### 요약
+
+Core NFC는 간단한 NDEF 데이터 읽기부터 비NDEF 태그와의 복잡한 상호작용까지 다양한 기능을 제공합니다. 앱의 요구 사항에 따라 적절한 세션 타입과 보안 전략을 선택하는 것이 중요합니다.
 
 <br>
 <br>
