@@ -206,7 +206,7 @@ Core Bluetooth를 사용하여 BLE 통신을 구현하려면 CBCentralManager와
 
 ## 2.2 CBCentralManager와 CBPeripheralManager의 주요 메서드와 델리게이트 메서드를 설명해주세요.
 
-## 1. CBCentralManager (Central 역할):
+### 1. CBCentralManager (Central 역할):
 -	BLE 장치 검색, 연결, 특성 읽기/쓰기 담당.
 
 <img src="https://github.com/user-attachments/assets/25a5155a-78ba-4c28-ac01-f05187e282ab">
@@ -217,7 +217,7 @@ Core Bluetooth를 사용하여 BLE 통신을 구현하려면 CBCentralManager와
 
 <br>
 
-## 2. CBPeripheralManager (Peripheral 역할):
+### 2. CBPeripheralManager (Peripheral 역할):
 - BLE Peripheral 데이터를 Central에게 제공.
 
 <img src="https://github.com/user-attachments/assets/0593cb36-0bf4-45ef-bf55-de10f2610185">
@@ -240,31 +240,65 @@ Core Bluetooth를 사용하여 BLE 통신을 구현하려면 CBCentralManager와
 - 데이터의 최소 단위. 각 특성은 UUID로 식별.
 - 읽기/쓰기 권한, 알림(Notify) 기능을 지원.
 
+<br>
 
 ### 구현 방법:
 
 #### 1.	Central에서 서비스 및 특성 검색:
 
 ```swift
-func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-    central.connect(peripheral) // Peripheral 연결
-}
+import CoreBluetooth
 
-func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-    if let services = peripheral.services {
-        for service in services {
-            print("Discovered service: \(service.uuid)")
-            peripheral.discoverCharacteristics(nil, for: service) // 특성 검색
-        }
+// BluetoothManager 클래스 정의
+class BluetoothManager: NSObject {
+    var centralManager: CBCentralManager!
+    var discoveredPeripheral: CBPeripheral?
+
+    override init() {
+        super.init()
+        // CBCentralManager 초기화 및 델리게이트 설정
+        centralManager = CBCentralManager(delegate: self, queue: nil)
     }
 }
 
-func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-    if let characteristics = service.characteristics {
-        for characteristic in characteristics {
-            print("Discovered characteristic: \(characteristic.uuid)")
-            // 데이터 읽기
-            peripheral.readValue(for: characteristic)
+// MARK: - CBCentralManagerDelegate
+extension BluetoothManager: CBCentralManagerDelegate {
+    // CentralManager 상태 업데이트
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        if central.state == .poweredOn {
+            // BLE 장치 탐색 시작
+            centralManager.scanForPeripherals(withServices: nil, options: nil)
+        }
+    }
+
+    // Peripheral 발견 시 호출
+    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
+        print("Discovered Peripheral: \(peripheral.name ?? "Unknown")")
+        discoveredPeripheral = peripheral
+        centralManager.connect(peripheral, options: nil) // Peripheral 연결
+    }
+}
+
+// MARK: - CBPeripheralDelegate
+extension BluetoothManager: CBPeripheralDelegate {
+    // Peripheral에서 서비스 발견 시 호출
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        if let services = peripheral.services {
+            for service in services {
+                print("Service found: \(service.uuid)")
+                peripheral.discoverCharacteristics(nil, for: service) // 특성 검색
+            }
+        }
+    }
+
+    // 서비스의 특성 발견 시 호출
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+        if let characteristics = service.characteristics {
+            for characteristic in characteristics {
+                print("Characteristic found: \(characteristic.uuid)")
+                // 특성에서 데이터 읽기
+                peripheral.readValue(for: characteristic)
+            }
         }
     }
 }
@@ -273,21 +307,37 @@ func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor servic
 #### 2.	Peripheral에서 서비스 및 특성 제공:
 
 ```swift
+import CoreBluetooth
+
+// PeripheralManager 초기화
 let peripheralManager = CBPeripheralManager()
 
-func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
-    if peripheral.state == .poweredOn {
-        let characteristic = CBMutableCharacteristic(
-            type: CBUUID(string: "1234"),
-            properties: [.read, .write],
-            value: nil,
-            permissions: [.readable, .writeable]
-        )
+// MARK: - CBPeripheralManagerDelegate
+extension BluetoothManager: CBPeripheralManagerDelegate {
+    // PeripheralManager 상태가 업데이트될 때 호출
+    func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
+        // Bluetooth 상태가 "켜짐"인 경우
+        if peripheral.state == .poweredOn {
+            // 1. 특성 정의
+            let characteristic = CBMutableCharacteristic(
+                type: CBUUID(string: "1234"), // 고유 UUID
+                properties: [.read, .write], // 읽기/쓰기 설정
+                value: nil,                  // 초기 값은 nil
+                permissions: [.readable, .writeable] // 권한 설정
+            )
 
-        let service = CBMutableService(type: CBUUID(string: "5678"), primary: true)
-        service.characteristics = [characteristic]
-        peripheralManager.add(service) // 서비스 추가
-        peripheralManager.startAdvertising([CBAdvertisementDataServiceUUIDsKey: [service.uuid]])
+            // 2. 서비스 정의
+            let service = CBMutableService(type: CBUUID(string: "5678"), primary: true)
+            service.characteristics = [characteristic] // 특성 추가
+
+            // 3. PeripheralManager에 서비스 추가
+            peripheralManager.add(service)
+
+            // 4. Advertising 시작
+            peripheralManager.startAdvertising([
+                CBAdvertisementDataServiceUUIDsKey: [service.uuid]
+            ])
+        }
     }
 }
 ```
@@ -306,21 +356,105 @@ func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
 
 ## 3. Swift의 Copy-on-Write 메커니즘에 대해 설명해주세요.
 
+Swift의 Copy-on-Write(CoW) 메커니즘은 값 타입의 복사가 발생할 때 불필요한 메모리 복사를 방지하여 성능을 최적화하는 방법입니다. 값 타입이 복사될 때, 실제로 값이 변경되기 전까지는 원본 데이터의 참조만 공유합니다. 값이 수정될 경우에만 복사가 발생합니다.
+
 <br>
 <br>
 
 ## 3.1 Copy-on-Write의 동작 원리와 장점은 무엇인가요?
+### 동작 원리 :
+#### 1.	값 타입 복사 :
+- 값 타입(예: Array, Dictionary, Set)은 일반적으로 복사될 때 동일한 데이터를 새로운 메모리 공간에 저장합니다.
+
+#### 2.	참조 공유:
+-	Swift에서는 복사를 요청받은 값이 변경되지 않을 경우, 원본 데이터를 참조만 공유하여 메모리를 절약합니다.
+
+#### 3.	수정 시 복사:
+-	복사된 값이 수정되려는 순간, 원본 데이터를 복사하여 별도의 메모리 공간에 저장합니다.
+
+<br>
+
+### 장점:
+- 메모리 효율성: 불필요한 데이터 복사를 방지하여 메모리 사용량을 줄입니다.
+- 성능 최적화: 동일한 데이터를 복사할 필요가 없으므로 속도가 빨라집니다.
+- 스레드 안전성: 값 타입은 원본 데이터와 복사본이 별도로 존재하므로 스레드 간 데이터 충돌을 방지할 수 있습니다.
+
+
+#### 코드 예시:
+
+```swift
+var array1 = [1, 2, 3]
+var array2 = array1 // 복사가 발생하지 않고 참조 공유
+
+array2.append(4) // array2를 수정하려고 하면 원본(array1) 데이터를 복사
+print(array1) // [1, 2, 3]
+print(array2) // [1, 2, 3, 4]
+```
+
 
 <br>
 <br>
 
 ## 3.2 Copy-on-Write를 사용하는 Swift의 타입에는 어떤 것들이 있나요?
+- 기본 컬렉션 타입:
+  - Array, Dictionary, Set 등
+-	문자열:
+  -	String 타입도 CoW 메커니즘을 따릅니다.
 
 <br>
 <br>
 
 ## 3.3 Copy-on-Write를 고려하여 성능 최적화를 하는 방법을 예시와 함께 설명해주세요.
 
+### 최적화 방법:
+#### 1. isKnownUniquelyReferenced 사용:
+- 클래스 기반의 데이터 구조에서 원본 데이터가 복사되었는지 확인할 수 있습니다.
+- 값 타입에서는 이와 유사한 메커니즘이 내부적으로 동작합니다.
+
+#### 코드 예시:
+
+```swift
+final class MyBuffer {
+    var storage: [Int]
+    
+    init(_ storage: [Int]) {
+        self.storage = storage
+    }
+}
+
+struct MyArray {
+    private var buffer: MyBuffer
+    
+    init(_ elements: [Int]) {
+        self.buffer = MyBuffer(elements)
+    }
+    
+    // CoW 적용
+    mutating func append(_ element: Int) {
+        if !isKnownUniquelyReferenced(&buffer) {
+            buffer = MyBuffer(buffer.storage) // 복사 발생
+        }
+        buffer.storage.append(element)
+    }
+    
+    func getStorage() -> [Int] {
+        return buffer.storage
+    }
+}
+
+// 사용 예시
+var array1 = MyArray([1, 2, 3])
+var array2 = array1 // 참조 공유
+array2.append(4)    // 수정 시 복사
+print(array1.getStorage()) // [1, 2, 3]
+print(array2.getStorage()) // [1, 2, 3, 4]
+```
+
+<br>
+
+### 주요 포인트:
+- isKnownUniquelyReferenced를 통해 복사가 필요한 시점을 정확히 판단합니다.
+- 복사가 필요한 시점에만 데이터를 복사하여 불필요한 메모리 사용을 방지합니다.
 
 <br>
 <br>
