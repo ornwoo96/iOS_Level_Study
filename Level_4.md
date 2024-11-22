@@ -175,20 +175,130 @@ Swift는 소유권과 빌림 개념을 통해 메모리 안전성을 보장하�
 
 ## 2. iOS 앱에서 Core Bluetooth를 사용하여 BLE(Bluetooth Low Energy) 통신을 구현하는 방법은 무엇인가요?
 
+Core Bluetooth를 사용하여 BLE 통신을 구현하려면 CBCentralManager와 CBPeripheralManager를 활용하여 Central 및 Peripheral 역할을 구현하고, 서비스와 특성으로 데이터를 교환합니다. 이에 대한 세부 구현 방법은 아래 항목에서 설명합니다.
+
+
 <br>
 <br>
 
 ## 2.1 Central과 Peripheral의 역할과 상호작용 과정을 설명해주세요.
+
+### 1. Central:
+-	BLE 기기에서 데이터를 검색하고 읽기/쓰기 작업을 수행.
+-	예: iOS 앱이 BLE 주변 기기(Peripheral)와 연결하여 데이터를 가져오거나 전송.
+
+### 2. Peripheral:
+-	BLE 기기로 데이터 제공.
+-	예: 스마트 센서(온도계, 스마트워치)가 데이터를 제공하며, 필요 시 Central에서 요청한 데이터를 반환.
+
+### 3. 상호작용 과정:
+- Central이 BLE 장치를 스캔하고 발견된 Peripheral에 연결.
+- 연결된 Peripheral에서 **서비스(Service)** 를 검색.
+- 서비스 안의 **특성(Characteristic)** 을 검색하고 데이터 교환.
+
+### 작업 흐름:
+1. Central 시작 → BLE 기기 검색 → Peripheral 연결.
+2. Peripheral이 서비스 및 특성 제공.
+3. 데이터 교환 (읽기/쓰기/알림).
 
 <br>
 <br>
 
 ## 2.2 CBCentralManager와 CBPeripheralManager의 주요 메서드와 델리게이트 메서드를 설명해주세요.
 
+## 1. CBCentralManager (Central 역할):
+-	BLE 장치 검색, 연결, 특성 읽기/쓰기 담당.
+
+<img src="https://github.com/user-attachments/assets/25a5155a-78ba-4c28-ac01-f05187e282ab">
+
+#### Delegate 메서드
+
+<img src="https://github.com/user-attachments/assets/17025cee-e869-4ba8-a3d2-9ccf6dece3a7">
+
+<br>
+
+## 2. CBPeripheralManager (Peripheral 역할):
+- BLE Peripheral 데이터를 Central에게 제공.
+
+<img src="https://github.com/user-attachments/assets/0593cb36-0bf4-45ef-bf55-de10f2610185">
+
+#### Delegate 메서드:
+
+<img src="https://github.com/user-attachments/assets/2498fff6-5a2a-4398-af4d-f5b9e6309741">
+
+
 <br>
 <br>
 
 ## 2.3 BLE 통신에서 사용되는 서비스(Service)와 특성(Characteristic)의 개념과 구현 방법을 설명해주세요.
+
+### 1. 서비스(Service):
+- BLE 장치에서 제공하는 기능의 논리적 그룹.
+- 예: “심박수 측정” 서비스에는 심박수 데이터 특성과 배터리 상태 특성이 포함.
+
+### 2. 특성(Characteristic):
+- 데이터의 최소 단위. 각 특성은 UUID로 식별.
+- 읽기/쓰기 권한, 알림(Notify) 기능을 지원.
+
+
+### 구현 방법:
+
+#### 1.	Central에서 서비스 및 특성 검색:
+
+```swift
+func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+    central.connect(peripheral) // Peripheral 연결
+}
+
+func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+    if let services = peripheral.services {
+        for service in services {
+            print("Discovered service: \(service.uuid)")
+            peripheral.discoverCharacteristics(nil, for: service) // 특성 검색
+        }
+    }
+}
+
+func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+    if let characteristics = service.characteristics {
+        for characteristic in characteristics {
+            print("Discovered characteristic: \(characteristic.uuid)")
+            // 데이터 읽기
+            peripheral.readValue(for: characteristic)
+        }
+    }
+}
+```
+
+#### 2.	Peripheral에서 서비스 및 특성 제공:
+
+```swift
+let peripheralManager = CBPeripheralManager()
+
+func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
+    if peripheral.state == .poweredOn {
+        let characteristic = CBMutableCharacteristic(
+            type: CBUUID(string: "1234"),
+            properties: [.read, .write],
+            value: nil,
+            permissions: [.readable, .writeable]
+        )
+
+        let service = CBMutableService(type: CBUUID(string: "5678"), primary: true)
+        service.characteristics = [characteristic]
+        peripheralManager.add(service) // 서비스 추가
+        peripheralManager.startAdvertising([CBAdvertisementDataServiceUUIDsKey: [service.uuid]])
+    }
+}
+```
+
+<br>
+
+### 요약
+- Central: Peripheral을 검색하고 데이터를 읽거나 쓰는 역할.
+- Peripheral: 데이터를 제공하며 Central의 요청을 처리.
+- Service: 기능의 논리적 그룹화, Characteristic: 데이터의 최소 단위.
+- CBCentralManager와 CBPeripheralManager를 활용해 BLE 통신을 구현.
 
 
 <br>
