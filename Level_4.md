@@ -640,16 +640,199 @@ Core NFC는 간단한 NDEF 데이터 읽기부터 비NDEF 태그와의 복잡한
 
 ## 5.1 actor의 개념과 동시성 문제 해결 방법을 설명해주세요.
 
+### actor란?
+
+- actor는 Swift 5.5에서 도입된 동시성 기능으로, **데이터 레이스(data race)** 와 같은 문제를 방지하기 위해 설계된 참조 타입입니다.
+- actor는 데이터 접근을 안전하게 관리하며, 이를 통해 여러 비동기 작업에서 동일한 데이터에 접근할 때 발생할 수 있는 충돌을 방지합니다.
+
+> 데이터 레이스 : 프로그램에서 두 개 이상의 스레드가 동일한 메모리 위치에 동시에 접근하며, 하나 이상의 접근이 쓰기 작업일 때 발생하는 문제입니다. 이로 인해 프로그램이 예측할 수 없는 동작을 하거나, 버그가 발생할 수 있습니다.
+
+
+### 특징
+- 독점적인 데이터 접근: actor 내부의 속성은 암시적으로 안전하며, 외부에서 접근할 때 반드시 비동기적으로 접근해야 합니다.
+- 순차적 실행 보장: actor 내부의 코드 실행은 한 번에 하나의 작업만 실행됩니다.
+- thread-safe: actor는 내부 데이터를 스레드 간 안전하게 보호합니다.
+
+<br>
+
+### 동시성 문제 해결 방법
+- 외부에서 actor 내부의 데이터를 접근하려면 await 키워드를 사용해야 합니다.
+- actor는 내부적으로 직렬화된 실행을 보장하므로 데이터 레이스를 방지합니다.
+
+```swift
+actor Counter {
+    private var value = 0
+
+    func increment() {
+        value += 1
+    }
+
+    func getValue() -> Int {
+        return value
+    }
+}
+
+let counter = Counter()
+
+Task {
+    await counter.increment()
+    print(await counter.getValue()) // 1
+}
+```
+
+
 <br>
 <br>
 
 ## 5.2 async let과 TaskGroup을 사용한 구조적 동시성 프로그래밍 방법을 예시와 함께 설명해주세요.
+
+### async let
+
+async let은 비동기 코드에서 병렬 작업을 간단히 수행할 수 있도록 도와주는 키워드입니다. 여러 비동기 작업을 시작한 뒤 결과를 동시에 기다릴 수 있습니다.
+
+```swift
+func fetchImage() async -> String {
+    // 비동기 작업 시뮬레이션
+    return "Image Loaded"
+}
+
+func fetchData() async -> String {
+    // 비동기 작업 시뮬레이션
+    return "Data Loaded"
+}
+
+func loadResources() async {
+    async let image = fetchImage()
+    async let data = fetchData()
+
+    let loadedImage = await image
+    let loadedData = await data
+
+    print("Loaded: \(loadedImage), \(loadedData)")
+}
+
+Task {
+    await loadResources()
+}
+```
+
+<br>
+
+### TaskGroup
+
+TaskGroup은 여러 비동기 작업을 동적으로 생성하고 결과를 집계하는 데 유용합니다. 주로 작업의 수를 미리 알 수 없거나 작업 결과를 순서에 상관없이 처리할 때 사용됩니다.
+
+```swift
+func fetchDetails(for ids: [Int]) async -> [String] {
+    await withTaskGroup(of: String.self) { group in
+        var results: [String] = []
+
+        for id in ids {
+            group.addTask {
+                return "Detail for \(id)"
+            }
+        }
+
+        for await result in group {
+            results.append(result)
+        }
+
+        return results
+    }
+}
+
+Task {
+    let details = await fetchDetails(for: [1, 2, 3])
+    print(details) // ["Detail for 1", "Detail for 2", "Detail for 3"]
+}
+```
 
 <br>
 <br>
 
 ## 5.3 actor와 structured concurrency를 활용한 효과적인 비동기 프로그래밍 패턴을 소개해주세요.
 
+### 패턴 1: actor와 async let의 조합
+
+actor를 사용해 공유 상태를 안전하게 관리하면서, async let을 통해 비동기 작업을 병렬로 실행합니다.
+
+```swift
+actor SharedState {
+    private var data: [String] = []
+
+    func addData(_ item: String) {
+        data.append(item)
+    }
+
+    func getData() -> [String] {
+        return data
+    }
+}
+
+let sharedState = SharedState()
+
+func processItems(_ items: [String]) async {
+    async let task1 = sharedState.addData(items[0])
+    async let task2 = sharedState.addData(items[1])
+
+    await task1
+    await task2
+
+    print(await sharedState.getData())
+}
+
+Task {
+    await processItems(["Item1", "Item2"])
+}
+```
+
+<br>
+
+### 패턴 2: actor와 TaskGroup의 조합
+
+다수의 비동기 작업을 TaskGroup으로 처리하면서 actor를 사용해 결과를 안전하게 집계합니다.
+
+```swift
+actor ResultCollector {
+    private var results: [String] = []
+
+    func addResult(_ result: String) {
+        results.append(result)
+    }
+
+    func getResults() -> [String] {
+        return results
+    }
+}
+
+func performConcurrentTasks() async {
+    let collector = ResultCollector()
+
+    await withTaskGroup(of: String.self) { group in
+        for i in 1...5 {
+            group.addTask {
+                return "Task \(i) completed"
+            }
+        }
+
+        for await result in group {
+            await collector.addResult(result)
+        }
+    }
+
+    print(await collector.getResults())
+}
+
+Task {
+    await performConcurrentTasks()
+}
+```
+
+<br>
+
+### 결론
+
+actor는 안전한 상태 관리를 제공하고, Structured Concurrency(async let, TaskGroup)는 비동기 작업의 체계적인 병렬 실행을 지원합니다. 이 두 기능을 조합하여 비동기 프로그래밍의 가독성과 안정성을 높일 수 있습니다.
 
 <br>
 <br>
