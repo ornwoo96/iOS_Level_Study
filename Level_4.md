@@ -680,6 +680,48 @@ Task {
 }
 ```
 
+#### 데이터 레이스 발생 예시 (actor 미사용)
+
+```swift
+var value = 0
+
+DispatchQueue.global().async {
+    value += 1 // Thread 1
+}
+
+DispatchQueue.global().async {
+    value += 1 // Thread 2
+}
+
+// value 값이 1 또는 2가 될 수 있음
+```
+
+#### actor를 사용한 데이터 레이스 방지
+
+```swift
+actor Counter {
+    private var value = 0
+
+    func increment() {
+        value += 1
+    }
+
+    func getValue() -> Int {
+        return value
+    }
+}
+
+let counter = Counter()
+
+Task {
+    await counter.increment() // 첫 번째 작업
+    print(await counter.getValue()) // 두 번째 작업
+}
+```
+
+1. await counter.increment() 실행 시 actor 내부에서 value에 독점적으로 접근.
+2. await counter.getValue() 실행 시에도 마찬가지로 독점적으로 접근.
+3. actor는 직렬화된 방식으로 작업을 처리하므로, 동시에 여러 스레드가 value에 접근할 수 없게 됩니다.
 
 <br>
 <br>
