@@ -881,10 +881,112 @@ actor는 안전한 상태 관리를 제공하고, Structured Concurrency(async l
 
 ## 6. iOS 앱에서 Vision 프레임워크를 사용하여 이미지 분석 및 처리를 수행하는 방법은 무엇인가요?
 
-<br>
+## 6.1 얼굴 감지 및 인식, 바코드 인식, 텍스트 인식 등의 기능 구현 방법을 설명해주세요.
+
+### 1. 얼굴 감지 및 인식
+
+Vision 프레임워크를 통해 이미지에서 얼굴을 감지하거나, Core ML 모델과 결합하여 얼굴 인식을 구현할 수 있습니다.
+
+#### 코드 예제: 얼굴 감지
+
+```swift
+import Vision
+import UIKit
+
+func detectFaces(in image: UIImage) {
+    guard let cgImage = image.cgImage else { return }
+
+    let request = VNDetectFaceRectanglesRequest { (request, error) in
+        guard let results = request.results as? [VNFaceObservation] else { return }
+
+        for face in results {
+            print("Detected face at: \(face.boundingBox)")
+        }
+    }
+
+    let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+
+    DispatchQueue.global(qos: .userInitiated).async {
+        do {
+            try handler.perform([request])
+        } catch {
+            print("Error detecting faces: \(error)")
+        }
+    }
+}
+```
+
 <br>
 
-## 6.1 얼굴 감지 및 인식, 바코드 인식, 텍스트 인식 등의 기능 구현 방법을 설명해주세요.
+### 2. 바코드 인식
+
+Vision 프레임워크의 VNDetectBarcodesRequest를 사용하여 다양한 형식의 바코드를 인식할 수 있습니다.
+
+#### 코드 예제: 바코드 인식
+
+```swift
+func detectBarcodes(in image: UIImage) {
+    guard let cgImage = image.cgImage else { return }
+
+    let request = VNDetectBarcodesRequest { (request, error) in
+        guard let results = request.results as? [VNBarcodeObservation] else { return }
+
+        for barcode in results {
+            print("Barcode payload: \(barcode.payloadStringValue ?? "N/A")")
+        }
+    }
+
+    let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+
+    DispatchQueue.global(qos: .userInitiated).async {
+        do {
+            try handler.perform([request])
+        } catch {
+            print("Error detecting barcodes: \(error)")
+        }
+    }
+}
+```
+
+<br>
+
+### 3. 텍스트 인식
+
+Vision 프레임워크의 VNRecognizeTextRequest를 사용하여 이미지에서 텍스트를 추출할 수 있습니다.
+
+#### 코드 예제: 텍스트 인식
+
+```swift
+func recognizeText(in image: UIImage) {
+    guard let cgImage = image.cgImage else { return }
+
+    let request = VNRecognizeTextRequest { (request, error) in
+        guard let results = request.results as? [VNRecognizedTextObservation] else { return }
+
+        for observation in results {
+            if let topCandidate = observation.topCandidates(1).first {
+                print("Recognized text: \(topCandidate.string)")
+            }
+        }
+    }
+
+    request.recognitionLevel = .accurate
+
+    let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+
+    DispatchQueue.global(qos: .userInitiated).async {
+        do {
+            try handler.perform([request])
+        } catch {
+            print("Error recognizing text: \(error)")
+        }
+    }
+}
+```
+
+
+<br>
+<br>
 
 <br>
 <br>
