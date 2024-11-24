@@ -993,11 +993,182 @@ func recognizeText(in image: UIImage) {
 
 ## 6.2 Vision 요청(VNRequest)의 종류와 사용 방법, 결과 처리 과정을 설명해주세요.
 
+### 1. Vision 요청의 종류
+- VNDetectFaceRectanglesRequest: 얼굴 감지.
+- VNDetectBarcodesRequest: 바코드 및 QR 코드 감지.
+- VNRecognizeTextRequest: 텍스트 인식.
+- VNDetectHumanRectanglesRequest: 사람 감지.
+- VNGenerateImageFeaturePrintRequest: 이미지 특징 벡터 생성.
+- VNCoreMLRequest: Core ML 모델을 사용한 사용자 정의 분석.
+
+<br>
+
+### 2. Vision 요청 사용 방법
+1. 요청 생성: VNRequest를 서브클래스로 생성.
+2. 핸들러 생성: 이미지 데이터를 처리하는 VNImageRequestHandler 생성.
+3. 요청 수행: perform() 메서드를 호출하여 요청 실행.
+
+```swift
+let request = VNDetectFaceRectanglesRequest { (request, error) in
+    if let results = request.results as? [VNFaceObservation] {
+        for face in results {
+            print("Face bounding box: \(face.boundingBox)")
+        }
+    }
+}
+
+let handler = VNImageRequestHandler(cgImage: image.cgImage!, options: [:])
+try handler.perform([request])
+```
+
+<br>
+
+### 3. 결과 처리 과정
+- 요청의 completionHandler에서 결과를 받아옵니다.
+- 결과는 주로 VNObservation의 서브클래스(VNFaceObservation, VNBarcodeObservation, VNRecognizedTextObservation) 형태로 반환됩니다.
+
 <br>
 <br>
 
 ## 6.3 Vision 프레임워크와 Core ML, ARKit 등 다른 프레임워크와의 연동 방법을 소개해주세요.
+### 1. Vision + Core ML
 
+Vision 프레임워크는 VNCoreMLRequest를 통해 Core ML 모델을 쉽게 활용할 수 있습니다.
+
+#### 코드 예제: MobileNetV2를 활용한 이미지 분류
+- Apple’s Core ML Model Gallery에서 MobileNetV2 모델을 다운로드하여 프로젝트에 추가합니다.
+- 모델 파일(MobileNetV2.mlmodel)을 프로젝트에 드래그하여 포함합니다.
+
+```swift
+import UIKit
+import CoreML
+import Vision
+
+// MobileNetV2를 사용하여 이미지를 분류하는 함수
+func classifyImage(image: UIImage) {
+    // MobileNetV2 모델 불러오기
+    guard let model = try? MobileNetV2(configuration: MLModelConfiguration()).model else {
+        print("Failed to load Core ML model")
+        return
+    }
+
+    // UIImage를 Core ML 모델이 처리할 수 있도록 변환
+    guard let cgImage = image.cgImage else {
+        print("Failed to convert UIImage to CGImage")
+        return
+    }
+
+    // Vision의 Core ML 모델 래핑
+    let vnModel = try! VNCoreMLModel(for: model)
+
+    // Vision Request 생성
+    let request = VNCoreMLRequest(model: vnModel) { (request, error) in
+        if let results = request.results as? [VNClassificationObservation] {
+            for classification in results.prefix(5) { // 상위 5개 결과 출력
+                print("Label: \(classification.identifier), Confidence: \(classification.confidence)")
+            }
+        } else if let error = error {
+            print("Error during classification: \(error.localizedDescription)")
+        }
+    }
+
+    // Request Handler 생성
+    let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+
+    // 비동기로 분류 수행
+    DispatchQueue.global(qos: .userInitiated).async {
+        do {
+            try handler.perform([request])
+        } catch {
+            print("Failed to perform classification: \(error)")
+        }
+    }
+}
+
+// 사용 예제: UIImage를 전달하여 분류 수행
+let sampleImage = UIImage(named: "sample")! // "sample"은 앱에 포함된 이미지 파일 이름
+classifyImage(image: sampleImage)
+```
+
+#### 결과 출력 예시
+
+위 코드를 실행하면 콘솔에 다음과 같은 결과가 출력됩니다.
+
+입력: 고양이 이미지 (sample.jpg)
+
+#### 출력:
+
+```
+Label: tabby cat, Confidence: 0.98
+Label: Egyptian cat, Confidence: 0.01
+Label: tiger cat, Confidence: 0.005
+Label: lynx, Confidence: 0.003
+Label: Persian cat, Confidence: 0.002
+```
+
+<br>
+
+### 2. Vision + ARKit
+
+ARKit에서 가져온 카메라 데이터를 Vision으로 분석하여 증강현실 환경에 반영할 수 있습니다.
+
+#### 코드 예제: ARKit 프레임 버퍼를 Vision으로 전달
+
+```swift
+import ARKit
+import Vision
+
+func processARFrame(_ frame: ARFrame) {
+    let pixelBuffer = frame.capturedImage
+
+    let request = VNDetectFaceRectanglesRequest { (request, error) in
+        guard let results = request.results as? [VNFaceObservation] else { return }
+        print("Detected \(results.count) faces in AR frame.")
+    }
+
+    let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
+    try? handler.perform([request])
+}
+```
+
+<br>
+
+### 3. Vision + Core Image
+
+Vision에서 생성된 결과를 Core Image로 후처리하여 이미지 필터링 및 편집에 활용할 수 있습니다.
+
+#### 코드 예제
+
+```swift
+func highlightFaces(in image: UIImage, observations: [VNFaceObservation]) -> UIImage {
+    UIGraphicsBeginImageContext(image.size)
+    let context = UIGraphicsGetCurrentContext()!
+    image.draw(at: .zero)
+
+    context.setStrokeColor(UIColor.red.cgColor)
+    context.setLineWidth(2.0)
+
+    for face in observations {
+        let boundingBox = face.boundingBox
+        let rect = CGRect(x: boundingBox.minX * image.size.width,
+                          y: (1 - boundingBox.maxY) * image.size.height,
+                          width: boundingBox.width * image.size.width,
+                          height: boundingBox.height * image.size.height)
+        context.stroke(rect)
+    }
+
+    let resultImage = UIGraphicsGetImageFromCurrentImageContext()
+    UIGraphicsEndImageContext()
+
+    return resultImage ?? image
+}
+```
+
+<br>
+
+### 결론
+
+Vision 프레임워크는 얼굴 감지, 바코드 인식, 텍스트 인식 등 다양한 이미지 분석 작업을 수행할 수 있으며, Core ML, ARKit 등과 통합하여 더 강력한 기능을 구현할 수 있습니다. VNRequest와 VNImageRequestHandler를 활용해 Vision의 분석 요청과 결과 처리를 체계적으로 수행할 수 있습니다.
 
 <br>
 <br>
