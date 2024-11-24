@@ -1174,12 +1174,182 @@ Vision 프레임워크는 얼굴 감지, 바코드 인식, 텍스트 인식 등 
 <br>
 
 ## 7. Swift의 property wrappers에 대해 설명해주세요.
+### Property Wrappers란?
+
+Property Wrappers는 Swift에서 특정 프로퍼티의 동작을 캡슐화하고 재사용 가능하도록 추상화하는 기능입니다. 이를 통해 공통 로직을 별도의 래퍼로 구현하고, 이를 여러 프로퍼티에 쉽게 적용할 수 있습니다.
 
 <br>
 <br>
 
 ## 7.1 property wrappers의 동작 원리와 사용 목적, 구현 방법을 설명해주세요.
 
+### 1. 동작 원리
+
+Property Wrapper는 Swift의 @propertyWrapper 키워드로 정의됩니다. 래퍼 타입이 프로퍼티의 값을 관리하며, 개발자는 래퍼 타입을 통해 프로퍼티의 동작을 제어합니다.
+- 래퍼 타입: 프로퍼티의 값을 관리하는 클래스나 구조체.
+- 래핑된 프로퍼티: 실제로 저장된 값.
+- wrappedValue: 래퍼 내부에서 프로퍼티의 값을 읽거나 쓸 때 사용하는 필수 속성.
+
+#### 작동 방식
+1. wrappedValue를 통해 프로퍼티의 값을 저장 및 반환.
+2. 래퍼 타입의 부가 기능을 활용하여 값에 추가 동작(검증, 변경, 로깅 등)을 수행.
+
+<br>
+
+### 2. 사용 목적
+- 코드 재사용성: 공통된 로직을 여러 프로퍼티에서 쉽게 공유.
+- 값 검증: 값의 유효성을 보장.
+- 기본 동작 제공: 초기값 설정, 값의 변환 등을 캡슐화.
+- 로깅 또는 추적: 값의 변경을 기록하거나 관찰.
+
+<br>
+
+### 3. 구현 방법
+
+#### 기본 구현
+```swift
+@propertyWrapper
+struct Clamped {
+    private var value: Int
+    private let range: ClosedRange<Int>
+
+    var wrappedValue: Int {
+        get { value }
+        set { value = min(max(newValue, range.lowerBound), range.upperBound) }
+    }
+
+    init(wrappedValue: Int, _ range: ClosedRange<Int>) {
+        self.range = range
+        self.value = min(max(wrappedValue, range.lowerBound), range.upperBound)
+    }
+}
+
+// 사용 예제
+struct Player {
+    @Clamped(0...100) var health: Int = 50
+    @Clamped(0...10) var lives: Int = 3
+}
+
+var player = Player()
+player.health = 120 // 120은 범위를 초과하므로, health는 100으로 설정
+print(player.health) // 100
+```
+
+#### 설명
+
+- Clamped 래퍼: 값을 특정 범위(range)로 제한.
+- 초기값 및 검증: 프로퍼티에 할당된 값이 항상 범위 내에 있도록 보장.
+
+<br>
+
+### Custom Behavior 추가
+
+Property Wrapper는 추가 기능(예: 값 검증, 초기화 로직 등)을 추가할 수 있습니다.
+
+#### 예제: 기본값 설정 및 로깅
+
+```swift
+@propertyWrapper
+struct Logged<Value> {
+    private var value: Value
+
+    var wrappedValue: Value {
+        get {
+            print("Getting value: \(value)")
+            return value
+        }
+        set {
+            print("Setting value: \(newValue)")
+            value = newValue
+        }
+    }
+
+    init(wrappedValue: Value) {
+        self.value = wrappedValue
+    }
+}
+
+// 사용 예제
+struct UserSettings {
+    @Logged var username: String = "Guest"
+}
+
+var settings = UserSettings()
+settings.username = "JohnDoe" // 로그: "Setting value: JohnDoe"
+print(settings.username)      // 로그: "Getting value: JohnDoe"
+```
+
+#### 설명
+- 로깅 추가: 값을 읽거나 쓸 때마다 콘솔에 로그를 출력.
+
+<br>
+
+### Projected Value 사용
+
+Property Wrapper는 추가 기능 제공을 위해 projectedValue를 정의할 수 있습니다. 이 기능은 $를 사용하여 접근 가능합니다.
+
+#### 예제: 프로젝트 값 활용
+
+```swift
+@propertyWrapper
+struct UserDefault<Value> {
+    private let key: String
+    private let defaultValue: Value
+
+    var wrappedValue: Value {
+        get {
+            UserDefaults.standard.object(forKey: key) as? Value ?? defaultValue
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: key)
+        }
+    }
+
+    var projectedValue: UserDefault<Value> { self }
+
+    func reset() {
+        UserDefaults.standard.removeObject(forKey: key)
+    }
+
+    init(wrappedValue: Value, _ key: String) {
+        self.key = key
+        self.defaultValue = wrappedValue
+    }
+}
+
+// 사용 예제
+struct Settings {
+    @UserDefault("hasSeenTutorial", false) var hasSeenTutorial: Bool
+}
+
+var settings = Settings()
+settings.hasSeenTutorial = true // 값 저장
+print(settings.hasSeenTutorial) // true
+
+// Projected Value 사용
+settings.$hasSeenTutorial.reset() // 값 초기화
+print(settings.hasSeenTutorial) // false
+```
+
+#### 설명
+- wrappedValue: 기본 값과 저장된 값을 처리.
+- projectedValue: 부가 기능(예: 초기화)을 제공.
+
+<br>
+
+### Property Wrappers의 장점
+1. 코드 가독성 향상:
+- Wrapper를 사용하면 로직이 분리되어 코드가 깔끔해집니다.
+2. 반복 코드 제거:
+- 공통 동작을 캡슐화하여 재사용.
+3. 커스터마이징 가능:
+- 값 검증, 로깅, 기본값 설정 등 다양한 동작을 지원.
+
+<br>
+
+### 결론
+
+Property Wrappers는 Swift에서 프로퍼티의 값을 관리하고 동작을 추상화하는 강력한 도구입니다. 이를 사용하면 코드의 가독성을 높이고, 값 검증이나 로깅 같은 공통 작업을 간단히 구현할 수 있습니다.
 
 <br>
 <br>
@@ -1190,17 +1360,216 @@ Vision 프레임워크는 얼굴 감지, 바코드 인식, 텍스트 인식 등 
 <br>
 
 ## 8.1 안전한 데이터 저장 및 전송을 위한 암호화 기술(AES, RSA 등)과 구현 방법을 설명해주세요.
+### 1. 데이터 암호화 개요
+
+암호화는 민감한 데이터를 저장하거나 전송할 때 이를 보호하는 핵심 기술입니다. iOS에서는 대칭 키 암호화(AES)와 비대칭 키 암호화(RSA)를 사용하여 데이터를 안전하게 관리합니다.
+
+<br>
+
+### 2. AES (대칭 키 암호화)
+
+AES(Advanced Encryption Standard)는 데이터를 암호화하고 복호화하는 데 하나의 키를 사용하는 대칭 키 알고리즘입니다.
+
+#### AES 구현 예제
+
+```swift
+import CommonCrypto
+import Foundation
+
+func aesEncrypt(data: Data, key: Data, iv: Data) -> Data? {
+    let cryptLength = data.count + kCCBlockSizeAES128
+    var cryptData = Data(count: cryptLength)
+
+    var numBytesEncrypted = 0
+    let status = cryptData.withUnsafeMutableBytes { cryptBytes in
+        data.withUnsafeBytes { dataBytes in
+            key.withUnsafeBytes { keyBytes in
+                iv.withUnsafeBytes { ivBytes in
+                    CCCrypt(CCOperation(kCCEncrypt),
+                            CCAlgorithm(kCCAlgorithmAES),
+                            CCOptions(kCCOptionPKCS7Padding),
+                            keyBytes.baseAddress,
+                            kCCKeySizeAES256,
+                            ivBytes.baseAddress,
+                            dataBytes.baseAddress,
+                            data.count,
+                            cryptBytes.baseAddress,
+                            cryptLength,
+                            &numBytesEncrypted)
+                }
+            }
+        }
+    }
+
+    guard status == kCCSuccess else { return nil }
+    cryptData.removeSubrange(numBytesEncrypted..<cryptData.count)
+    return cryptData
+}
+```
+
+- Key: 256비트 키를 사용해야 안전합니다.
+- IV (Initialization Vector): 암호화의 보안을 강화하는 추가적인 입력값으로 사용됩니다.
+
+<br>
+
+### 3. RSA (비대칭 키 암호화)
+
+RSA는 공개 키와 비공개 키를 사용하여 데이터를 암호화 및 복호화하는 비대칭 키 알고리즘입니다.
+
+#### RSA 구현 예제
+```swift
+import Security
+
+func encryptWithRSA(data: Data, publicKey: SecKey) -> Data? {
+    var error: Unmanaged<CFError>?
+    guard let encryptedData = SecKeyCreateEncryptedData(
+        publicKey,
+        .rsaEncryptionPKCS1,
+        data as CFData,
+        &error
+    ) else {
+        print("Encryption error: \(error.debugDescription)")
+        return nil
+    }
+    return encryptedData as Data
+}
+```
+
+- 공개 키: 데이터를 암호화.
+- 개인 키: 데이터를 복호화.
+
+<br>
+
+### 4. HTTPS를 통한 데이터 전송
+
+모든 네트워크 통신은 HTTPS(TLS) 프로토콜을 사용하여 암호화해야 합니다.
+- iOS에서는 URLSession이 TLS를 기본 지원합니다.
+- App Transport Security (ATS)를 활성화하여 HTTPS만 허용하도록 설정합니다.
+
+```xml
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <false/>
+</dict>
+```
 
 <br>
 <br>
 
 ## 8.2 앱 바이너리 보호, 탈옥 감지, 동적 라이브러리 감지 등의 보안 대책을 소개해주세요.
 
+### 1. 앱 바이너리 보호
+- Bitcode 사용: 앱 바이너리가 변경될 가능성을 줄이고, Apple의 재컴파일을 통해 안전성을 유지.
+- 코드 서명: 앱 실행 시 iOS가 코드 서명을 확인하여 무단 변경 여부를 검증.
+
+### 2. 탈옥 감지
+
+탈옥 환경에서는 루트 권한으로 앱의 데이터를 조작할 수 있습니다. 탈옥을 감지하는 방법:
+
+#### 탈옥 여부 확인 코드
+
+```swift
+func isJailbroken() -> Bool {
+    let jailbreakIndicators = [
+        "/Applications/Cydia.app",
+        "/usr/sbin/sshd",
+        "/etc/apt"
+    ]
+    for path in jailbreakIndicators {
+        if FileManager.default.fileExists(atPath: path) {
+            return true
+        }
+    }
+    if canOpen(path: "/private/jailbreak.txt") {
+        return true
+    }
+    return false
+}
+
+func canOpen(path: String) -> Bool {
+    let file = fopen(path, "r")
+    if file != nil {
+        fclose(file)
+        return true
+    }
+    return false
+}
+```
+
+<br>
+
+### 3. 동적 라이브러리 감지
+
+동적 라이브러리는 앱 실행 시 코드를 주입하여 동작을 변조할 수 있습니다. 이를 방지하려면 dyld를 검사합니다.
+
+#### 코드 예제
+
+```swift
+import Foundation
+
+func hasInjectedLibraries() -> Bool {
+    let count = _dyld_image_count()
+    for i in 0..<count {
+        if let name = _dyld_get_image_name(i) {
+            if String(cString: name).contains("MobileSubstrate") {
+                return true
+            }
+        }
+    }
+    return false
+}
+```
+
 <br>
 <br>
 
 ## 8.3 코드 난독화, 런타임 무결성 검사 등 추가적인 보안 강화 방안을 제안해주세요.
 
+### 1. 코드 난독화
+코드 난독화는 바이너리 디컴파일 시 코드의 가독성을 낮춰 해커의 분석을 어렵게 만듭니다.
+	•	iOS에서는 SwiftShield, Obfuscator-iOS와 같은 도구를 사용하여 난독화를 적용할 수 있습니다.
+
+<br>
+
+### 2. 런타임 무결성 검사
+
+앱의 무결성을 유지하기 위해 실행 중 바이너리가 변조되었는지 확인합니다.
+
+#### Mach-O Header 검사
+
+```swift
+func isBinaryIntegrityCompromised() -> Bool {
+    guard let executablePath = Bundle.main.executablePath else { return false }
+    let attributes = try? FileManager.default.attributesOfItem(atPath: executablePath)
+    if let filePermissions = attributes?[.posixPermissions] as? Int {
+        // 기본 실행 권한은 755 (rwxr-xr-x)
+        return filePermissions != 0o755
+    }
+    return false
+}
+```
+
+<br>
+
+### 3. 기타 보안 강화
+- Keychain 사용: 민감한 정보를 안전하게 저장.
+- 디버깅 방지: ptrace를 사용하여 디버깅 차단.
+
+```swift
+import Darwin
+func disableDebugger() {
+    ptrace(PT_DENY_ATTACH, 0, nil, 0)
+}
+```
+
+- 앱 상태 검사: 앱이 디버깅 또는 변조된 환경에서 실행되는지 확인.
+
+<br>
+
+### 결론
+
+iOS 앱의 보안을 강화하려면 데이터 암호화, 탈옥 및 변조 감지, 코드 난독화와 같은 다양한 대책을 조합하여 적용해야 합니다. 이를 통해 민감한 데이터를 보호하고, 앱의 무결성을 유지하며, 사용자의 신뢰를 확보할 수 있습니다.
 
 <br>
 <br>
