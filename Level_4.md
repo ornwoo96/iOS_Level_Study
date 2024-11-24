@@ -1961,16 +1961,198 @@ Swift의 Distributed Actor는 분산 시스템에서 안전하고 효율적인 �
 
 ## 11. Swift의 DSL(Domain-Specific Language) 설계 및 구현 방법에 대해 설명해주세요.
 
+
 <br>
 <br>
 
 ## 11.1 DSL의 개념과 장점, Swift에서의 구현 방식을 설명해주세요.
+### 1. DSL(Domain-Specific Language)란?
+
+DSL(Domain-Specific Language)은 특정 도메인 문제를 해결하기 위해 설계된 작은 프로그래밍 언어입니다. 일반적인 프로그래밍 언어(General-Purpose Language)와 달리, DSL은 특정 목적에 최적화되어 있습니다.
+
+Swift에서 DSL은 일반적으로 코드의 가독성과 선언적 표현을 강화하기 위해 사용됩니다.
+
+<br>
+
+### 2. DSL의 장점
+- 가독성 향상: 코드가 특정 도메인에 맞게 자연어처럼 읽히도록 설계.
+- 생산성 증가: 반복적인 코드를 줄이고, 선언적으로 표현.
+- 오류 감소: 도메인 로직을 캡슐화하여 실수를 줄임.
+- 특정 도메인 최적화: 특정 요구사항에 맞는 간결하고 효율적인 코드 작성 가능.
+
+<br>
+
+### 3. Swift에서의 DSL 구현 방식
+
+Swift는 선언적 코드 작성과 DSL 설계에 적합한 기능을 제공합니다:
+- Swift의 함수 문법: 고차 함수와 클로저를 통해 DSL 스타일의 코드를 작성.
+- @resultBuilder: 복잡한 구조를 선언적으로 구성할 수 있도록 지원.
+
+<br>
+
+### Swift DSL 구현 예제
+
+#### HTML DSL
+
+Swift를 사용해 HTML을 선언적으로 구성하는 DSL을 설계할 수 있습니다.
+
+```swift
+protocol HTMLRepresentable {
+    var html: String { get }
+}
+
+struct HTML: HTMLRepresentable {
+    let tag: String
+    let content: [HTMLRepresentable]
+
+    var html: String {
+        let innerHTML = content.map { $0.html }.joined()
+        return "<\(tag)>\(innerHTML)</\(tag)>"
+    }
+}
+
+struct Text: HTMLRepresentable {
+    let text: String
+    var html: String { text }
+}
+
+// HTML DSL 정의
+func html(@HTMLBuilder _ content: () -> [HTMLRepresentable]) -> HTML {
+    return HTML(tag: "html", content: content())
+}
+
+func body(@HTMLBuilder _ content: () -> [HTMLRepresentable]) -> HTML {
+    return HTML(tag: "body", content: content())
+}
+
+func div(@HTMLBuilder _ content: () -> [HTMLRepresentable]) -> HTML {
+    return HTML(tag: "div", content: content())
+}
+
+@resultBuilder
+struct HTMLBuilder {
+    static func buildBlock(_ components: HTMLRepresentable...) -> [HTMLRepresentable] {
+        return components
+    }
+}
+
+// 사용 예제
+let webpage = html {
+    body {
+        div {
+            Text(text: "Hello, world!")
+            Text(text: "Welcome to Swift DSL.")
+        }
+    }
+}
+
+print(webpage.html)
+// 출력:
+// <html><body><div>Hello, world!Welcome to Swift DSL.</div></body></html>
+```
+
+#### 설명
+1. DSL의 선언적 구조: html { body { div { ... } } }와 같이 HTML 구조를 선언적으로 표현.
+2. @resultBuilder 활용: 여러 컴포넌트를 연결하여 계층 구조를 생성.
+3. 가독성 향상: 복잡한 문자열 조작 대신 간결한 코드 작성.
 
 <br>
 <br>
 
 ## 11.2 result builder를 활용한 DSL 설계 사례를 소개해주세요.
+@resultBuilder는 DSL 설계의 핵심 도구로, 코드 블록을 구성 요소로 변환하고 빌드 과정을 커스터마이징할 수 있습니다.
 
+<br>
+
+### 1. @resultBuilder의 기본 구조
+
+@resultBuilder를 사용하면, 여러 요소를 하나의 구조로 조합할 수 있습니다.
+
+#### 기본 동작
+
+```swift
+@resultBuilder
+struct StringBuilder {
+    static func buildBlock(_ components: String...) -> String {
+        return components.joined(separator: " ")
+    }
+}
+
+// 사용 예제
+func sentence(@StringBuilder _ content: () -> String) -> String {
+    return content()
+}
+
+let result = sentence {
+    "Swift"
+    "is"
+    "awesome!"
+}
+
+print(result) // 출력: Swift is awesome!
+```
+
+<br>
+
+### 2. SwiftUI와 유사한 DSL 설계
+
+SwiftUI의 선언적 문법은 @resultBuilder로 설계된 대표적인 DSL 사례입니다. 이를 응용해 간단한 UI DSL을 설계할 수 있습니다.
+
+#### 간단한 UI DSL 예제
+
+```swift
+protocol View {
+    var render: String { get }
+}
+
+struct Text: View {
+    let content: String
+    var render: String { "Text: \(content)" }
+}
+
+struct VStack: View {
+    let children: [View]
+    var render: String {
+        children.map { $0.render }.joined(separator: "\n")
+    }
+}
+
+@resultBuilder
+struct ViewBuilder {
+    static func buildBlock(_ components: View...) -> [View] {
+        return components
+    }
+}
+
+// DSL 정의
+func vStack(@ViewBuilder _ content: () -> [View]) -> VStack {
+    return VStack(children: content())
+}
+
+// 사용 예제
+let ui = vStack {
+    Text(content: "Hello, world!")
+    Text(content: "Swift DSL is powerful!")
+}
+
+print(ui.render)
+// 출력:
+// Text: Hello, world!
+// Text: Swift DSL is powerful!
+```
+
+<br>
+
+### 11.3 @resultBuilder의 장점
+1. 복잡한 구조 표현: 복잡한 계층적 구조를 선언적으로 쉽게 표현.
+2. 코드 가독성 향상: 반복 코드 제거 및 간결한 표현.
+3. Swift 문법과 통합: 함수, 클로저와 자연스럽게 통합되어 사용.
+
+<br>
+
+### 결론
+
+Swift의 DSL은 특정 도메인 문제를 간결하고 직관적으로 표현할 수 있는 강력한 도구입니다. 특히 @resultBuilder를 활용하면, 선언적이고 읽기 쉬운 코드를 작성할 수 있습니다. 이를 통해 HTML 렌더링, UI 구성, 문자열 조합 등 다양한 도메인에서 효과적인 솔루션을 설계할 수 있습니다.
 
 <br>
 <br>
