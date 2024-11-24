@@ -1575,28 +1575,386 @@ iOS 앱의 보안을 강화하려면 데이터 암호화, 탈옥 및 변조 감�
 <br>
 
 ## 9. Swift의 custom string interpolation에 대해 설명해주세요.
+### Custom String Interpolation이란?
+
+Swift의 문자열 보간법(string interpolation)은 문자열 안에 변수나 표현식을 삽입하는 기능입니다. 기본적으로 Swift는 모든 타입의 String 표현을 지원합니다. 그러나 Custom String Interpolation을 사용하면 새로운 보간 방식을 정의하거나 기존 방식을 확장할 수 있습니다.
+
+#### 기본 보간법 예제
+```swift
+let name = "Alice"
+let age = 25
+let message = "My name is \(name) and I am \(age) years old."
+print(message)
+// 출력: My name is Alice and I am 25 years old.
+```
+
+#### Custom String Interpolation의 필요성
+
+Custom String Interpolation을 사용하면:
+- 데이터를 특정 형식으로 출력.
+- 민감한 데이터를 숨김 처리.
+- 디버깅 또는 로깅을 위한 추가 정보를 포함.
 
 <br>
 <br>
 
 ## 9.1 custom string interpolation을 사용하여 문자열 보간법을 확장하는 방법을 예시와 함께 설명해주세요.
 
+### 1. 핵심 개념
+
+Custom String Interpolation을 구현하려면 StringInterpolationProtocol을 준수하는 커스텀 타입을 정의해야 합니다.
+
+- StringInterpolationProtocol
+	- Swift의 문자열 보간법은 StringInterpolationProtocol을 통해 동작합니다.
+	- appendLiteral 및 appendInterpolation 메서드를 오버라이드하여 보간 방식을 확장합니다.
+
+<br>
+
+### 2. 기본 구현
+
+#### 예제: 문자열 보간법 확장
+
+```swift
+struct CustomLogger: CustomStringConvertible, ExpressibleByStringInterpolation {
+    var message: String
+
+    init(stringLiteral value: String) {
+        self.message = value
+    }
+
+    init(stringInterpolation: StringInterpolation) {
+        self.message = stringInterpolation.result
+    }
+
+    struct StringInterpolation: StringInterpolationProtocol {
+        var result = ""
+
+        init(literalCapacity: Int, interpolationCount: Int) {
+            result.reserveCapacity(literalCapacity + interpolationCount * 10)
+        }
+
+        mutating func appendLiteral(_ literal: String) {
+            result.append(literal)
+        }
+
+        mutating func appendInterpolation(_ value: String) {
+            result.append("[\(value)]") // 보간된 문자열에 대괄호 추가
+        }
+
+        mutating func appendInterpolation(hidden value: String) {
+            result.append("[****]") // 민감한 정보 숨김 처리
+        }
+    }
+
+    var description: String {
+        return message
+    }
+}
+
+// 사용 예제
+let name = "Alice"
+let password = "Secret123"
+let log = CustomLogger("User \(name) logged in with password \(hidden: password)")
+print(log)
+// 출력: User [Alice] logged in with password [****]
+```
+
+#### 설명
+1. 보간 방식 확장:
+- 기본 보간 방식은 문자열을 그대로 삽입하지만, 커스텀 보간법으로 대괄호 추가 또는 숨김 처리를 구현.
+2. Literal 처리:
+- appendLiteral은 문자열의 리터럴 부분을 처리.
+3. 보간 데이터 처리:
+- appendInterpolation 메서드는 보간된 데이터를 변환.
+
+<br>
+
+### 3. 고급 구현
+
+#### 예제: 날짜 포맷 보간
+
+```swift
+import Foundation
+
+extension DefaultStringInterpolation {
+    mutating func appendInterpolation(format value: Date, _ format: String) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        let formattedDate = formatter.string(from: value)
+        appendLiteral(formattedDate)
+    }
+}
+
+// 사용 예제
+let currentDate = Date()
+let message = "Today's date is \(format: currentDate, "yyyy-MM-dd")."
+print(message)
+// 출력: Today's date is 2024-11-23.
+```
+
+#### 설명
+1. DefaultStringInterpolation을 확장하여 날짜를 특정 형식으로 출력.
+2. DateFormatter를 활용해 Date 객체를 문자열로 변환.
+
+<br>
+
+### 4. Custom 타입에 대한 보간
+
+Custom String Interpolation은 커스텀 타입에서도 사용 가능합니다.
+
+#### 예제: JSON 디버깅용 보간법
+
+```swift
+import Foundation
+
+struct Debuggable: CustomStringConvertible, ExpressibleByStringInterpolation {
+    var message: String
+
+    init(stringLiteral value: String) {
+        self.message = value
+    }
+
+    init(stringInterpolation: StringInterpolation) {
+        self.message = stringInterpolation.result
+    }
+
+    struct StringInterpolation: StringInterpolationProtocol {
+        var result = ""
+
+        init(literalCapacity: Int, interpolationCount: Int) {
+            result.reserveCapacity(literalCapacity + interpolationCount * 10)
+        }
+
+        mutating func appendLiteral(_ literal: String) {
+            result.append(literal)
+        }
+
+        mutating func appendInterpolation<T: Encodable>(json value: T) {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            if let jsonData = try? encoder.encode(value),
+               let jsonString = String(data: jsonData, encoding: .utf8) {
+                result.append(jsonString)
+            } else {
+                result.append("Invalid JSON")
+            }
+        }
+    }
+
+    var description: String {
+        return message
+    }
+}
+
+// 사용 예제
+struct User: Encodable {
+    let name: String
+    let age: Int
+}
+
+let user = User(name: "Alice", age: 25)
+let debugLog = Debuggable("User data: \(json: user)")
+print(debugLog)
+// 출력:
+// User data: {
+//   "name" : "Alice",
+//   "age" : 25
+// }
+```
+
+#### 설명
+1. JSON 데이터를 보간법에 활용.
+2. Encodable 타입을 입력받아 JSON 문자열로 변환.
+
+<br>
+
+### Custom String Interpolation의 장점
+1. 코드 재사용성:
+- 공통된 출력 로직을 캡슐화하여 재사용 가능.
+2. 가독성 향상:
+- 보간법을 통해 복잡한 출력 로직을 간결하게 작성.
+3. 다양한 출력 형식 지원:
+- 문자열 외에도 날짜, JSON, 민감 데이터 등의 출력 형식을 지원.
+
+<br>
+
+### 결론
+
+Custom String Interpolation은 Swift에서 문자열 보간을 확장하고 다양한 데이터 포맷에 맞게 출력할 수 있도록 하는 강력한 기능입니다. 이를 통해 로깅, 디버깅, 데이터 형식화 등 여러 시나리오에서 효율적이고 가독성 높은 코드를 작성할 수 있습니다.
 
 <br>
 <br>
 
 ## 10. Swift의 Distributed Actor에 대해 설명해주세요.
 
+
 <br>
 <br>
 
 ## 10.1 Distributed Actor의 개념과 사용 목적을 설명해주세요.
+
+### 1. Distributed Actor란?
+
+Swift의 Distributed Actor는 분산 시스템에서 동작하는 객체를 표현하기 위한 타입입니다. Apple은 Swift 5.7에서 Distributed Actor를 도입하여 네트워크로 분산된 시스템 간에 안전하고 효율적인 통신을 지원합니다. 이는 기존 actor의 동시성 모델을 확장하여, 프로세스 간 통신 및 상태 동기화를 가능하게 합니다.
+
+<br>
+
+### 2. 사용 목적
+
+Distributed Actor는 다음과 같은 목적을 위해 설계되었습니다:
+- 안전한 원격 통신: 네트워크 상의 다른 Actor와 통신할 때 타입 안전성과 호출의 정확성을 보장.
+- 분산 시스템 구현: 서로 다른 장치나 서버 간에 상태를 공유하거나 동기화.
+- 비동기 메서드 호출: 원격 프로세스 간의 비동기 호출을 추상화.
+- 추상화 제공: 개발자는 네트워크 계층의 세부 사항을 신경 쓰지 않고 분산 객체를 정의할 수 있음.
+
+<br>
+
+### Distributed Actor의 특징
+- ID 기반 식별: Distributed Actor는 고유 ID를 가지며, 이를 통해 원격 Actor와의 연결을 관리합니다.
+- 타입 안전성: 원격 호출 시 런타임 대신 컴파일 타임에 호출 가능성을 검사.
+- 전송 프로토콜: 네트워크 계층은 Distributed Actor가 준수하는 특정 전송 프로토콜로 관리됩니다.
+
+#### 기본 선언
+
+```swift
+distributed actor MyActor {
+    distributed func doSomething() async {
+        print("This is a distributed actor method.")
+    }
+}
+```
 
 <br>
 <br>
 
 ## 10.2 분산 시스템에서 Distributed Actor를 활용한 통신 및 상태 동기화 방법을 예시와 함께 설명해주세요.
 
+### 1. 기본 동작 원리
+
+Distributed Actor는 다음 구성 요소로 동작합니다:
+- Actor Identity: 고유 식별자(DistributedActor.ID)를 통해 Actor를 식별.
+- Transport Protocol: DistributedActorSystem 프로토콜을 통해 네트워크 전송 계층 관리.
+- Remote Call: 원격 호출을 처리하여 네트워크 간 메서드 실행.
+
+<br>
+
+### 2. 구현 예제
+
+분산 시스템 기본 예제
+
+아래 예제는 Distributed Actor를 사용하여 분산 시스템에서 원격 메서드 호출을 구현합니다.
+
+```swift
+import Distributed
+
+// 1. Distributed Actor System 정의
+protocol MyDistributedActorSystem: DistributedActorSystem {}
+
+struct MyActorSystem: MyDistributedActorSystem {
+    func resolve<ID: ActorID>(id: ID, as actorType: DistributedActor.Type) throws -> DistributedActor {
+        fatalError("Resolve Actor")
+    }
+
+    func assignID<Actor>(_ actorType: Actor.Type) -> Actor.ID where Actor: DistributedActor {
+        UUID().uuidString as! Actor.ID
+    }
+
+    func actorReady<Actor>(_ actor: Actor) where Actor: DistributedActor {
+        print("Actor is ready: \(actor)")
+    }
+
+    func resignID(_ id: ActorID) {
+        print("Actor resigned ID: \(id)")
+    }
+}
+
+// 2. Distributed Actor 정의
+distributed actor MyDistributedActor {
+    distributed func greet(name: String) async -> String {
+        return "Hello, \(name)!"
+    }
+}
+
+// 3. Distributed Actor 호출
+let system = MyActorSystem()
+
+Task {
+    let localActor = MyDistributedActor(actorSystem: system)
+    let greeting = await localActor.greet(name: "Alice")
+    print(greeting)  // 출력: Hello, Alice!
+}
+```
+
+<br>
+
+### 3. 원격 Actor 간 통신
+
+Distributed Actor는 네트워크를 통해 서로 다른 프로세스에서 동작하는 Actor와 통신할 수 있습니다.
+
+#### 예제: 원격 Actor 호출
+
+```swift
+distributed actor RemoteActor {
+    distributed func fetchData() async -> String {
+        return "Data from remote actor."
+    }
+}
+
+let remoteSystem = MyActorSystem()
+
+// 원격 Actor 호출
+Task {
+    if let remoteActor = try? RemoteActor.resolve(id: "remote-actor-id", using: remoteSystem) {
+        let data = await remoteActor.fetchData()
+        print(data)  // 출력: Data from remote actor.
+    }
+}
+```
+
+<br>
+
+### 4. 상태 동기화
+
+Distributed Actor는 네트워크 상의 다른 Actor와 상태를 동기화할 수 있습니다.
+
+#### 예제: 분산 상태 동기화
+
+```swift
+distributed actor Counter {
+    private var value: Int = 0
+
+    distributed func increment() async {
+        value += 1
+        print("Counter value: \(value)")
+    }
+
+    distributed func getValue() async -> Int {
+        return value
+    }
+}
+
+let system = MyActorSystem()
+let counter = Counter(actorSystem: system)
+
+// 상태 동기화
+Task {
+    await counter.increment()
+    print(await counter.getValue())  // 출력: 1
+}
+```
+
+<br>
+
+### Distributed Actor의 장점
+1. 타입 안전성: 분산 시스템에서도 Swift의 타입 시스템을 활용하여 안전한 통신 보장.
+2. 비동기 추상화: 네트워크 호출을 단순 메서드 호출처럼 작성 가능.
+3. 스케일링 가능성: 여러 장치와 서버 간 상태 동기화와 협업.
+
+<br>
+
+### 결론
+
+Swift의 Distributed Actor는 분산 시스템에서 안전하고 효율적인 통신을 구현하기 위한 강력한 도구입니다. 이를 통해 개발자는 네트워크 계층의 복잡성을 추상화하고, 타입 안전성과 비동기 호출의 장점을 활용하여 확장 가능하고 유지보수하기 쉬운 분산 애플리케이션을 작성할 수 있습니다.
 
 <br>
 <br>
