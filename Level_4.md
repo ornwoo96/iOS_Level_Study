@@ -2352,16 +2352,203 @@ print(word[4]) // t
 
 ## 13. Swift의 리플렉션(Reflection)과 런타임 프로그래밍에 대해 자세히 설명해주세요.
 
+### 1. 리플렉션(Reflection)이란?
+
+리플렉션은 런타임에 객체의 타입, 속성, 메서드, 프로토콜 등의 정보를 동적으로 검사하거나 수정할 수 있는 기능입니다. Swift는 주로 Mirror API를 통해 리플렉션을 제공합니다.
+
+### 2. 리플렉션의 주요 기능
+1. 타입 정보 검사:
+- 런타임에 객체의 타입을 확인할 수 있습니다.
+2. 속성 탐색:
+- 객체의 속성 이름과 값을 동적으로 열거합니다.
+3. 메서드 호출 (제한적):
+- 메서드 호출은 Swift의 리플렉션에서 직접적으로 지원되지 않지만, Objective-C 런타임을 사용하는 경우 가능합니다.
+
 <br>
 <br>
 
 ## 13.1 리플렉션을 사용하여 런타임에 타입 정보를 검사하고 메서드를 호출하는 방법을 예시와 함께 설명해주세요.
+
+### 1. 기본 사용 예제
+
+#### 예제: 런타임에 객체의 속성 검사
+
+```swift
+struct Person {
+    var name: String
+    var age: Int
+    var isStudent: Bool
+}
+
+let person = Person(name: "Alice", age: 25, isStudent: true)
+
+// Mirror를 사용하여 속성 열거
+let mirror = Mirror(reflecting: person)
+
+print("Type: \(mirror.subjectType)") // 출력: Type: Person
+print("Properties:")
+
+for child in mirror.children {
+    if let label = child.label {
+        print("\(label): \(child.value)")
+    }
+}
+
+// 출력:
+// name: Alice
+// age: 25
+// isStudent: true
+```
+
+<br>
+
+### 2. 런타임 메서드 호출
+
+Swift 자체는 메서드 호출을 리플렉션으로 지원하지 않지만, Objective-C 런타임을 통해 가능합니다. Objective-C의 Selector와 NSObject를 사용해 런타임 메서드를 호출합니다.
+
+#### 예제: Objective-C 메서드 호출
+
+```swift
+import Foundation
+
+class MyClass: NSObject {
+    @objc func sayHello(to name: String) {
+        print("Hello, \(name)!")
+    }
+}
+
+let myObject = MyClass()
+
+// 메서드 호출
+if myObject.responds(to: Selector("sayHelloTo:")) {
+    myObject.perform(Selector("sayHelloTo:"), with: "Alice")
+} else {
+    print("Method not found.")
+}
+```
 
 <br>
 <br>
 
 ## 13.2 리플렉션을 활용한 의존성 주입(Dependency Injection) 프레임워크 구현 방법을 설명해주세요.
 
+### 1. 의존성 주입(Dependency Injection)이란?
+
+의존성 주입은 객체가 의존하는 다른 객체를 직접 생성하지 않고 외부에서 제공받는 설계 패턴입니다. 이를 통해 모듈화, 테스트 가능성, 재사용성을 높일 수 있습니다.
+
+<br>
+
+### 2. 리플렉션을 활용한 의존성 주입의 장점
+1. 런타임에 동적으로 의존성 확인: 객체의 속성을 검사하여 필요한 의존성을 자동으로 주입.
+2. 자동화: 개발자가 명시적으로 의존성을 연결하지 않아도 자동으로 주입 가능.
+
+<br>
+
+### 3. 의존성 주입 컨테이너 구현
+
+#### Step 1: 의존성 레지스트리 설계
+
+의존성 주입을 관리하는 레지스트리를 설계합니다.
+
+```swift
+class DependencyContainer {
+    private var services: [String: Any] = [:]
+
+    func register<T>(_ type: T.Type, instance: T) {
+        let key = String(describing: type)
+        services[key] = instance
+    }
+
+    func resolve<T>(_ type: T.Type) -> T? {
+        let key = String(describing: type)
+        return services[key] as? T
+    }
+}
+```
+
+#### Step 2: 의존성 주입 자동화
+
+리플렉션을 사용해 객체의 의존성을 자동으로 주입합니다.
+
+```swift
+protocol Injectable {}
+
+@propertyWrapper
+struct Inject<T> {
+    private var value: T?
+
+    init() {
+        self.value = DependencyContainer.shared.resolve(T.self)
+    }
+
+    var wrappedValue: T {
+        get {
+            guard let value = value else {
+                fatalError("Dependency \(T.self) is not resolved.")
+            }
+            return value
+        }
+    }
+}
+
+extension DependencyContainer {
+    static let shared = DependencyContainer()
+}
+```
+
+<br>
+
+#### Step 3: 의존성 정의 및 사용
+1. 서비스 등록:
+- 의존성을 컨테이너에 등록합니다.
+2. 의존성 사용:
+- @Inject를 사용하여 속성 주입.
+
+#### 예제 코드
+
+```swift
+// 정의된 서비스
+protocol DataService {
+    func fetchData() -> String
+}
+
+class MockDataService: DataService {
+    func fetchData() -> String {
+        return "Mock Data"
+    }
+}
+
+// 사용 클래스
+class DataManager: Injectable {
+    @Inject var dataService: DataService
+
+    func loadData() {
+        print(dataService.fetchData())
+    }
+}
+
+// 컨테이너에 서비스 등록
+let container = DependencyContainer.shared
+container.register(DataService.self, instance: MockDataService())
+
+// 의존성 주입 및 사용
+let manager = DataManager()
+manager.loadData() // 출력: Mock Data
+```
+
+#### 리플렉션 활용 시 주의사항
+1. 성능:
+- 리플렉션은 런타임 작업이므로, 잦은 사용은 성능에 영향을 미칠 수 있습니다.
+2. 런타임 안정성:
+- 컴파일 타임에 확인되지 않는 작업이 많아 런타임 오류 가능성이 높아질 수 있습니다.
+3. 가독성 저하:
+- 코드가 동적으로 동작하기 때문에 추적이 어려울 수 있습니다.
+
+<br>
+
+### 결론
+
+Swift의 리플렉션은 객체의 타입 정보와 속성을 런타임에 동적으로 검사하고 활용할 수 있는 강력한 도구입니다. 이를 통해 런타임 프로그래밍과 의존성 주입 같은 패턴을 효과적으로 구현할 수 있습니다. 하지만 성능과 가독성을 고려하여 적절히 사용하는 것이 중요합니다.
 
 <br>
 <br>
