@@ -2159,16 +2159,193 @@ Swift의 DSL은 특정 도메인 문제를 간결하고 직관적으로 표현�
 
 ## 12. Swift의 유연한 문법 기능(e.g., 오퍼레이터 오버로딩, 첨자 표기법)을 활용한 코드 설계 방법에 대해 설명해주세요.
 
+Swift는 오퍼레이터 오버로딩과 첨자 표기법(Subscript) 같은 유연한 문법 기능을 제공하여 직관적이고 간결한 코드를 설계할 수 있습니다. 이 기능들을 활용하면 사용자 정의 타입에서 더 자연스럽고 읽기 쉬운 인터페이스를 제공할 수 있습니다.
+
 <br>
 <br>
 
 ## 12.1 오퍼레이터 오버로딩을 사용하여 사용자 정의 타입에 대한 연산을 직관적으로 표현하는 방법을 예시와 함께 설명해주세요.
 
+### 1. 오퍼레이터 오버로딩이란?
+
+Swift에서는 기본 제공 연산자(+, -, *, / 등)를 사용자 정의 타입에 대해 재정의하거나 새로운 연산자를 정의할 수 있습니다. 이를 통해 사용자 정의 타입에 대해 직관적인 연산 표현이 가능합니다.
+
+<br>
+
+### 2. 오퍼레이터 오버로딩 구현 방법
+
+#### 예제: 벡터 연산
+
+사용자 정의 타입 Vector에 대해 +, - 연산을 정의합니다.
+
+```swift
+import Foundation
+
+struct Vector {
+    var x: Double
+    var y: Double
+
+    // 벡터 덧셈
+    static func + (lhs: Vector, rhs: Vector) -> Vector {
+        return Vector(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+    }
+
+    // 벡터 뺄셈
+    static func - (lhs: Vector, rhs: Vector) -> Vector {
+        return Vector(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+    }
+
+    // 스칼라 곱
+    static func * (lhs: Vector, scalar: Double) -> Vector {
+        return Vector(x: lhs.x * scalar, y: lhs.y * scalar)
+    }
+
+    // 내적 (Dot Product)
+    static func * (lhs: Vector, rhs: Vector) -> Double {
+        return (lhs.x * rhs.x) + (lhs.y * rhs.y)
+    }
+}
+
+// 사용 예제
+let v1 = Vector(x: 3, y: 4)
+let v2 = Vector(x: 1, y: 2)
+
+let sum = v1 + v2       // Vector(x: 4.0, y: 6.0)
+let difference = v1 - v2 // Vector(x: 2.0, y: 2.0)
+let scaled = v1 * 2      // Vector(x: 6.0, y: 8.0)
+let dotProduct = v1 * v2 // 11.0
+
+print("Sum: \(sum), Difference: \(difference), Scaled: \(scaled), Dot Product: \(dotProduct)")
+```
+
+<br>
+
+### 3. 새로운 연산자 정의
+
+Swift에서는 기본 제공되지 않는 연산자를 새로 정의할 수도 있습니다.
+
+#### 예제: 벡터의 외적(Cross Product)을 위한 연산자 정의
+
+```swift
+precedencegroup CrossPrecedence {
+    associativity: left
+    higherThan: MultiplicationPrecedence
+}
+
+infix operator ** : CrossPrecedence
+
+struct Vector3D {
+    var x: Double
+    var y: Double
+    var z: Double
+
+    // 외적 정의
+    static func ** (lhs: Vector3D, rhs: Vector3D) -> Vector3D {
+        return Vector3D(
+            x: lhs.y * rhs.z - lhs.z * rhs.y,
+            y: lhs.z * rhs.x - lhs.x * rhs.z,
+            z: lhs.x * rhs.y - lhs.y * rhs.x
+        )
+    }
+}
+
+// 사용 예제
+let v3 = Vector3D(x: 1, y: 0, z: 0)
+let v4 = Vector3D(x: 0, y: 1, z: 0)
+
+let crossProduct = v3 ** v4 // Vector3D(x: 0, y: 0, z: 1)
+print("Cross Product: \(crossProduct)")
+```
+
+
 <br>
 <br>
 
 ## 12.2 첨자 표기법을 사용하여 사용자 정의 컬렉션 타입을 구현하는 방법과 주의 사항을 설명해주세요.
+### 1. 첨자 표기법이란?
 
+첨자 표기법(subscript)을 사용하면 배열처럼 값에 접근하거나 수정할 수 있는 인터페이스를 사용자 정의 타입에 제공할 수 있습니다. 이를 통해 컬렉션처럼 동작하는 타입을 설계할 수 있습니다.
+
+<br>
+
+### 2. 첨자 표기법 구현 방법
+
+#### 예제: 사용자 정의 컬렉션
+
+다음은 Matrix 타입에 대해 행렬 요소를 첨자 표기법으로 접근하는 방법입니다.
+
+```swift
+struct Matrix {
+    private var grid: [[Int]]
+    let rows: Int
+    let columns: Int
+
+    init(rows: Int, columns: Int) {
+        self.rows = rows
+        self.columns = columns
+        self.grid = Array(repeating: Array(repeating: 0, count: columns), count: rows)
+    }
+
+    // 첨자 읽기
+    subscript(row: Int, column: Int) -> Int {
+        get {
+            precondition(row >= 0 && row < rows && column >= 0 && column < columns, "Index out of range")
+            return grid[row][column]
+        }
+        set {
+            precondition(row >= 0 && row < rows && column >= 0 && column < columns, "Index out of range")
+            grid[row][column] = newValue
+        }
+    }
+}
+
+// 사용 예제
+var matrix = Matrix(rows: 2, columns: 2)
+matrix[0, 0] = 1
+matrix[1, 1] = 4
+
+print(matrix[0, 0]) // 1
+print(matrix[1, 1]) // 4
+```
+
+<br>
+
+### 3. 다중 첨자와 타입 변환
+
+첨자 표기법은 다중 매개변수와 다양한 반환 타입을 지원합니다.
+
+#### 예제: 문자열 첨자 변환
+
+```swift
+extension String {
+    subscript(index: Int) -> Character {
+        get {
+            precondition(index >= 0 && index < count, "Index out of bounds")
+            return self[self.index(startIndex, offsetBy: index)]
+        }
+    }
+}
+
+// 사용 예제
+let word = "Swift"
+print(word[0]) // S
+print(word[4]) // t
+```
+
+<br>
+
+### 4. 첨자 표기법 구현 시 주의 사항
+- 안전한 범위 검증: 첨자 표기법으로 잘못된 범위 접근을 방지하기 위해 적절한 검증 필요.
+- 읽기/쓰기 접근 분리: 읽기 전용(get)과 읽기-쓰기(get + set) 접근을 적절히 설계.
+- 성능 고려: 대형 컬렉션을 다룰 때 첨자 접근이 효율적이어야 함.
+
+
+<br>
+
+### 결론
+- 오퍼레이터 오버로딩은 사용자 정의 타입에 대해 직관적이고 간결한 연산 인터페이스를 제공합니다. 이를 통해 수학 연산, 벡터 조작 등 다양한 도메인에서 유용하게 활용할 수 있습니다.
+- 첨자 표기법은 컬렉션처럼 작동하는 사용자 정의 타입을 설계할 때 매우 유용하며, 간결한 데이터 접근 방법을 제공합니다.
+- 두 기능을 결합하여 가독성 높은 DSL 스타일의 코드를 설계할 수 있습니다.
 
 <br>
 <br>
